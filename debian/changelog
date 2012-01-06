@@ -1,0 +1,13 @@
+capi-network-connection (0.1.0-13) unstable; urgency=low
+
+  * Update version
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-13
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 15 Dec 2011 13:30:49 +0900
+
+capi-network-connection (0.0.1-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Wed, 07 Dec 2011 13:03:56 +0900
