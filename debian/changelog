@@ -1,6 +1,6 @@
 capi-network-connection (0.1.0-15) unstable; urgency=low
 
-  * Fix bugs and related DTS
+  * Fix bugs
   * Git: api/connection
   * Tag: capi-network-connection_0.1.0-15
 
