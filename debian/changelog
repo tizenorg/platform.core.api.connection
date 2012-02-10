@@ -1,3 +1,19 @@
+capi-network-connection (0.1.0-15) unstable; urgency=low
+
+  * Fix bugs and related DTS
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-15
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Tue, 07 Feb 2012 19:09:07 +0900
+
+capi-network-connection (0.1.0-14) unstable; urgency=low
+
+  * Update DTS
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-14
+
+ -- ByungWoo Lee <bw1212.lee@samsung.com>  Fri, 27 Jan 2012 18:18:29 +0900
+
 capi-network-connection (0.1.0-13) unstable; urgency=low
 
   * Update version

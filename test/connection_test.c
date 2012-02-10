@@ -61,7 +61,7 @@ int test_register_client(void){
 	if(CONNECTION_ERROR_NONE==err) //set callbacks
 	{
 		if(handle==NULL)
-			printf("OOOOOPPPPSSS\n");
+			printf("Handle is NULL\n");
 		connection_set_cb(handle, net_callback, NULL);
 	}
 	else

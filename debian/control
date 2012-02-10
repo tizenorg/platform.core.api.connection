@@ -2,7 +2,7 @@ Source: capi-network-connection
 Section: libs
 Priority: extra
 Maintainer: Sanjeev BA <as2902.b@samsung.com>
-Build-Depends: debhelper (>= 5),dlog-dev, capi-base-common-dev, libvconf-dev
+Build-Depends: debhelper (>= 5), dlog-dev, capi-base-common-dev, libvconf-dev
 
 Package: capi-network-connection
 Architecture: any
@@ -11,7 +11,7 @@ Description: Network Connection library in TIZEN C API
 
 Package: capi-network-connection-dev
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, capi-network-connection (= ${Source-Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, capi-network-connection (= ${Source-Version}), dlog-dev, capi-base-common-dev, libvconf-dev
 Description: Network Connection library in TIZEN C API (DEV)
 
 Package: capi-network-connection-dbg
