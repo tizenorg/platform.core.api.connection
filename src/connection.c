@@ -124,85 +124,98 @@ int connection_create(connection_h *handle)
 
 int connection_destroy(connection_h handle)
 {
-	if(handle!=NULL)
+	if(handle==NULL)
 	{
-		LOGI(TIZEN_N_CONNECTION,"Destroy Handle : %p\n", handle);
-		free(handle);
+		LOGI(TIZEN_N_CONNECTION,"Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
+
+	LOGI(TIZEN_N_CONNECTION,"Destroy Handle : %p\n", handle);
+	free(handle);
+
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_network_status(connection_network_type_e network_type, connection_network_status_e* network_status)
+int connection_get_network_status(connection_network_type_e network_type,
+				connection_network_status_e* network_status)
 {
 
-    if (network_status==NULL)
-    {
-	    return CONNECTION_ERROR_INVALID_PARAMETER;
-    }
+	if (network_status==NULL ||
+	    network_type > CONNECTION_WIFI_TYPE ||
+	    network_type < CONNECTION_DEFAULT_TYPE)
+	{
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
-    int status = 0;
+	int status = 0;
 
 	if (vconf_get_int(VCONFKEY_NETWORK_STATUS, &status))
 	{
-        LOGI(TIZEN_N_CONNECTION,"First Step Failure = %d\n", status);
-        return CONNECTION_ERROR_INVALID_OPERATION;
+		LOGI(TIZEN_N_CONNECTION,"First Step Failure = %d\n", status);
+		return CONNECTION_ERROR_INVALID_OPERATION;
 	}
-    LOGI(TIZEN_N_CONNECTION,"Connected Network = %d\n", status);
+	LOGI(TIZEN_N_CONNECTION,"Connected Network = %d\n", status);
 
-    if (network_type==CONNECTION_DEFAULT_TYPE)
-        network_type = CONNECTION_WIFI_TYPE;
+	if (network_type==CONNECTION_DEFAULT_TYPE)
+	{
+		switch(status)
+		{
+			case VCONFKEY_NETWORK_CELLULAR:
+			case VCONFKEY_NETWORK_WIFI:
+				*network_status = CONNECTION_STATUS_AVAILABLE;
+				break;
+			default :
+				*network_status = CONNECTION_STATUS_UNAVAILABLE;
+				break;
+		}
 
-    if (status!=network_type)
-    {
-        LOGI(TIZEN_N_CONNECTION,"Mismatch = %d\n", network_type);
-        *network_status = CONNECTION_STATUS_UNAVAILABLE;
-        return CONNECTION_ERROR_NONE;
-    }
+		return CONNECTION_ERROR_NONE;
+	}
 
 	if (network_type == CONNECTION_MOBILE_TYPE)
 	{
 		if (!vconf_get_int(VCONFKEY_NETWORK_CELLULAR_STATE,&status))
 		{
-            LOGI(TIZEN_N_CONNECTION,"Mobile = %d\n", status);
-            if (status!=VCONFKEY_NETWORK_CELLULAR_NO_SERVICE)
-            {
-                *network_status = CONNECTION_STATUS_AVAILABLE;
-            }
-            else
-            {
-                *network_status = CONNECTION_STATUS_UNAVAILABLE;
-            }
+			LOGI(TIZEN_N_CONNECTION,"Mobile = %d\n", status);
+			if (status==VCONFKEY_NETWORK_CELLULAR_ON)
+			{
+				*network_status = CONNECTION_STATUS_AVAILABLE;
+			}
+			else
+			{
+				*network_status = CONNECTION_STATUS_UNAVAILABLE;
+			}
 			return CONNECTION_ERROR_NONE;
 		}
-        else
-        {
-            *network_status = CONNECTION_STATUS_UNKNOWN;
-            LOGI(TIZEN_N_CONNECTION,"3G Failed = %d\n", status);
-            return CONNECTION_ERROR_INVALID_OPERATION;
-        }
+		else
+		{
+			*network_status = CONNECTION_STATUS_UNKNOWN;
+			LOGI(TIZEN_N_CONNECTION,"3G Failed = %d\n", status);
+			return CONNECTION_ERROR_INVALID_OPERATION;
+		}
 	}
 
 	if (network_type == CONNECTION_WIFI_TYPE)
 	{
 		if (!vconf_get_int(VCONFKEY_NETWORK_WIFI_STATE,&status))
 		{
-            LOGI(TIZEN_N_CONNECTION,"WiFi = %d\n", status);
-            if (status!=VCONFKEY_NETWORK_WIFI_OFF)
-            {
-                *network_status = CONNECTION_STATUS_AVAILABLE;
-            }
-            else
-            {
-                *network_status = CONNECTION_STATUS_UNAVAILABLE;
-            }
+			LOGI(TIZEN_N_CONNECTION,"WiFi = %d\n", status);
+			if (status==VCONFKEY_NETWORK_WIFI_CONNECTED)
+			{
+				*network_status = CONNECTION_STATUS_AVAILABLE;
+			}
+			else
+			{
+				*network_status = CONNECTION_STATUS_UNAVAILABLE;
+			}
 			return CONNECTION_ERROR_NONE;
 		}
-        else
-        {
-            *network_status = CONNECTION_STATUS_UNKNOWN;
-            LOGI(TIZEN_N_CONNECTION,"WiFi Failed = %d\n", status);
-            return CONNECTION_ERROR_INVALID_OPERATION;
-        }
+		else
+		{
+			*network_status = CONNECTION_STATUS_UNKNOWN;
+			LOGI(TIZEN_N_CONNECTION,"WiFi Failed = %d\n", status);
+			return CONNECTION_ERROR_INVALID_OPERATION;
+		}
 	}
 	return CONNECTION_ERROR_INVALID_PARAMETER;
 }

@@ -44,7 +44,7 @@ typedef enum
 	TOTAL_DATACALL_DURATION,
 	TOTAL_SENT_DATA_SIZE,
 	TOTAL_RECEIVED_DATA_SIZE,
-    LAST_WIFI_DATACALL_DURATION,
+	LAST_WIFI_DATACALL_DURATION,
 	LAST_WIFI_SENT_DATA_SIZE,
 	LAST_WIFI_RECEIVED_DATA_SIZE,
 	TOTAL_WIFI_DATACALL_DURATION,
@@ -138,7 +138,7 @@ int connection_set_suspend_indication_cb(connection_h handle, connection_cb call
  *
  * @param[in] handle      Handle received as a result of connection_create() API.
  * @return 0 on success, otherwise negative error value.
- * @retval CONNECTION_ERROR_NONE - the operation has completed unccessfully.
+ * @retval CONNECTION_ERROR_NONE - the operation has completed unsuccessfully.
  * @retval TIZEN_ERROR_INVALID_PARAMETER - handle is invalid or callback is null
  * @pre #connection_create, #connection_set_suspend_indication_cb
  *
@@ -155,7 +155,7 @@ int connection_unset_suspend_indication_cb(connection_h handle);
  * @param[in] callback    Pointer to function of type (connection_cb).
  * @param[in] user_data   User data param provided by application.
  * @return 0 on success, otherwise negative error value.
- * @retval CONNECTION_ERROR_NONE - the operation has completed unccessfully.
+ * @retval CONNECTION_ERROR_NONE - the operation has completed unsuccessfully.
  * @retval TIZEN_ERROR_INVALID_PARAMETER - handle is invalid or callback is null
  * @pre #connection_create
  *

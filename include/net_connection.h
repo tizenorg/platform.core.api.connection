@@ -54,11 +54,9 @@ extern "C" {
 typedef enum
 {
 	CONNECTION_ERROR_NONE = TIZEN_ERROR_NONE, /**< Successful */
-
 	CONNECTION_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER, /**< Invalid parameter */
-
-    CONNECTION_ERROR_OUT_OF_MEMORY = TIZEN_ERROR_OUT_OF_MEMORY, /**< Out of memory error */
-    CONNECTION_ERROR_INVALID_OPERATION = TIZEN_ERROR_INVALID_OPERATION, /**< Invalid Operation */
+	CONNECTION_ERROR_OUT_OF_MEMORY = TIZEN_ERROR_OUT_OF_MEMORY, /**< Out of memory error */
+	CONNECTION_ERROR_INVALID_OPERATION = TIZEN_ERROR_INVALID_OPERATION, /**< Invalid Operation */
 
 }connection_error_e;
 
@@ -169,7 +167,8 @@ int connection_create(connection_h * handle);
  * @param[in] handle      The handle to the connection
  *
  * @return 0 on success, otherwise negative error value.
- * @retval #CONNECTION_ERROR_NONE  Successful 
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @see connection_create()
  *
  *
