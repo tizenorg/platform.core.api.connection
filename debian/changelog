@@ -1,3 +1,11 @@
+capi-network-connection (0.1.0-16) unstable; urgency=low
+
+  * Add versioning of library
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-16 
+
+ -- ByungWoo Lee <bw1212.lee@samsung.com>  Tue, 14 Feb 2012 17:23:56 +0900
+
 capi-network-connection (0.1.0-15) unstable; urgency=low
 
   * Fix bugs
