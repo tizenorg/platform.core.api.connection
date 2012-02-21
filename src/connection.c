@@ -23,10 +23,10 @@
 
 #define TIZEN_N_CONNECTION "CAPI_NETWORK_CONNECTION"
 
-void connection_cb_net_config_change_cb(keynode_t *node, void *user_data);
+static void __connection_cb_net_config_change_cb(keynode_t *node, void *user_data);
 
 // API to convert error codes back and forth
-int convert_error_code(int dnet_error_code)
+static int __convert_error_code(int dnet_error_code)
 {
 	switch(dnet_error_code)
 	{
@@ -39,7 +39,7 @@ int convert_error_code(int dnet_error_code)
 	}
 }
 
-int connection_set_callbacks(connection_h handle, void *callback, void *user_data)
+static int __connection_set_callbacks(connection_h handle, void *callback, void *user_data)
 {
 	if(handle!=NULL)
 	{
@@ -51,13 +51,13 @@ int connection_set_callbacks(connection_h handle, void *callback, void *user_dat
             // This single vconf key will notify 
             // network status, ip and proxy changes.
 		    vconf_notify_key_changed(VCONFKEY_NETWORK_CONFIGURATION_CHANGE_IND, 
-						connection_cb_net_config_change_cb,
+						__connection_cb_net_config_change_cb,
 						local_handle);
         }
         else
         {
 		    vconf_ignore_key_changed(VCONFKEY_NETWORK_CONFIGURATION_CHANGE_IND, 
-						connection_cb_net_config_change_cb);
+						__connection_cb_net_config_change_cb);
         }
 		return (CONNECTION_ERROR_NONE);
 	}
@@ -71,21 +71,21 @@ int connection_set_cb(connection_h handle, connection_cb callback, void *user_da
 {
 	int retval = CONNECTION_ERROR_NONE;
 
-	retval = connection_set_callbacks(handle, callback, user_data);
+	retval = __connection_set_callbacks(handle, callback, user_data);
 
-	return convert_error_code(retval);
+	return __convert_error_code(retval);
 }
 
 int connection_unset_cb(connection_h handle)
 {
 	int retval = CONNECTION_ERROR_NONE;
 
-	retval = connection_set_callbacks(handle, NULL, NULL);
+	retval = __connection_set_callbacks(handle, NULL, NULL);
 
-	return convert_error_code(retval);
+	return __convert_error_code(retval);
 }
 
-void connection_cb_net_config_change_cb(keynode_t *node, void *user_data)
+static void __connection_cb_net_config_change_cb(keynode_t *node, void *user_data)
 {
 	LOGI(TIZEN_N_CONNECTION,"Net Status Indication\n");
 	if((user_data!=NULL))
@@ -253,7 +253,7 @@ int connection_get_proxy(connection_h handle, char **proxy)
 	return (CONNECTION_ERROR_INVALID_PARAMETER);
 }
 
-int fill_call_statistic(connection_h handle, stat_request_e member, int *value)
+static int __fill_call_statistic(connection_h handle, stat_request_e member, int *value)
 {
 	if(handle && value)
 	{
@@ -352,60 +352,60 @@ int fill_call_statistic(connection_h handle, stat_request_e member, int *value)
 
 int connection_get_last_datacall_duration(connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, LAST_DATACALL_DURATION, value);
+	return __fill_call_statistic(handle, LAST_DATACALL_DURATION, value);
 }
 
 int connection_get_last_received_data_size(connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, LAST_RECEIVED_DATA_SIZE, value);
+	return __fill_call_statistic(handle, LAST_RECEIVED_DATA_SIZE, value);
 }
 
 int connection_get_last_sent_data_size(connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, LAST_SENT_DATA_SIZE, value);
+	return __fill_call_statistic(handle, LAST_SENT_DATA_SIZE, value);
 }
 
 int connection_get_total_datacall_duration(connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, TOTAL_DATACALL_DURATION, value);
+	return __fill_call_statistic(handle, TOTAL_DATACALL_DURATION, value);
 }
 
 int connection_get_total_received_data_size (connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, TOTAL_RECEIVED_DATA_SIZE, value);
+	return __fill_call_statistic(handle, TOTAL_RECEIVED_DATA_SIZE, value);
 }
 
 int connection_get_total_sent_data_size (connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, TOTAL_SENT_DATA_SIZE, value);
+	return __fill_call_statistic(handle, TOTAL_SENT_DATA_SIZE, value);
 }
 
 int connection_get_wifi_last_datacall_duration(connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, LAST_WIFI_DATACALL_DURATION, value);
+	return __fill_call_statistic(handle, LAST_WIFI_DATACALL_DURATION, value);
 }
 
 int connection_get_wifi_last_received_data_size(connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, LAST_WIFI_RECEIVED_DATA_SIZE, value);
+	return __fill_call_statistic(handle, LAST_WIFI_RECEIVED_DATA_SIZE, value);
 }
 
 int connection_get_wifi_last_sent_data_size(connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, LAST_WIFI_SENT_DATA_SIZE, value);
+	return __fill_call_statistic(handle, LAST_WIFI_SENT_DATA_SIZE, value);
 }
 
 int connection_get_wifi_total_datacall_duration(connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, TOTAL_WIFI_DATACALL_DURATION, value);
+	return __fill_call_statistic(handle, TOTAL_WIFI_DATACALL_DURATION, value);
 }
 
 int connection_get_wifi_total_received_data_size (connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, TOTAL_WIFI_RECEIVED_DATA_SIZE, value);
+	return __fill_call_statistic(handle, TOTAL_WIFI_RECEIVED_DATA_SIZE, value);
 }
 
 int connection_get_wifi_total_sent_data_size (connection_h handle, int *value)
 {
-	return fill_call_statistic(handle, TOTAL_WIFI_SENT_DATA_SIZE, value);
+	return __fill_call_statistic(handle, TOTAL_WIFI_SENT_DATA_SIZE, value);
 }
