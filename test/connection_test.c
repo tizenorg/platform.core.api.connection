@@ -35,37 +35,44 @@
 gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data);
 int test_register_client(void);
 int test_deregister_client(void);
-int test_open_connection(void);
-int test_close_connection(void);
+int test_get_network_state(void);
+int test_get_cellular_state(void);
+int test_get_wifi_state(void);
 int test_get_current_proxy(void);
-int test_get_current_device_info(void);
+int test_get_current_ip(void);
 int test_get_call_statistics_info(void);
 int test_get_wifi_call_statistics_info(void);
-int test_get_network_status(int);
-int test_set_default_profile_id(void);
-void test_print_device_info(void);
-connection_h handle = NULL;
 
-void net_callback(const connection_network_param_e param, void *user_data)
+
+connection_h connection = NULL;
+
+static void test_state_changed_callback(connection_network_state_e state, void* user_data)
 {
-	char *ptr = NULL;
-	connection_get_ip_address(handle, &ptr);
-	printf("Param Name : %d IP Address = %s\n", param,  ptr);
-	free(ptr);
+	printf("State changed callback, state : %d\n", state);
 }
 
-int test_register_client(void){
+static void test_ip_changed_callback(const char* ipv4_address, const char* ipv6_address, void* user_data)
+{
+	printf("IP changed callback, IPv4 address : %s, IPv6 address : %s\n",
+			ipv4_address, (ipv6_address ? ipv6_address : "NULL"));
+}
 
-	int err = connection_create(&handle);
+static void test_proxy_changed_callback(const char* ipv4_address, const char* ipv6_address, void* user_data)
+{
+	printf("Proxy changed callback, IPv4 address : %s, IPv6 address : %s\n",
+			ipv4_address, (ipv6_address ? ipv6_address : "NULL"));
+}
 
-	if(CONNECTION_ERROR_NONE==err) //set callbacks
-	{
-		if(handle==NULL)
-			printf("Handle is NULL\n");
-		connection_set_cb(handle, net_callback, NULL);
-	}
-	else
-	{
+int test_register_client(void)
+{
+
+	int err = connection_create(&connection);
+
+	if (CONNECTION_ERROR_NONE == err) {
+		connection_set_network_state_changed_cb(connection, test_state_changed_callback, NULL);
+		connection_set_ip_address_changed_cb(connection, test_ip_changed_callback, NULL);
+		connection_set_proxy_address_changed_cb(connection, test_proxy_changed_callback, NULL);
+	} else {
 		printf("Client registration failed %d\n", err);
 		return -1;
 	}
@@ -74,11 +81,12 @@ int test_register_client(void){
 	return 1;
 }
  
-int  test_deregister_client(void){
+int  test_deregister_client(void)
+{
 	int rv = 0;
 
-	if(handle!=NULL)
-		rv = connection_destroy(handle);
+	if (connection != NULL)
+		rv = connection_destroy(connection);
 	else
 		printf("Cannot deregister : Handle is NULL\n");
 
@@ -91,172 +99,121 @@ int  test_deregister_client(void){
 	return 1;
 }
 
-int test_open_connection(void){
-	int rv =0;
+int test_get_network_state(void)
+{
+	int rv = 0;
+	connection_network_state_e net_state;
 
-	//rv = connection_open(handle, CONNECTION_DEFAULT_TYPE);
+	rv = connection_get_network_state(connection, &net_state);
 
-	if (rv != CONNECTION_ERROR_NONE){
-		printf("Fail to call open connection [%d]\n", rv);
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to get network state [%d]\n", rv);
 		return -1;
 	}
 
-	printf("open connection api is called [%d]\n", rv);
+	printf("Retval = %d network connection state [%d]\n", rv, net_state);
+
 	return 1;
 }
 
-int test_close_connection(void){
-	int rv =0;
+int test_get_cellular_state(void)
+{
+	int rv = 0;
+	connection_cellular_state_e cellular_state;
 
-	//rv = connection_close(handle);
+	rv = connection_get_cellular_state(connection, &cellular_state);
 
-	if (rv  != CONNECTION_ERROR_NONE){
-		printf("Fail to call close connection [%d]\n", rv);
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to get Cellular state [%d]\n", rv);
 		return -1;
 	}
 
-	printf("close connection api is called\n");
+	printf("Retval = %d Cellular state [%d]\n", rv, cellular_state);
+
 	return 1;
 }
 
+int test_get_wifi_state(void)
+{
+	int rv = 0;
+	connection_wifi_state_e wifi_state;
 
-int test_is_connected(void){
-	int rv =0;
+	rv = connection_get_wifi_state(connection, &wifi_state);
 
-	rv = connection_is_connected();
-
-	if(rv != 1){
-		printf("There is no active connection\n");
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to get WiFi state [%d]\n", rv);
 		return -1;
 	}
 
-	printf("Connected\n");
-	printf("is connected api is called\n");
+	printf("Retval = %d WiFi state [%d]\n", rv, wifi_state);
+
 	return 1;
 }
 
-int test_get_current_proxy(void){
-	int rv=0;
-	char *proxy_addr=NULL;
+int test_get_current_proxy(void)
+{
+	char *proxy_addr = NULL;
 
-	rv = connection_is_connected();
+	connection_get_proxy(connection, CONNECTION_ADDRESS_FAMILY_IPV4, &proxy_addr);
 
-	if(rv != 1){
-		printf("There is no active connection\n");
-		return -1;
-	}
-
-	rv = connection_get_proxy(handle, &proxy_addr);
-
-	if(proxy_addr == NULL){
+	if (proxy_addr == NULL) {
 		printf("Proxy address does not exist\n");
 		return -1;
 	}
 
 	printf("Current Proxy [%s]\n", proxy_addr);
-	free(proxy_addr);
-	
-	printf("get current proxy api is called\n");
+	g_free(proxy_addr);
+
 	return 1;
 }
 
-int test_get_current_device_info(void){
-	int rv=0;
-	rv = connection_is_connected();
+int test_get_current_ip(void)
+{
+	char *ip_addr = NULL;
 
-	if(rv != 1){
-		printf("There is no active connection\n");
+	connection_get_ip_address(connection, CONNECTION_ADDRESS_FAMILY_IPV4, &ip_addr);
+
+	if (ip_addr == NULL) {
+		printf("IP address does not exist\n");
 		return -1;
 	}
 
-	test_print_device_info();
+	printf("IPv4 address : %s\n", ip_addr);
+	g_free(ip_addr);
 
-	printf("get current device information api is called\n");
-	
 	return 1;	
 }
 
-int test_get_call_statistics_info(void){
-	int rv=0;
+int test_get_call_statistics_info(void)
+{
+	int rv = 0;
 
-	connection_get_last_datacall_duration(handle, &rv);
-	printf("last received data pkg size [%d]\n", rv);
-	connection_get_last_received_data_size(handle, &rv);
-	printf("last recv data pkg size [%d]\n", rv);
-	connection_get_last_sent_data_size(handle, &rv);
-	printf("last sent data pkg size [%d]\n",rv );
-	connection_get_total_datacall_duration(handle, &rv);
-	printf("total data pkg size [%d]\n", rv);
-	connection_get_total_received_data_size (handle, &rv);
-	printf("total received data pkg size [%d]\n",rv );
-	connection_get_total_sent_data_size (handle, &rv);
-	printf("total sent data pkg size [%d]\n", rv);
-
-
-	printf("get call statistics information is called\n");
+	connection_get_last_received_data_size(connection, &rv);
+	printf("last recv data size [%d]\n", rv);
+	connection_get_last_sent_data_size(connection, &rv);
+	printf("last sent data size [%d]\n",rv );
+	connection_get_total_received_data_size (connection, &rv);
+	printf("total received data size [%d]\n",rv );
+	connection_get_total_sent_data_size (connection, &rv);
+	printf("total sent data size [%d]\n", rv);
 
 	return 1;
 }
 
-int test_get_wifi_call_statistics_info(void){
-	int rv=0;
+int test_get_wifi_call_statistics_info(void)
+{
+	int rv = 0;
 
-	connection_get_wifi_last_datacall_duration(handle, &rv);
-	printf("WiFi last received data pkg size [%d]\n", rv);
-	connection_get_wifi_last_received_data_size(handle, &rv);
-	printf("WiFi last recv data pkg size [%d]\n", rv);
-	connection_get_wifi_last_sent_data_size(handle, &rv);
-	printf("WiFi last sent data pkg size [%d]\n",rv );
-	connection_get_wifi_total_datacall_duration(handle, &rv);
-	printf("WiFi total data pkg size [%d]\n", rv);
-	connection_get_wifi_total_received_data_size (handle, &rv);
-	printf("WiFi total received data pkg size [%d]\n",rv );
-	connection_get_wifi_total_sent_data_size (handle, &rv);
-	printf("WiFi total sent data pkg size [%d]\n", rv);
-
-
-	printf("get WiFi call statistics information is called\n");
+	connection_get_wifi_last_received_data_size(connection, &rv);
+	printf("WiFi last recv data size [%d]\n", rv);
+	connection_get_wifi_last_sent_data_size(connection, &rv);
+	printf("WiFi last sent data size [%d]\n",rv );
+	connection_get_wifi_total_received_data_size (connection, &rv);
+	printf("WiFi total received data size [%d]\n",rv );
+	connection_get_wifi_total_sent_data_size (connection, &rv);
+	printf("WiFi total sent data size [%d]\n", rv);
 
 	return 1;
-}
-
-int test_get_network_status(int type){
-	int rv=0;
-	connection_network_status_e net_status;
-
-	memset(&net_status, 0 , sizeof(connection_network_status_e) );
-
-    if(type == 1)
-	    rv = connection_get_network_status(CONNECTION_MOBILE_TYPE, &net_status);
-    if(type==2)
-	    rv = connection_get_network_status(CONNECTION_WIFI_TYPE, &net_status);
-
-	if(rv != CONNECTION_ERROR_NONE){
-		printf("Fail to get network status [%d]\n",rv );
-		return -1;
-	}
-
-	printf("Retval = %d network connection status  [%d]\n", rv, net_status);
-
-	
-	return 1;		
-}
-
-
-void test_print_device_info(void){
-	char *temp=NULL;
-	if(!connection_get_ip_address(handle, &temp))
-	{
-		if(temp!=NULL)
-		{
-			printf("IPv4 address : %s\n", temp);
-			free(temp);
-		}
-		else
-			printf("IPv4 address Not Provided by Network\n");
-	}
-	
-	return;
 }
 
 int main(int argc, char **argv){
@@ -269,8 +226,6 @@ int main(int argc, char **argv){
 
 	printf("Test Thread created...\n");
 
-	test_register_client();
-	
 	g_main_loop_run (mainloop);
 
 	return 0;
@@ -278,64 +233,61 @@ int main(int argc, char **argv){
 
 gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 {
-	int rv=0;
+	int rv = 0;
 	char a[100];
 	
 	memset(a, '\0', 100);
-	printf("Event received from stdin \n");
+	printf("Event received from stdin\n");
 	
 	rv = read(0, a, 100);
 	
 	if (rv < 0 || a[0] == '0') exit(1);
 
 	if (*a == '\n' || *a == '\r'){
-		printf("\n\n Network Framework Test App\n\n");
+		printf("\n\n Network Connection API Test App\n\n");
 		printf("Options..\n");
-		printf("1 	- Create Handle\n");
-		printf("2 	- Destroy Handle\n");
-		printf("3	- Get current proxy address \n");		
-		printf("4	- Is connected\n");
-		printf("5 	- Get current network device information\n");
-
-		printf("6 	- Get cellular data call statistics\n");
-		printf("7 	- Get WiFi data call statistics\n");
-		printf("8 	- Get cellular status (please insert SIM Card)\n");
-		printf("9 	- Get wifi status (please turn on WiFi)\n");
-
+		printf("1 	- Create Handle and set callbacks\n");
+		printf("2 	- Destroy Handle(unset callbacks automatically)\n");
+		printf("3	- Get network state\n");
+		printf("4 	- Get cellular state (please insert SIM Card)\n");
+		printf("5 	- Get wifi state (please turn on WiFi)\n");
+		printf("6	- Get current proxy address \n");
+		printf("7 	- Get current Ip address\n");
+		printf("8 	- Get cellular data call statistics\n");
+		printf("9 	- Get WiFi data call statistics\n");
 		printf("0 	- Exit \n");
 
 		printf("ENTER  - Show options menu.......\n");
 	}
 
-	switch (a[0])
-	{
-		case '1':{
+	switch (a[0]) {
+		case '1': {
 			rv = test_register_client();
-		}break;
-		case '2':{
+		} break;
+		case '2': {
 			rv = test_deregister_client();
-		}break;
-		case '3':{
+		} break;
+		case '3': {
+			rv = test_get_network_state();
+		} break;
+		case '4': {
+			rv = test_get_cellular_state();
+		} break;
+		case '5': {
+			rv = test_get_wifi_state();
+		} break;
+		case '6': {
 			rv = test_get_current_proxy();
-		}break;
-		case '4':{
-			rv = test_is_connected();
-		}break;
-		case '5':{
-			rv = test_get_current_device_info();
-		}break;
-		case '6':{
+		} break;
+		case '7': {
+			rv = test_get_current_ip();
+		} break;
+		case '8': {
 			rv = test_get_call_statistics_info();
-		}break;
-		case '7':{
+		} break;
+		case '9': {
 			rv = test_get_wifi_call_statistics_info();
-		}break;
-		case '8':{
-			rv = test_get_network_status(CONNECTION_MOBILE_TYPE);
-		}break;
-		case '9':{
-			rv = test_get_network_status(CONNECTION_WIFI_TYPE);
-		}break;
+		} break;
 	}
 	return TRUE;
 }

@@ -8,9 +8,6 @@ ENDFOREACH(flag)
 
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS} -Wall")
 
-#ADD_EXECUTABLE("system-sensor" system-sensor.c)
-#TARGET_LINK_LIBRARIES("system-sensor" ${fw_name} ${${fw_test}_LDFLAGS})
-
 aux_source_directory(. sources)
 FOREACH(src ${sources})
     GET_FILENAME_COMPONENT(src_name ${src} NAME_WE)
