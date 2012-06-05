@@ -56,4 +56,5 @@ rm -rf %{buildroot}
 %files devel
 %manifest capi-network-connection.manifest
 %{_includedir}/network/*.h
-%{_libdir}/libcapi-network-connection.so%{_libdir}/pkgconfig/*.pc
+%{_libdir}/pkgconfig/*.pc
+%{_libdir}/libcapi-network-connection.so
