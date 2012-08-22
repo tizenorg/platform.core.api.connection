@@ -1,8 +1,8 @@
 Source: capi-network-connection
 Section: libs
 Priority: extra
-Maintainer: Sanjeev BA <as2902.b@samsung.com>
-Build-Depends: debhelper (>= 5), dlog-dev, capi-base-common-dev, libvconf-dev, libglib2.0-dev
+Maintainer: JaeHyun Kim <jeik01.kim@samsung.com>
+Build-Depends: debhelper (>= 5), dlog-dev, capi-base-common-dev, libvconf-dev, libglib2.0-dev, libdbus-glib-1-dev, libnetwork-dev
 
 Package: capi-network-connection
 Architecture: any

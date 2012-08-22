@@ -1,6 +1,102 @@
+capi-network-connection (0.1.1-9) unstable; urgency=low
+
+  * Remove deprecated APIs
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-9
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Fri, 03 Aug 2012 16:51:25 +0900
+
+capi-network-connection (0.1.1-8) unstable; urgency=low
+
+  * Modify connection_create() and connection_destroy() API to assure thread safety
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-8
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Fri, 27 Jul 2012 12:36:54 +0900
+
+capi-network-connection (0.1.1-7) unstable; urgency=low
+
+  * Modify set/get statistics API to support dbus interface of net-config
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-7
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Fri, 06 Jul 2012 18:13:11 +0900
+
+capi-network-connection (0.1.1-6) unstable; urgency=low
+
+  * Modify connection_reset_statistics() to avoid vconf permission error
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-6
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Wed, 27 Jun 2012 19:06:32 +0900
+
+capi-network-connection (0.1.1-5) unstable; urgency=low
+
+  * Update TC
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-5
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Tue, 12 Jun 2012 18:49:08 +0900
+
+capi-network-connection (0.1.1-4) unstable; urgency=low
+
+  * Add profile initialization functions for user creation
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-4
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Tue, 12 Jun 2012 17:17:00 +0900
+
+capi-network-connection (0.1.1-3) unstable; urgency=low
+
+  * Implementation of connection_reset_statistics()
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-3
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Tue, 12 Jun 2012 16:34:52 +0900
+
+capi-network-connection (0.1.1-2) unstable; urgency=low
+
+  * Implementation of extened APIs again
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-2
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Tue, 29 May 2012 17:00:36 +0900
+
+capi-network-connection (0.1.1-1) unstable; urgency=low
+
+  * Rollback to capi-network-connection_0.1.0-23
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-1
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Wed, 23 May 2012 20:56:07 +0900
+
+capi-network-connection (0.1.1-0) unstable; urgency=low
+
+  * Implementation of extened APIs
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.1-0
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Fri, 18 May 2012 14:57:49 +0900
+
+capi-network-connection (0.1.0-23) unstable; urgency=low
+
+  * Fix a bug which don't set user data in proxy callback setter
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-23
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Mon, 16 Apr 2012 12:02:47 +0900
+
+capi-network-connection (0.1.0-22) unstable; urgency=low
+
+  * Fix connection destroy bug
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-22
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Mon, 09 Apr 2012 20:54:57 +0900
+
 capi-network-connection (0.1.0-21) unstable; urgency=low
 
-  * Add ipv6 feature
+  * Add ipv6 feature and update DTS code
   * Git: api/connection
   * Tag: capi-network-connection_0.1.0-21
 
@@ -8,7 +104,7 @@ capi-network-connection (0.1.0-21) unstable; urgency=low
 
 capi-network-connection (0.1.0-20) unstable; urgency=low
 
-  * Update DTS
+  * Update DTS code
   * Git: api/connection
   * Tag: capi-network-connection_0.1.0-20
 
@@ -24,7 +120,7 @@ capi-network-connection (0.1.0-19) unstable; urgency=low
 
 capi-network-connection (0.1.0-18) unstable; urgency=low
 
-  * Implementation of new APIs
+  * Implementation of new APIs and TC code
   * Git: api/connection
   * Tag: capi-network-connection_0.1.0-18
 
@@ -64,14 +160,187 @@ capi-network-connection (0.1.0-14) unstable; urgency=low
 
 capi-network-connection (0.1.0-13) unstable; urgency=low
 
-  * Update version
+  * License and Boilerplate update.
   * Git: api/connection
   * Tag: capi-network-connection_0.1.0-13
 
- -- Sanjeev BA <as2902.b@samsung.com>  Thu, 15 Dec 2011 13:30:49 +0900
+ -- Sanjeev BA <as2902.b@samsung.com>  Tue, 06 Dec 2011 18:48:48 +0900
 
-capi-network-connection (0.0.1-1) unstable; urgency=low
+capi-network-connection (0.1.0-12) unstable; urgency=low
 
-  * Initial Release.
+  * Bump up version.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-12
 
- -- Sanjeev BA <as2902.b@samsung.com>  Wed, 07 Dec 2011 13:03:56 +0900
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 01 Dec 2011 19:40:16 +0900
+
+capi-network-connection (0.1.0-11) unstable; urgency=low
+
+  * Add data connection statistics.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-11
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 01 Dec 2011 19:18:24 +0900
+
+capi-network-connection (0.1.0-10) unstable; urgency=low
+
+  * Cleanup of vconf notifications.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-10
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 01 Dec 2011 11:08:59 +0900
+
+capi-network-connection (0.1.0-9) unstable; urgency=low
+
+  * Renaming for tizen.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-9
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Wed, 30 Nov 2011 15:10:59 +0900
+
+capi-network-connection (0.1.0-8) unstable; urgency=low
+
+  * Renaming for tizen.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-8
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Wed, 23 Nov 2011 15:07:23 +0900
+
+capi-network-connection (0.1.0-7) unstable; urgency=low
+
+  * Correct status updates.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-7
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Wed, 23 Nov 2011 13:46:23 +0900
+
+capi-network-connection (0.1.0-6) unstable; urgency=low
+
+  * Correct status updates.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-6
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 17 Nov 2011 15:10:55 +0900
+
+capi-network-connection (0.1.0-5) unstable; urgency=low
+
+  * Correct status updates.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-5
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Fri, 04 Nov 2011 17:55:49 +0900
+
+capi-network-connection (0.1.0-4) unstable; urgency=low
+
+  * Fix boilerplate. 
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-4
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Fri, 04 Nov 2011 11:22:10 +0900
+
+capi-network-connection (0.1.0-3) unstable; urgency=low
+
+  * Fix doxygen comments. 
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-3
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Mon, 31 Oct 2011 20:13:02 +0900
+
+capi-network-connection (0.1.0-2) unstable; urgency=low
+
+  * Add new mappings between vconf and connection_network_param_e.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-2
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Fri, 14 Oct 2011 19:37:05 +0900
+
+capi-network-connection (0.1.0-1) unstable; urgency=low
+
+  * Alpha Release
+  * Git: api/connection
+  * Tag: capi-network-connection_0.1.0-1 
+
+ -- Kangho Hur <kangho.hur@samsung.com>  Tue, 27 Sep 2011 20:35:08 +0900
+
+capi-network-connection (0.0.1-11) unstable; urgency=low
+
+  * Fix build error from sbs using (sbs --clean-build).
+  * Updated debian/control file to add build depedency.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-11
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 08 Sep 2011 17:36:05 +0900
+
+capi-network-connection (0.0.1-10) unstable; urgency=low
+
+  * Fix as per new libnetwork API.
+  * remove dnet dependency, use only vconf.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-10
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Wed, 07 Sep 2011 14:19:30 +0900
+
+capi-network-connection (0.0.1-9) unstable; urgency=low
+
+  * Add param_name to callbacks. Will help apps identify what has changed.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-9
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Fri, 02 Sep 2011 10:20:09 +0900
+
+capi-network-connection (0.0.1-8) unstable; urgency=low
+
+  * Cleanup unused code. Fix documentation.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-8
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 01 Sep 2011 20:03:11 +0900
+
+capi-network-connection (0.0.1-7) unstable; urgency=low
+
+  * Fix handles.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-7
+
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Mon, 22 Aug 2011 14:31:53 +0900
+
+capi-network-connection (0.0.1-6) unstable; urgency=low
+
+  * Fix handles.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-6
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 18 Aug 2011 09:50:20 +0900
+
+capi-network-connection (0.0.1-5) unstable; urgency=low
+
+  * Fix debain packaging issue.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-5
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 11 Aug 2011 19:28:50 +0900
+
+capi-network-connection (0.0.1-4) unstable; urgency=low
+
+  * Fix regression test case that was never used before.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-4
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 04 Aug 2011 19:04:04 +0900
+
+capi-network-connection (0.0.1-3) unstable; urgency=low
+
+  * Add missing pc.in file.
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-3
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 04 Aug 2011 18:04:33 +0900
+
+capi-network-connection (0.0.1-2) unstable; urgency=low
+
+  * Initial Upload
+  * Git: api/connection
+  * Tag: capi-network-connection_0.0.1-2
+
+ -- Sanjeev BA <as2902.b@samsung.com>  Thu, 04 Aug 2011 17:32:41 +0900

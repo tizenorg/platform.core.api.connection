@@ -11,17 +11,14 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 #include <stdio.h>
 #include <string.h>
-#include <dlog.h>
 #include <glib.h>
 #include <vconf/vconf.h>
-#include <net_connection_private.h>
-
-#define TIZEN_NET_CONNECTION "CAPI_NETWORK_CONNECTION"
+#include "net_connection_private.h"
 
 static GSList *conn_handle_list = NULL;
 
@@ -34,11 +31,11 @@ static int __connection_convert_net_state(int status)
 {
 	switch (status) {
 	case VCONFKEY_NETWORK_CELLULAR:
-		return CONNECTION_NETWORK_STATE_CELLULAR;
+		return CONNECTION_TYPE_CELLULAR;
 	case VCONFKEY_NETWORK_WIFI:
-		return CONNECTION_NETWORK_STATE_WIFI;
+		return CONNECTION_TYPE_WIFI;
 	default:
-		return CONNECTION_NETWORK_STATE_DISCONNECTED;
+		return CONNECTION_TYPE_DISCONNECTED;
 	}
 }
 
@@ -115,16 +112,17 @@ static int __connection_set_state_changed_callback(connection_h connection, void
 
 	if (callback) {
 		if (__connection_get_state_changed_callback_count() == 0)
-			vconf_notify_key_changed(VCONFKEY_NETWORK_STATUS ,
-						__connection_cb_state_change_cb,
-						NULL);
+			if (vconf_notify_key_changed(VCONFKEY_NETWORK_STATUS ,
+					__connection_cb_state_change_cb, NULL))
+				return CONNECTION_ERROR_OPERATION_FAILED;
 
 		local_handle->state_changed_user_data = user_data;
 	} else {
 		if (local_handle->state_changed_callback &&
 		    __connection_get_state_changed_callback_count() == 1)
-			vconf_ignore_key_changed(VCONFKEY_NETWORK_STATUS,
-						__connection_cb_state_change_cb);
+			if (vconf_ignore_key_changed(VCONFKEY_NETWORK_STATUS,
+					__connection_cb_state_change_cb))
+				return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	local_handle->state_changed_callback = callback;
@@ -137,16 +135,17 @@ static int __connection_set_ip_changed_callback(connection_h connection, void *c
 
 	if (callback) {
 		if (__connection_get_ip_changed_callback_count() == 0)
-			vconf_notify_key_changed(VCONFKEY_NETWORK_IP,
-						__connection_cb_ip_change_cb,
-						NULL);
+			if (vconf_notify_key_changed(VCONFKEY_NETWORK_IP,
+					__connection_cb_ip_change_cb, NULL))
+				return CONNECTION_ERROR_OPERATION_FAILED;
 
 		local_handle->ip_changed_user_data = user_data;
 	} else {
 		if (local_handle->ip_changed_callback &&
 		    __connection_get_ip_changed_callback_count() == 1)
-			vconf_ignore_key_changed(VCONFKEY_NETWORK_IP,
-						__connection_cb_ip_change_cb);
+			if (vconf_ignore_key_changed(VCONFKEY_NETWORK_IP,
+					__connection_cb_ip_change_cb))
+				return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	local_handle->ip_changed_callback = callback;
@@ -159,16 +158,17 @@ static int __connection_set_proxy_changed_callback(connection_h connection, void
 
 	if (callback) {
 		if (__connection_get_proxy_changed_callback_count() == 0)
-			vconf_notify_key_changed(VCONFKEY_NETWORK_PROXY,
-						__connection_cb_proxy_change_cb,
-						NULL);
+			if (vconf_notify_key_changed(VCONFKEY_NETWORK_PROXY,
+					__connection_cb_proxy_change_cb, NULL))
+				return CONNECTION_ERROR_OPERATION_FAILED;
 
-		local_handle->proxy_changed_callback = user_data;
+		local_handle->proxy_changed_user_data = user_data;
 	} else {
 		if (local_handle->proxy_changed_callback &&
 		    __connection_get_proxy_changed_callback_count() == 1)
-			vconf_ignore_key_changed(VCONFKEY_NETWORK_PROXY,
-						__connection_cb_proxy_change_cb);
+			if (vconf_ignore_key_changed(VCONFKEY_NETWORK_PROXY,
+					__connection_cb_proxy_change_cb))
+				return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	local_handle->proxy_changed_callback = callback;
@@ -177,7 +177,7 @@ static int __connection_set_proxy_changed_callback(connection_h connection, void
 
 static void __connection_cb_state_change_cb(keynode_t *node, void *user_data)
 {
-	LOGI(TIZEN_NET_CONNECTION,"Net Status Changed Indication\n");
+	CONNECTION_LOG(CONNECTION_INFO, "Net Status Changed Indication\n");
 
 	GSList *list;
 	int state = vconf_keynode_get_int(node);
@@ -193,7 +193,7 @@ static void __connection_cb_state_change_cb(keynode_t *node, void *user_data)
 
 static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data)
 {
-	LOGI(TIZEN_NET_CONNECTION,"Net IP Changed Indication\n");
+	CONNECTION_LOG(CONNECTION_INFO, "Net IP Changed Indication\n");
 
 	GSList *list;
 	char *ip_addr = vconf_keynode_get_str(node);
@@ -209,7 +209,7 @@ static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data)
 
 static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data)
 {
-	LOGI(TIZEN_NET_CONNECTION,"Net IP Changed Indication\n");
+	CONNECTION_LOG(CONNECTION_INFO, "Net IP Changed Indication\n");
 
 	GSList *list;
 	char *proxy = vconf_keynode_get_str(node);
@@ -233,62 +233,95 @@ static bool __connection_check_handle_validity(connection_h connection)
 	return false;
 }
 
+static int __connection_get_handle_count(void)
+{
+	GSList *list;
+	int count = 0;
+
+	if (!conn_handle_list)
+		return count;
+
+	for (list = conn_handle_list; list; list = list->next) count++;
+
+	return count;
+}
+
+/* Connection Manager module ********************************************************************/
+
 int connection_create(connection_h* connection)
 {
+	CONNECTION_MUTEX_LOCK;
+
 	if (connection == NULL || __connection_check_handle_validity(*connection)) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_MUTEX_UNLOCK;
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	if (_connection_libnet_init() == false) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Creation failed!\n");
+		CONNECTION_MUTEX_UNLOCK;
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	*connection = g_try_malloc0(sizeof(connection_handle_s));
 	if (*connection != NULL) {
-		LOGI(TIZEN_NET_CONNECTION, "New Handle Created %p\n", *connection);
+		CONNECTION_LOG(CONNECTION_INFO, "New Handle Created %p\n", *connection);
 	} else {
+		CONNECTION_MUTEX_UNLOCK;
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 	}
 
 	conn_handle_list = g_slist_append(conn_handle_list, *connection);
 
+	CONNECTION_MUTEX_UNLOCK;
 	return CONNECTION_ERROR_NONE;
 }
 
 int connection_destroy(connection_h connection)
 {
+	CONNECTION_MUTEX_LOCK;
+
 	if (connection == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_MUTEX_UNLOCK;
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	conn_handle_list = g_slist_remove(conn_handle_list, connection);
-
-	LOGI(TIZEN_NET_CONNECTION, "Destroy Handle : %p\n", connection);
+	CONNECTION_LOG(CONNECTION_INFO, "Destroy Handle : %p\n", connection);
 
 	__connection_set_state_changed_callback(connection, NULL, NULL);
 	__connection_set_ip_changed_callback(connection, NULL, NULL);
 	__connection_set_proxy_changed_callback(connection, NULL, NULL);
 
+	conn_handle_list = g_slist_remove(conn_handle_list, connection);
+
 	g_free(connection);
 
+	if (__connection_get_handle_count() == 0)
+		_connection_libnet_deinit();
+
+	CONNECTION_MUTEX_UNLOCK;
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_network_state(connection_h connection, connection_network_state_e* state)
+int connection_get_type(connection_h connection, connection_type_e* type)
 {
 	int status = 0;
 
-	if (state == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+	if (type == NULL || !(__connection_check_handle_validity(connection))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	if (vconf_get_int(VCONFKEY_NETWORK_STATUS, &status)) {
-		LOGI(TIZEN_NET_CONNECTION,"vconf_get_int Failed = %d\n", status);
-		return CONNECTION_ERROR_INVALID_OPERATION;
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_int Failed = %d\n", status);
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
-	LOGI(TIZEN_NET_CONNECTION,"Connected Network = %d\n", status);
+	CONNECTION_LOG(CONNECTION_INFO, "Connected Network = %d\n", status);
 
-	*state = __connection_convert_net_state(status);
+	*type = __connection_convert_net_state(status);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -296,7 +329,7 @@ int connection_get_network_state(connection_h connection, connection_network_sta
 int connection_get_ip_address(connection_h connection, connection_address_family_e address_family, char** ip_address)
 {
 	if (ip_address == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -305,20 +338,20 @@ int connection_get_ip_address(connection_h connection, connection_address_family
 		*ip_address = vconf_get_str(VCONFKEY_NETWORK_IP);
 		break;
 	case CONNECTION_ADDRESS_FAMILY_IPV6:
-		LOGI(TIZEN_NET_CONNECTION, "Not supported yet\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 		break;
 	default:
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	if (*ip_address == NULL) {
-		LOGI(TIZEN_NET_CONNECTION,"vconf_get_str Failed\n");
-		return CONNECTION_ERROR_INVALID_OPERATION;
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed\n");
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
-	LOGI(TIZEN_NET_CONNECTION,"IP Address %s\n", *ip_address);
+	CONNECTION_LOG(CONNECTION_INFO, "IP Address %s\n", *ip_address);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -326,7 +359,7 @@ int connection_get_ip_address(connection_h connection, connection_address_family
 int connection_get_proxy(connection_h connection, connection_address_family_e address_family, char** proxy)
 {
 	if (proxy == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -335,20 +368,20 @@ int connection_get_proxy(connection_h connection, connection_address_family_e ad
 		*proxy = vconf_get_str(VCONFKEY_NETWORK_PROXY);
 		break;
 	case CONNECTION_ADDRESS_FAMILY_IPV6:
-		LOGI(TIZEN_NET_CONNECTION, "Not supported yet\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 		break;
 	default:
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	if (*proxy == NULL) {
-		LOGI(TIZEN_NET_CONNECTION,"vconf_get_str Failed\n");
-		return CONNECTION_ERROR_INVALID_OPERATION;
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed\n");
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
-	LOGI(TIZEN_NET_CONNECTION,"Proxy Address %s\n", *proxy);
+	CONNECTION_LOG(CONNECTION_INFO, "Proxy Address %s\n", *proxy);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -358,17 +391,17 @@ int connection_get_cellular_state(connection_h connection, connection_cellular_s
 	int status = 0;
 
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!vconf_get_int(VCONFKEY_NETWORK_CELLULAR_STATE, &status)) {
-		LOGI(TIZEN_NET_CONNECTION,"Cellular = %d\n", status);
+		CONNECTION_LOG(CONNECTION_INFO, "Cellular = %d\n", status);
 		*state = __connection_convert_cellular_state(status);
 		return CONNECTION_ERROR_NONE;
 	} else {
-		LOGI(TIZEN_NET_CONNECTION,"vconf_get_int Failed = %d\n", status);
-		return CONNECTION_ERROR_INVALID_OPERATION;
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_int Failed = %d\n", status);
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 }
 
@@ -377,35 +410,48 @@ int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* 
 	int status = 0;
 
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!vconf_get_int(VCONFKEY_NETWORK_WIFI_STATE, &status)) {
-		LOGI(TIZEN_NET_CONNECTION,"WiFi = %d\n", status);
+		CONNECTION_LOG(CONNECTION_INFO, "WiFi = %d\n", status);
 		*state = __connection_convert_wifi_state(status);
 		return CONNECTION_ERROR_NONE;
 	} else {
-		LOGI(TIZEN_NET_CONNECTION,"vconf_get_int Failed = %d\n", status);
-		return CONNECTION_ERROR_INVALID_OPERATION;
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_int Failed = %d\n", status);
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 }
 
-int connection_set_network_state_changed_cb(connection_h connection,
-				connection_network_state_changed_cb callback, void* user_data)
+int connection_get_ethernet_state(connection_h connection, connection_ethernet_state_e* state)
+{
+	if (state == NULL || !(__connection_check_handle_validity(connection))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	if (_connection_libnet_get_ethernet_state(state) == false)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+int connection_set_type_changed_cb(connection_h connection,
+					connection_type_changed_cb callback, void* user_data)
 {
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	return __connection_set_state_changed_callback(connection, callback, user_data);
 }
 
-int connection_unset_network_state_changed_cb(connection_h connection)
+int connection_unset_type_changed_cb(connection_h connection)
 {
 	if (!(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -416,7 +462,7 @@ int connection_set_ip_address_changed_cb(connection_h connection,
 				connection_address_changed_cb callback, void* user_data)
 {
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -426,7 +472,7 @@ int connection_set_ip_address_changed_cb(connection_h connection,
 int connection_unset_ip_address_changed_cb(connection_h connection)
 {
 	if (!(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -437,7 +483,7 @@ int connection_set_proxy_address_changed_cb(connection_h connection,
 				connection_address_changed_cb callback, void* user_data)
 {
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -447,142 +493,263 @@ int connection_set_proxy_address_changed_cb(connection_h connection,
 int connection_unset_proxy_address_changed_cb(connection_h connection)
 {
 	if (!(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	return __connection_set_proxy_changed_callback(connection, NULL, NULL);
 }
 
-static int __fill_call_statistic(connection_h connection, stat_request_e member, int *size)
+int connection_add_profile(connection_h connection, connection_profile_h profile)
 {
-	if (size == NULL || !(__connection_check_handle_validity(connection))) {
-		LOGI(TIZEN_NET_CONNECTION, "Wrong Parameter Passed\n");
+	if (!(__connection_check_handle_validity(connection)) ||
+	    !(_connection_libnet_check_profile_validity(profile))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	switch (member) {
-	case LAST_SENT_DATA_SIZE:
-		if (vconf_get_int(VCONFKEY_NETWORK_CELLULAR_PKT_LAST_SNT, size)) {
-			LOGI(TIZEN_NET_CONNECTION,
-					"Cannot Get LAST_SENT_DATA_SIZE = %d\n",
-					*size);
-			*size = 0;
-			return CONNECTION_ERROR_INVALID_OPERATION;
-		}
-		LOGI(TIZEN_NET_CONNECTION,"LAST_SENT_DATA_SIZE:%d bytes\n", *size);
+	int rv = 0;
 
-		break;
-	case LAST_RECEIVED_DATA_SIZE:
-		if (vconf_get_int(VCONFKEY_NETWORK_CELLULAR_PKT_LAST_RCV, size)) {
-			LOGI(TIZEN_NET_CONNECTION,
-					"Cannot Get LAST_RECEIVED_DATA_SIZE: = %d\n",
-					*size);
-			*size = 0;
-			return CONNECTION_ERROR_INVALID_OPERATION;
-		}
-		LOGI(TIZEN_NET_CONNECTION,"LAST_RECEIVED_DATA_SIZE:%d bytes\n", *size);
-		break;
-	case TOTAL_SENT_DATA_SIZE:
-		if (vconf_get_int(VCONFKEY_NETWORK_CELLULAR_PKT_TOTAL_SNT, size)) {
-			LOGI(TIZEN_NET_CONNECTION,
-					"Cannot Get TOTAL_SENT_DATA_SIZE: = %d\n",
-					*size);
-			*size = 0;
-			return CONNECTION_ERROR_INVALID_OPERATION;
-		}
-		LOGI(TIZEN_NET_CONNECTION,"TOTAL_SENT_DATA_SIZE:%d bytes\n", *size);
-		break;
-	case TOTAL_RECEIVED_DATA_SIZE:
-		if (vconf_get_int(VCONFKEY_NETWORK_CELLULAR_PKT_TOTAL_RCV, size)) {
-			LOGI(TIZEN_NET_CONNECTION,
-					"Cannot Get TOTAL_RECEIVED_DATA_SIZE: = %d\n",
-					*size);
-			*size = 0;
-			return CONNECTION_ERROR_INVALID_OPERATION;
-		}
-		LOGI(TIZEN_NET_CONNECTION,"TOTAL_RECEIVED_DATA_SIZE:%d bytes\n", *size);
-		break;
-	case LAST_WIFI_SENT_DATA_SIZE:
-		if (vconf_get_int(VCONFKEY_NETWORK_WIFI_PKT_LAST_SNT, size)) {
-			LOGI(TIZEN_NET_CONNECTION,
-					"Cannot Get LAST_WIFI_SENT_DATA_SIZE: = %d\n",
-					*size);
-			*size = 0;
-			return CONNECTION_ERROR_INVALID_OPERATION;
-		}
-		LOGI(TIZEN_NET_CONNECTION,"LAST_WIFI_SENT_DATA_SIZE:%d bytes\n", *size);
-		break;
-	case LAST_WIFI_RECEIVED_DATA_SIZE:
-		if (vconf_get_int(VCONFKEY_NETWORK_WIFI_PKT_LAST_RCV, size)) {
-			LOGI(TIZEN_NET_CONNECTION,
-					"Cannot Get LAST_WIFI_RECEIVED_DATA_SIZE: = %d\n",
-					*size);
-			*size = 0;
-			return CONNECTION_ERROR_INVALID_OPERATION;
-		}
-		LOGI(TIZEN_NET_CONNECTION,"LAST_WIFI_RECEIVED_DATA_SIZE:%d bytes\n", *size);
-		break;
-	case TOTAL_WIFI_SENT_DATA_SIZE:
-		if (vconf_get_int(VCONFKEY_NETWORK_WIFI_PKT_TOTAL_SNT, size)) {
-			LOGI(TIZEN_NET_CONNECTION,
-					"Cannot Get TOTAL_WIFI_SENT_DATA_SIZE: = %d\n",
-					*size);
-			*size = 0;
-			return CONNECTION_ERROR_INVALID_OPERATION;
-		}
-		LOGI(TIZEN_NET_CONNECTION,"TOTAL_WIFI_SENT_DATA_SIZE:%d bytes\n", *size);
-		break;
-	case TOTAL_WIFI_RECEIVED_DATA_SIZE:
-		if (vconf_get_int(VCONFKEY_NETWORK_WIFI_PKT_TOTAL_RCV, size)) {
-			LOGI(TIZEN_NET_CONNECTION,
-					"Cannot Get TOTAL_WIFI_RECEIVED_DATA_SIZE: = %d\n",
-					*size);
-			*size = 0;
-			return CONNECTION_ERROR_INVALID_OPERATION;
-		}
-		LOGI(TIZEN_NET_CONNECTION,"TOTAL_WIFI_RECEIVED_DATA_SIZE:%d bytes\n", *size);
-		break;
+	net_profile_info_t *profile_info = profile;
+
+	rv = net_add_profile(profile_info->ProfileInfo.Pdp.ServiceType, (net_profile_info_t*)profile);
+	if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "net_add_profile Failed = %d\n", rv);
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_last_received_data_size(connection_h connection, int *size)
+int connection_remove_profile(connection_h connection, connection_profile_h profile)
 {
-	return __fill_call_statistic(connection, LAST_RECEIVED_DATA_SIZE, size);
+	if (!(__connection_check_handle_validity(connection)) ||
+	    !(_connection_libnet_check_profile_validity(profile))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	int rv = 0;
+	net_profile_info_t *profile_info = profile;
+
+	rv = net_delete_profile(profile_info->ProfileName);
+	if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "net_delete_profile Failed = %d\n", rv);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_last_sent_data_size(connection_h connection, int *size)
+int connection_update_profile(connection_h connection, connection_profile_h profile)
 {
-	return __fill_call_statistic(connection, LAST_SENT_DATA_SIZE, size);
+	if (!(__connection_check_handle_validity(connection)) ||
+	    !(_connection_libnet_check_profile_validity(profile))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	int rv = 0;
+	net_profile_info_t *profile_info = profile;
+
+	rv = net_modify_profile(profile_info->ProfileName, (net_profile_info_t*)profile);
+	if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "net_modify_profile Failed = %d\n", rv);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_total_received_data_size (connection_h connection, int *size)
+int connection_get_profile_iterator(connection_h connection,
+		connection_iterator_type_e type, connection_profile_iterator_h* profile_iterator)
 {
-	return __fill_call_statistic(connection, TOTAL_RECEIVED_DATA_SIZE, size);
+	if (!(__connection_check_handle_validity(connection)) ||
+	    (type != CONNECTION_ITERATOR_TYPE_REGISTERED &&
+	     type != CONNECTION_ITERATOR_TYPE_CONNECTED)) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_get_profile_iterator(type, profile_iterator);
 }
 
-int connection_get_total_sent_data_size (connection_h connection, int *size)
+int connection_profile_iterator_next(connection_profile_iterator_h profile_iterator, connection_profile_h* profile)
 {
-	return __fill_call_statistic(connection, TOTAL_SENT_DATA_SIZE, size);
+	return _connection_libnet_get_iterator_next(profile_iterator, profile);
 }
 
-int connection_get_wifi_last_received_data_size(connection_h connection, int *size)
+bool connection_profile_iterator_has_next(connection_profile_iterator_h profile_iterator)
 {
-	return __fill_call_statistic(connection, LAST_WIFI_RECEIVED_DATA_SIZE, size);
+	return _connection_libnet_iterator_has_next(profile_iterator);
 }
 
-int connection_get_wifi_last_sent_data_size(connection_h connection, int *size)
+int connection_destroy_profile_iterator(connection_profile_iterator_h profile_iterator)
 {
-	return __fill_call_statistic(connection, LAST_WIFI_SENT_DATA_SIZE, size);
+	return _connection_libnet_destroy_iterator(profile_iterator);
 }
 
-int connection_get_wifi_total_received_data_size (connection_h connection, int *size)
+int connection_get_current_profile(connection_h connection, connection_profile_h* profile)
 {
-	return __fill_call_statistic(connection, TOTAL_WIFI_RECEIVED_DATA_SIZE, size);
+	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_get_current_profile(profile);
 }
 
-int connection_get_wifi_total_sent_data_size (connection_h connection, int *size)
+int connection_open_profile(connection_h connection, connection_profile_h profile)
 {
-	return __fill_call_statistic(connection, TOTAL_WIFI_SENT_DATA_SIZE, size);
+	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_open_profile(profile);
 }
+
+int connection_open_cellular_service_type(connection_h connection,
+		connection_cellular_service_type_e type, connection_profile_h* profile)
+{
+	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_open_cellular_service_type(type, profile);
+}
+
+int connection_close_profile(connection_h connection, connection_profile_h profile)
+{
+	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_close_profile(profile);
+}
+
+
+/* Connection Statistics module ******************************************************************/
+
+static int __get_statistic(connection_type_e connection_type, connection_statistics_type_e statistics_type, long long* llsize)
+{
+	int size;
+	unsigned long long ull_size;
+	int stat_type;
+	char *key = NULL;
+
+	if (llsize == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	if (connection_type == CONNECTION_TYPE_CELLULAR) {
+		switch (statistics_type) {
+		case CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA:
+			key = VCONFKEY_NETWORK_CELLULAR_PKT_LAST_SNT;
+			break;
+		case CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA:
+			key = VCONFKEY_NETWORK_CELLULAR_PKT_LAST_RCV;
+			break;
+		case CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA:
+			key = VCONFKEY_NETWORK_CELLULAR_PKT_TOTAL_SNT;
+			break;
+		case CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA:
+			key = VCONFKEY_NETWORK_CELLULAR_PKT_TOTAL_RCV;
+			break;
+		default:
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		}
+
+		if (vconf_get_int(key, &size)) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Cannot Get %s = %d\n", key, size);
+			*llsize = 0;
+			return CONNECTION_ERROR_OPERATION_FAILED;
+		}
+
+		CONNECTION_LOG(CONNECTION_INFO,"%s:%d bytes\n", key, size);
+		*llsize = (long long)size;
+	} else if (connection_type == CONNECTION_TYPE_WIFI) {
+		switch (statistics_type) {
+		case CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA:
+			stat_type = NET_STATISTICS_TYPE_LAST_SENT_DATA;
+			break;
+		case CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA:
+			stat_type = NET_STATISTICS_TYPE_LAST_RECEIVED_DATA;
+			break;
+		case CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA:
+			stat_type = NET_STATISTICS_TYPE_TOTAL_SENT_DATA;
+			break;
+		case CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA:
+			stat_type = NET_STATISTICS_TYPE_TOTAL_RECEIVED_DATA;
+			break;
+		default:
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		}
+
+		if (_connection_libnet_get_statistics(stat_type, &ull_size) != CONNECTION_ERROR_NONE) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Cannot Get Wi-Fi statistics : %d\n", ull_size);
+			*llsize = 0;
+			return CONNECTION_ERROR_OPERATION_FAILED;
+		}
+
+		CONNECTION_LOG(CONNECTION_INFO,"%d bytes\n", ull_size);
+		*llsize = (long long)ull_size;
+	} else
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+static int __reset_statistic(connection_type_e connection_type, connection_statistics_type_e statistics_type)
+{
+	int conn_type;
+	int stat_type;
+	int rv;
+
+	if (connection_type == CONNECTION_TYPE_CELLULAR)
+		conn_type = NET_DEVICE_CELLULAR;
+	else if (connection_type == CONNECTION_TYPE_WIFI)
+		conn_type = NET_DEVICE_WIFI;
+	else
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	switch (statistics_type) {
+	case CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA:
+		stat_type = NET_STATISTICS_TYPE_LAST_SENT_DATA;
+		break;
+	case CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA:
+		stat_type = NET_STATISTICS_TYPE_LAST_RECEIVED_DATA;
+		break;
+	case CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA:
+		stat_type = NET_STATISTICS_TYPE_TOTAL_SENT_DATA;
+		break;
+	case CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA:
+		stat_type = NET_STATISTICS_TYPE_TOTAL_RECEIVED_DATA;
+		break;
+	default:
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	rv = _connection_libnet_set_statistics(conn_type, stat_type);
+	if(rv != CONNECTION_ERROR_NONE)
+		return rv;
+
+
+	CONNECTION_LOG(CONNECTION_INFO,"connection_reset_statistics success\n");
+
+	return CONNECTION_ERROR_NONE;
+}
+
+int connection_get_statistics(connection_type_e connection_type, connection_statistics_type_e statistics_type, long long* size)
+{
+	return __get_statistic(connection_type, statistics_type, size);
+}
+
+int connection_reset_statistics(connection_type_e connection_type, connection_statistics_type_e statistics_type)
+{
+	return __reset_statistic(connection_type, statistics_type);
+}
+

@@ -2,8 +2,8 @@
 
 Name:       capi-network-connection
 Summary:    Network Connection library in TIZEN C API
-Version:    0.1.0
-Release:    19
+Version:    0.1.1_9
+Release:    1
 Group:      System/Network
 License:    Apache License Version 2.0
 Source0:    %{name}-%{version}.tar.gz
@@ -12,6 +12,7 @@ BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(vconf)
 BuildRequires:  pkgconfig(capi-base-common)
+BuildRequires:  pkgconfig(network)
 Requires(post): /sbin/ldconfig  
 Requires(postun): /sbin/ldconfig
 
@@ -20,7 +21,7 @@ Network Connection library in Tizen C API
 
 %package devel
 Summary:  Network Connection library in Tizen C API (Development)
-Group:    TO_BE/FILLED_IN
+Group:    System/Network
 Requires: %{name} = %{version}-%{release}
 
 %description devel
