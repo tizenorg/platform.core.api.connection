@@ -11,8 +11,6 @@ BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(vconf)
 BuildRequires:  pkgconfig(capi-base-common)
 BuildRequires:  pkgconfig(network)
-Requires(post): /sbin/ldconfig  
-Requires(postun): /sbin/ldconfig
 
 %description
 Network Connection library in Tizen C API
@@ -31,7 +29,7 @@ Network Connection library in Tizen C API (Development)
 
 %build
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
-cmake . -DCMAKE_INSTALL_PREFIX=/usr -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
+%cmake . -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
 
 make %{?_smp_mflags}
 
