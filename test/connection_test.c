@@ -47,7 +47,7 @@ static bool test_get_user_string(const char *msg, char *buf, int buf_size)
 		return false;
 	}
 
-	buf[buf_size - 1] = '\0';
+	buf[strlen(buf) - 1] = '\0';
 
 	return true;
 }
@@ -131,6 +131,14 @@ static void test_connection_closed_callback(connection_error_e result, void* use
 		printf("Connection close Succeeded\n");
 	else
 		printf("Connection close Failed, err : %d\n", result);
+}
+
+static void test_connection_set_default_callback(connection_error_e result, void* user_data)
+{
+	if (result ==  CONNECTION_ERROR_NONE)
+		printf("Default profile setting Succeeded\n");
+	else
+		printf("Default profile setting Failed, err : %d\n", result);
 }
 
 static bool test_get_user_selected_profile(connection_profile_h *profile, bool select)
@@ -945,8 +953,17 @@ int test_set_default_cellular_service_type(void)
 {
 	connection_profile_h profile;
 	connection_cellular_service_type_e type;
+	int input, rv;
+
+	rv = test_get_user_int("Input API type (1:sync, 2:async)", &input);
+
+	if (rv == false || (input != 1 && input != 2)) {
+		printf("Invalid input!!\n");
+		return -1;
+	}
 
 	printf("\n** Choose a profile to set default service(internet or prepaid internet type only). **\n");
+
 	if (test_get_user_selected_profile(&profile, true) == false)
 		return -1;
 
@@ -955,8 +972,14 @@ int test_set_default_cellular_service_type(void)
 		return -1;
 	}
 
-	if (connection_set_default_cellular_service_profile(connection, type, profile) != CONNECTION_ERROR_NONE)
-		return -1;
+	if (input == 1) {
+		if (connection_set_default_cellular_service_profile(connection, type, profile) != CONNECTION_ERROR_NONE)
+			return -1;
+	} else {
+		if (connection_set_default_cellular_service_profile_async(connection,
+				type, profile, test_connection_set_default_callback, NULL) != CONNECTION_ERROR_NONE)
+			return -1;
+	}
 
 	return 1;
 }

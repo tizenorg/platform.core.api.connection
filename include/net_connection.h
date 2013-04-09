@@ -198,6 +198,15 @@ typedef void(*connection_type_changed_cb)(connection_type_e type, void* user_dat
 typedef void(*connection_address_changed_cb)(const char* ipv4_address, const char* ipv6_address, void* user_data);
 
 /**
+* @brief Called after connection_set_default_cellular_service_profile_async() is completed.
+* @param[in] result  The result
+* @param[in] user_data The user data passed from connection_open_profile()
+* @pre connection_set_default_cellular_service_profile_async() will invoke this callback function.
+* @see connection_set_default_cellular_service_profile_async()
+*/
+typedef void(*connection_set_default_cb)(connection_error_e result, void* user_data);
+
+/**
  * @brief Gets the type of the current profile for data connection.
  * @param[in] connection  The handle of the connection
  * @param[out] state  The state of network
@@ -469,6 +478,22 @@ int connection_get_default_cellular_service_profile(connection_h connection, con
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
  */
 int connection_set_default_cellular_service_profile(connection_h connection, connection_cellular_service_type_e type, connection_profile_h profile);
+
+/**
+ * @brief Sets the default profile which provides the given cellular service, asynchronously.
+ * @param[in] connection  The handle of connection
+ * @param[in] type  The type of cellular service.
+ * #CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET and #CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_INTERNET are only permitted.
+ * @param[in] profile  The handle of profile
+ * @param[in] callback  The callback function to be called
+ * @param[in] user_data The user data passed to the callback function
+ * @return 0 on success, otherwise negative error value.
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ */
+int connection_set_default_cellular_service_profile_async(connection_h connection,
+		connection_cellular_service_type_e type, connection_profile_h profile, connection_set_default_cb callback, void* user_data);
 
 /**
 * @brief Called after connection_open_profile() is completed.

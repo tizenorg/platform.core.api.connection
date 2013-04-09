@@ -666,7 +666,20 @@ int connection_set_default_cellular_service_profile(connection_h connection,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	return _connection_libnet_set_cellular_service_profile(type, profile);
+	return _connection_libnet_set_cellular_service_profile_sync(type, profile);
+}
+
+int connection_set_default_cellular_service_profile_async(connection_h connection,
+		connection_cellular_service_type_e type, connection_profile_h profile,
+		connection_set_default_cb callback, void* user_data)
+{
+	if (!(__connection_check_handle_validity(connection)) ||
+	    profile == NULL || callback == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_set_cellular_service_profile_async(type, profile, callback, user_data);
 }
 
 int connection_close_profile(connection_h connection, connection_profile_h profile,

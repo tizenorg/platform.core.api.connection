@@ -38,13 +38,15 @@ struct _profile_list_s {
 struct _libnet_s {
 	connection_opened_cb opened_cb;
 	connection_closed_cb closed_cb;
+	connection_set_default_cb set_default_cb;
 	void *opened_user_data;
 	void *closed_user_data;
+	void *set_default_user_data;
 	bool registered;
 };
 
 static struct _profile_list_s profile_iterator = {0, 0, NULL};
-static struct _libnet_s libnet = {NULL, NULL, NULL, NULL, false};
+static struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
 
 static connection_error_e __libnet_convert_to_cp_error_type(net_err_t err_type)
 {
@@ -160,6 +162,23 @@ static void __libnet_closed_cb(connection_error_e result)
 	libnet.closed_user_data = NULL;
 }
 
+static void __libnet_set_default_cb(connection_set_default_cb user_cb, void *user_data)
+{
+	if (user_cb) {
+		libnet.set_default_cb = user_cb;
+		libnet.set_default_user_data = user_data;
+	}
+}
+
+static void __libnet_default_cb(connection_error_e result)
+{
+	if (libnet.set_default_cb)
+		libnet.set_default_cb(result, libnet.set_default_user_data);
+
+	libnet.set_default_cb = NULL;
+	libnet.set_default_user_data = NULL;
+}
+
 static void __libnet_state_changed_cb(char *profile_name, connection_profile_state_e state)
 {
 	if (profile_name == NULL)
@@ -271,6 +290,11 @@ static void __libnet_evt_cb(net_event_info_t*  event_cb, void* user_data)
 	case NET_EVENT_WIFI_POWER_IND:
 	case NET_EVENT_WIFI_POWER_RSP:
 		CONNECTION_LOG(CONNECTION_INFO, "Got wifi power IND\n");
+		break;
+	case NET_EVENT_CELLULAR_SET_DEFAULT_RSP:
+		result = __libnet_convert_to_cp_error_type(event_cb->Error);
+		CONNECTION_LOG(CONNECTION_INFO, "Got set default profile RSP %d\n", result);
+		__libnet_default_cb(result);
 		break;
 	case NET_EVENT_WIFI_WPS_RSP:
 		CONNECTION_LOG(CONNECTION_INFO, "Got wifi WPS RSP\n");
@@ -733,7 +757,7 @@ done:
 	return CONNECTION_ERROR_NONE;
 }
 
-int _connection_libnet_set_cellular_service_profile(connection_cellular_service_type_e type, connection_profile_h profile)
+int _connection_libnet_set_cellular_service_profile_sync(connection_cellular_service_type_e type, connection_profile_h profile)
 {
 	if (!(_connection_libnet_check_profile_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -750,6 +774,30 @@ int _connection_libnet_set_cellular_service_profile(connection_cellular_service_
 
 	if (net_set_default_cellular_service_profile(profile_info->ProfileName) != NET_ERR_NONE)
 		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+int _connection_libnet_set_cellular_service_profile_async(connection_cellular_service_type_e type,
+			connection_profile_h profile, connection_set_default_cb callback, void* user_data)
+{
+	if (!(_connection_libnet_check_profile_validity(profile))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+	connection_cellular_service_type_e service_type;
+
+	service_type = _profile_convert_to_connection_cellular_service_type(profile_info->ProfileInfo.Pdp.ServiceType);
+
+	if (service_type != type)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	if (net_set_default_cellular_service_profile_async(profile_info->ProfileName) != NET_ERR_NONE)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	__libnet_set_default_cb(callback, user_data);
 
 	return CONNECTION_ERROR_NONE;
 }

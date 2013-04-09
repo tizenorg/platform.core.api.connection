@@ -78,7 +78,9 @@ int _connection_libnet_destroy_iterator(connection_profile_iterator_h profile_it
 int _connection_libnet_get_current_profile(connection_profile_h *profile);
 int _connection_libnet_open_profile(connection_profile_h profile, connection_opened_cb callback, void *user_data);
 int _connection_libnet_get_cellular_service_profile(connection_cellular_service_type_e type, connection_profile_h *profile);
-int _connection_libnet_set_cellular_service_profile(connection_cellular_service_type_e type, connection_profile_h profile);
+int _connection_libnet_set_cellular_service_profile_sync(connection_cellular_service_type_e type, connection_profile_h profile);
+int _connection_libnet_set_cellular_service_profile_async(connection_cellular_service_type_e type,
+			connection_profile_h profile, connection_set_default_cb callback, void* user_data);
 int _connection_libnet_close_profile(connection_profile_h profile, connection_closed_cb callback, void *user_data);
 int _connection_libnet_add_route(const char *interface_name, const char *host_address);
 void _connection_libnet_add_to_profile_list(connection_profile_h profile);
