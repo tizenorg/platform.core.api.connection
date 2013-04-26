@@ -16,6 +16,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
 #include <glib.h>
 #include <vconf/vconf.h>
 #include "net_connection_private.h"
