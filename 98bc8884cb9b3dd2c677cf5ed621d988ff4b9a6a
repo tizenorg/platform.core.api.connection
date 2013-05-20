@@ -1,0 +1,8 @@
+Change-Id: I98bc8884cb9b3dd2c677cf5ed621d988ff4b9a6a
+Code-Review+2: Anas Nashif
+Verified+1: Rusty Lynch <rusty.lynch@intel.com>
+Submitted-by: Anas Nashif
+Submitted-at: Mon, 20 May 2013 14:29:37 -0700
+Reviewed-on: https://review.tizen.org/gerrit/3594
+Project: platform/core/api/connection
+Branch: refs/heads/tizen
