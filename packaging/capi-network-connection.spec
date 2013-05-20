@@ -28,6 +28,7 @@ Network Connection library in Tizen C API (Development)
 
 
 %build
+unset LD_AS_NEEDED
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %cmake . -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
 

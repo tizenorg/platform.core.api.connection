@@ -1,0 +1,3 @@
+* Mon May 20 2013 Rusty Lynch <rusty.lynch@intel.com> submit/tizen/20130520.200645@62a88ba
+- Work around build breakages by unsetting LD_AS_NEEDED
+
