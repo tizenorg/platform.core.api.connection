@@ -5,6 +5,7 @@ Release:    1
 Group:      System/Network
 License:    Apache License Version 2.0
 Source0:    %{name}-%{version}.tar.gz
+Source1001: 	capi-network-connection.manifest
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(glib-2.0)
@@ -25,6 +26,7 @@ Network Connection library in Tizen C API (Development)
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 
 
 %build
@@ -48,11 +50,12 @@ cp LICENSE.APLv2 %{buildroot}%{_datadir}/license/capi-network-connection
 
 
 %files
-%manifest capi-network-connection.manifest
+%manifest %{name}.manifest
 %attr(644,-,-) %{_libdir}/libcapi-network-connection.so.*
 %{_datadir}/license/capi-network-connection
 
 %files devel
+%manifest %{name}.manifest
 %{_includedir}/network/*.h
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/libcapi-network-connection.so
