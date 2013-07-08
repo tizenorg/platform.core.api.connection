@@ -1,0 +1,8 @@
+Change-Id: I05af004ebec88a7fa861193ad77b4ed77447d64b
+Code-Review+2: Ryan Ware <ware@linux.intel.com>
+Verified+1: Ryan Ware <ware@linux.intel.com>
+Submitted-by: Ryan Ware <ware@linux.intel.com>
+Submitted-at: Mon, 08 Jul 2013 09:37:40 -0700
+Reviewed-on: https://review.tizen.org/gerrit/5179
+Project: platform/core/api/connection
+Branch: refs/heads/tizen
