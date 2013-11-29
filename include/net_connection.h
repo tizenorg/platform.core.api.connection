@@ -398,7 +398,7 @@ int connection_update_profile(connection_h connection, connection_profile_h prof
 
 /**
  * @brief Gets a iterator of the profiles.
- * @remarks @a profile_iterator must be released with connection_destroy().
+ * @remarks @a profile_iterator must be released with connection_destroy_profile_iterator().
  * @param[in] connection  The handle of connection
  * @param[in] type  The type of connetion iterator
  * @param[out] profile_iterator  The iterator of profile

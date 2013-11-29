@@ -504,128 +504,55 @@ done:
 int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, connection_profile_iterator_h* profile_iter_h)
 {
 	int count = 0;
-	int rv1, rv2, rv3, rv4;
+	int rv;
 	net_profile_info_t *profiles = NULL;
 
-	struct _profile_list_s wifi_profiles = {0, 0, NULL};
-	struct _profile_list_s cellular_profiles = {0, 0, NULL};
-	struct _profile_list_s ethernet_profiles = {0, 0, NULL};
-	struct _profile_list_s bluetooth_profiles = {0, 0, NULL};
+	struct _profile_list_s all_profiles = {0, 0, NULL};
 
 	__libnet_clear_profile_list(&profile_iterator);
 
-	rv1 = net_get_profile_list(NET_DEVICE_WIFI, &wifi_profiles.profiles, &wifi_profiles.count);
-	if (rv1 != NET_ERR_NO_SERVICE && rv1 != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	rv = net_get_profile_list(NET_DEVICE_MAX, &all_profiles.profiles, &all_profiles.count);
 
-	CONNECTION_LOG(CONNECTION_INFO, "Wifi profile count : %d\n", wifi_profiles.count);
-
-	rv2 = net_get_profile_list(NET_DEVICE_CELLULAR, &cellular_profiles.profiles, &cellular_profiles.count);
-	if (rv2 != NET_ERR_NO_SERVICE && rv2 != NET_ERR_NONE) {
-		__libnet_clear_profile_list(&wifi_profiles);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	if (rv != NET_ERR_NONE) {
+		if (rv == NET_ERR_NO_SERVICE) {
+			*profile_iter_h = &profile_iterator;
+			return CONNECTION_ERROR_NONE;
+		} else
+			return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-	CONNECTION_LOG(CONNECTION_INFO, "Cellular profile count : %d\n", cellular_profiles.count);
-
-	rv3 = net_get_profile_list(NET_DEVICE_ETHERNET, &ethernet_profiles.profiles, &ethernet_profiles.count);
-	if (rv3 != NET_ERR_NO_SERVICE && rv3 != NET_ERR_NONE) {
-		__libnet_clear_profile_list(&wifi_profiles);
-		__libnet_clear_profile_list(&cellular_profiles);
-		return CONNECTION_ERROR_OPERATION_FAILED;
-	}
-	CONNECTION_LOG(CONNECTION_INFO, "Ethernet profile count : %d\n", ethernet_profiles.count);
-
-	rv4 = net_get_profile_list(NET_DEVICE_BLUETOOTH, &bluetooth_profiles.profiles, &bluetooth_profiles.count);
-	if (rv4 != NET_ERR_NO_SERVICE && rv4 != NET_ERR_NONE) {
-		__libnet_clear_profile_list(&wifi_profiles);
-		__libnet_clear_profile_list(&cellular_profiles);
-		__libnet_clear_profile_list(&ethernet_profiles);
-		return CONNECTION_ERROR_OPERATION_FAILED;
-	}
-	CONNECTION_LOG(CONNECTION_INFO, "Bluetooth profile count : %d\n", bluetooth_profiles.count);
 
 	*profile_iter_h = &profile_iterator;
 
 	switch (type) {
 	case CONNECTION_ITERATOR_TYPE_REGISTERED:
-		count = wifi_profiles.count + cellular_profiles.count + ethernet_profiles.count + bluetooth_profiles.count;
+		count = all_profiles.count;
 		CONNECTION_LOG(CONNECTION_INFO, "Total profile count : %d\n", count);
+
 		if (count == 0)
 			return CONNECTION_ERROR_NONE;
 
-		profiles = g_try_new0(net_profile_info_t, count);
-		if (profiles == NULL) {
-			__libnet_clear_profile_list(&wifi_profiles);
-			__libnet_clear_profile_list(&cellular_profiles);
-			__libnet_clear_profile_list(&ethernet_profiles);
-			__libnet_clear_profile_list(&bluetooth_profiles);
-			return CONNECTION_ERROR_OUT_OF_MEMORY;
-		}
-
-		profile_iterator.profiles = profiles;
-
-		if (wifi_profiles.count > 0) {
-			memcpy(profiles, wifi_profiles.profiles,
-					sizeof(net_profile_info_t) * wifi_profiles.count);
-			profiles += wifi_profiles.count;
-		}
-
-		if (cellular_profiles.count > 0) {
-			memcpy(profiles, cellular_profiles.profiles,
-					sizeof(net_profile_info_t) * cellular_profiles.count);
-			profiles += cellular_profiles.count;
-		}
-
-		if (ethernet_profiles.count > 0) {
-			memcpy(profiles, ethernet_profiles.profiles,
-					sizeof(net_profile_info_t) * ethernet_profiles.count);
-			profiles += ethernet_profiles.count;
-		}
-
-		if (bluetooth_profiles.count > 0)
-			memcpy(profiles, bluetooth_profiles.profiles,
-					sizeof(net_profile_info_t) * bluetooth_profiles.count);
+		profile_iterator.profiles = all_profiles.profiles;
 
 		break;
 	case CONNECTION_ITERATOR_TYPE_CONNECTED:
-		count = __libnet_get_connected_count(&wifi_profiles);
-		count += __libnet_get_connected_count(&cellular_profiles);
-		count += __libnet_get_connected_count(&ethernet_profiles);
-		count += __libnet_get_connected_count(&bluetooth_profiles);
+		count = __libnet_get_connected_count(&all_profiles);
 		CONNECTION_LOG(CONNECTION_INFO, "Total connected profile count : %d\n", count);
+
 		if (count == 0)
 			return CONNECTION_ERROR_NONE;
 
 		profiles = g_try_new0(net_profile_info_t, count);
 		if (profiles == NULL) {
-			__libnet_clear_profile_list(&wifi_profiles);
-			__libnet_clear_profile_list(&cellular_profiles);
-			__libnet_clear_profile_list(&ethernet_profiles);
-			__libnet_clear_profile_list(&bluetooth_profiles);
+			__libnet_clear_profile_list(&all_profiles);
 			return CONNECTION_ERROR_OUT_OF_MEMORY;
 		}
 
 		profile_iterator.profiles = profiles;
 
-		if (wifi_profiles.count > 0)
-			__libnet_copy_connected_profile(&profiles, &wifi_profiles);
+		__libnet_copy_connected_profile(&profiles, &all_profiles);
 
-		if (cellular_profiles.count > 0)
-			__libnet_copy_connected_profile(&profiles, &cellular_profiles);
-
-		if (ethernet_profiles.count > 0)
-			__libnet_copy_connected_profile(&profiles, &ethernet_profiles);
-
-		if (bluetooth_profiles.count > 0)
-			__libnet_copy_connected_profile(&profiles, &bluetooth_profiles);
-
-		break;
+		__libnet_clear_profile_list(&all_profiles);
 	}
-
-	__libnet_clear_profile_list(&wifi_profiles);
-	__libnet_clear_profile_list(&cellular_profiles);
-	__libnet_clear_profile_list(&ethernet_profiles);
-	__libnet_clear_profile_list(&bluetooth_profiles);
 
 	profile_iterator.count = count;
 
