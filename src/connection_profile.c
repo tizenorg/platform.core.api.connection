@@ -182,9 +182,8 @@ net_state_type_t _connection_profile_convert_to_net_state(connection_profile_sta
 }
 
 
-/* Connection profile module *********************************************************************/
-
-int connection_profile_create(connection_profile_type_e type, const char* keyword, connection_profile_h* profile)
+/* Connection profile ********************************************************/
+EXPORT_API int connection_profile_create(connection_profile_type_e type, const char* keyword, connection_profile_h* profile)
 {
 	if ((type != CONNECTION_PROFILE_TYPE_CELLULAR &&
 	     type != CONNECTION_PROFILE_TYPE_WIFI) || profile == NULL) {
@@ -217,7 +216,7 @@ int connection_profile_create(connection_profile_type_e type, const char* keywor
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_destroy(connection_profile_h profile)
+EXPORT_API int connection_profile_destroy(connection_profile_h profile)
 {
 	if (!(_connection_libnet_check_profile_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -229,7 +228,7 @@ int connection_profile_destroy(connection_profile_h profile)
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_clone(connection_profile_h* cloned_profile, connection_profile_h origin_profile)
+EXPORT_API int connection_profile_clone(connection_profile_h* cloned_profile, connection_profile_h origin_profile)
 {
 	if (!(_connection_libnet_check_profile_validity(origin_profile)) || cloned_profile == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -246,7 +245,7 @@ int connection_profile_clone(connection_profile_h* cloned_profile, connection_pr
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_id(connection_profile_h profile, char** profile_id)
+EXPORT_API int connection_profile_get_id(connection_profile_h profile, char** profile_id)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || profile_id == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -268,7 +267,7 @@ int connection_profile_get_id(connection_profile_h profile, char** profile_id)
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_name(connection_profile_h profile, char** profile_name)
+EXPORT_API int connection_profile_get_name(connection_profile_h profile, char** profile_name)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || profile_name == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -305,7 +304,7 @@ int connection_profile_get_name(connection_profile_h profile, char** profile_nam
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_type(connection_profile_h profile, connection_profile_type_e* type)
+EXPORT_API int connection_profile_get_type(connection_profile_h profile, connection_profile_type_e* type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -335,7 +334,7 @@ int connection_profile_get_type(connection_profile_h profile, connection_profile
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_network_interface_name(connection_profile_h profile, char** interface_name)
+EXPORT_API int connection_profile_get_network_interface_name(connection_profile_h profile, char** interface_name)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || interface_name == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -354,7 +353,7 @@ int connection_profile_get_network_interface_name(connection_profile_h profile, 
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_refresh(connection_profile_h profile)
+EXPORT_API int connection_profile_refresh(connection_profile_h profile)
 {
 	if (!(_connection_libnet_check_profile_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -374,7 +373,7 @@ int connection_profile_refresh(connection_profile_h profile)
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_state(connection_profile_h profile, connection_profile_state_e* state)
+EXPORT_API int connection_profile_get_state(connection_profile_h profile, connection_profile_state_e* state)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || state == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -389,7 +388,7 @@ int connection_profile_get_state(connection_profile_h profile, connection_profil
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_ip_config_type(connection_profile_h profile,
+EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profile,
 		connection_address_family_e address_family, connection_ip_config_type_e* type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -431,7 +430,7 @@ int connection_profile_get_ip_config_type(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_ip_address(connection_profile_h profile,
+EXPORT_API int connection_profile_get_ip_address(connection_profile_h profile,
 		connection_address_family_e address_family, char** ip_address)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -457,7 +456,7 @@ int connection_profile_get_ip_address(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_subnet_mask(connection_profile_h profile,
+EXPORT_API int connection_profile_get_subnet_mask(connection_profile_h profile,
 		connection_address_family_e address_family, char** subnet_mask)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -483,7 +482,7 @@ int connection_profile_get_subnet_mask(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_gateway_address(connection_profile_h profile,
+EXPORT_API int connection_profile_get_gateway_address(connection_profile_h profile,
 		connection_address_family_e address_family, char** gateway_address)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -509,7 +508,7 @@ int connection_profile_get_gateway_address(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_dns_address(connection_profile_h profile, int order,
+EXPORT_API int connection_profile_get_dns_address(connection_profile_h profile, int order,
 		connection_address_family_e address_family, char** dns_address)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -537,7 +536,7 @@ int connection_profile_get_dns_address(connection_profile_h profile, int order,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_proxy_type(connection_profile_h profile, connection_proxy_type_e* type)
+EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, connection_proxy_type_e* type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -578,7 +577,7 @@ int connection_profile_get_proxy_type(connection_profile_h profile, connection_p
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_proxy_address(connection_profile_h profile,
+EXPORT_API int connection_profile_get_proxy_address(connection_profile_h profile,
 		connection_address_family_e address_family, char** proxy_address)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -613,7 +612,7 @@ int connection_profile_get_proxy_address(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_ip_config_type(connection_profile_h profile,
+EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profile,
 		connection_address_family_e address_family, connection_ip_config_type_e type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -657,7 +656,7 @@ int connection_profile_set_ip_config_type(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_ip_address(connection_profile_h profile,
+EXPORT_API int connection_profile_set_ip_address(connection_profile_h profile,
 		connection_address_family_e address_family, const char* ip_address)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -683,7 +682,7 @@ int connection_profile_set_ip_address(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_subnet_mask(connection_profile_h profile,
+EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 		connection_address_family_e address_family, const char* subnet_mask)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -709,7 +708,7 @@ int connection_profile_set_subnet_mask(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_gateway_address(connection_profile_h profile,
+EXPORT_API int connection_profile_set_gateway_address(connection_profile_h profile,
 		connection_address_family_e address_family, const char* gateway_address)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -735,7 +734,7 @@ int connection_profile_set_gateway_address(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_dns_address(connection_profile_h profile, int order,
+EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, int order,
 		connection_address_family_e address_family, const char* dns_address)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -763,7 +762,7 @@ int connection_profile_set_dns_address(connection_profile_h profile, int order,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_proxy_type(connection_profile_h profile, connection_proxy_type_e type)
+EXPORT_API int connection_profile_set_proxy_type(connection_profile_h profile, connection_proxy_type_e type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -792,7 +791,7 @@ int connection_profile_set_proxy_type(connection_profile_h profile, connection_p
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_proxy_address(connection_profile_h profile,
+EXPORT_API int connection_profile_set_proxy_address(connection_profile_h profile,
 		connection_address_family_e address_family, const char* proxy_address)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -818,7 +817,7 @@ int connection_profile_set_proxy_address(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_state_changed_cb(connection_profile_h profile,
+EXPORT_API int connection_profile_set_state_changed_cb(connection_profile_h profile,
 		connection_profile_state_changed_cb callback, void* user_data)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || callback == NULL) {
@@ -832,7 +831,7 @@ int connection_profile_set_state_changed_cb(connection_profile_h profile,
 	return CONNECTION_ERROR_OPERATION_FAILED;
 }
 
-int connection_profile_unset_state_changed_cb(connection_profile_h profile)
+EXPORT_API int connection_profile_unset_state_changed_cb(connection_profile_h profile)
 {
 	if (!(_connection_libnet_check_profile_cb_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -845,9 +844,8 @@ int connection_profile_unset_state_changed_cb(connection_profile_h profile)
 }
 
 
-/* Wi-Fi profile module **************************************************************************/
-
-int connection_profile_get_wifi_essid(connection_profile_h profile, char** essid)
+/* Wi-Fi profile *************************************************************/
+EXPORT_API int connection_profile_get_wifi_essid(connection_profile_h profile, char** essid)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || essid == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -866,7 +864,7 @@ int connection_profile_get_wifi_essid(connection_profile_h profile, char** essid
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_wifi_bssid(connection_profile_h profile, char** bssid)
+EXPORT_API int connection_profile_get_wifi_bssid(connection_profile_h profile, char** bssid)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || bssid == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -885,7 +883,7 @@ int connection_profile_get_wifi_bssid(connection_profile_h profile, char** bssid
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_wifi_rssi(connection_profile_h profile, int* rssi)
+EXPORT_API int connection_profile_get_wifi_rssi(connection_profile_h profile, int* rssi)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || rssi == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -902,7 +900,7 @@ int connection_profile_get_wifi_rssi(connection_profile_h profile, int* rssi)
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_wifi_frequency(connection_profile_h profile, int* frequency)
+EXPORT_API int connection_profile_get_wifi_frequency(connection_profile_h profile, int* frequency)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || frequency == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -919,7 +917,7 @@ int connection_profile_get_wifi_frequency(connection_profile_h profile, int* fre
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_wifi_max_speed(connection_profile_h profile, int* max_speed)
+EXPORT_API int connection_profile_get_wifi_max_speed(connection_profile_h profile, int* max_speed)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || max_speed == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -936,7 +934,7 @@ int connection_profile_get_wifi_max_speed(connection_profile_h profile, int* max
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_wifi_security_type(connection_profile_h profile, connection_wifi_security_type_e* type)
+EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h profile, connection_wifi_security_type_e* type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -971,7 +969,7 @@ int connection_profile_get_wifi_security_type(connection_profile_h profile, conn
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_wifi_encryption_type(connection_profile_h profile, connection_wifi_encryption_type_e* type)
+EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h profile, connection_wifi_encryption_type_e* type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1006,7 +1004,7 @@ int connection_profile_get_wifi_encryption_type(connection_profile_h profile, co
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_is_wifi_passphrase_required(connection_profile_h profile, bool* required)
+EXPORT_API int connection_profile_is_wifi_passphrase_required(connection_profile_h profile, bool* required)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || required == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1040,7 +1038,7 @@ int connection_profile_is_wifi_passphrase_required(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_wifi_passphrase(connection_profile_h profile, const char* passphrase)
+EXPORT_API int connection_profile_set_wifi_passphrase(connection_profile_h profile, const char* passphrase)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || passphrase == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1058,7 +1056,7 @@ int connection_profile_set_wifi_passphrase(connection_profile_h profile, const c
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_is_wifi_wps_supported(connection_profile_h profile, bool* supported)
+EXPORT_API int connection_profile_is_wifi_wps_supported(connection_profile_h profile, bool* supported)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || supported == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1079,9 +1077,8 @@ int connection_profile_is_wifi_wps_supported(connection_profile_h profile, bool*
 }
 
 
-/* Cellular profile module ***********************************************************************/
-
-int connection_profile_get_cellular_network_type(connection_profile_h profile, connection_cellular_network_type_e* type)
+/* Cellular profile **********************************************************/
+EXPORT_API int connection_profile_get_cellular_network_type(connection_profile_h profile, connection_cellular_network_type_e* type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1121,7 +1118,7 @@ int connection_profile_get_cellular_network_type(connection_profile_h profile, c
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_cellular_service_type(connection_profile_h profile,
+EXPORT_API int connection_profile_get_cellular_service_type(connection_profile_h profile,
 						connection_cellular_service_type_e* type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
@@ -1146,7 +1143,7 @@ int connection_profile_get_cellular_service_type(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_cellular_apn(connection_profile_h profile, char** apn)
+EXPORT_API int connection_profile_get_cellular_apn(connection_profile_h profile, char** apn)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || apn == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1165,7 +1162,7 @@ int connection_profile_get_cellular_apn(connection_profile_h profile, char** apn
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_cellular_auth_info(connection_profile_h profile,
+EXPORT_API int connection_profile_get_cellular_auth_info(connection_profile_h profile,
 		connection_cellular_auth_type_e* type, char** user_name, char** password)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -1206,7 +1203,7 @@ int connection_profile_get_cellular_auth_info(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_get_cellular_home_url(connection_profile_h profile, char** home_url)
+EXPORT_API int connection_profile_get_cellular_home_url(connection_profile_h profile, char** home_url)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || home_url == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1225,7 +1222,7 @@ int connection_profile_get_cellular_home_url(connection_profile_h profile, char*
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_is_cellular_roaming(connection_profile_h profile, bool* is_roaming)
+EXPORT_API int connection_profile_is_cellular_roaming(connection_profile_h profile, bool* is_roaming)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || is_roaming == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1245,7 +1242,7 @@ int connection_profile_is_cellular_roaming(connection_profile_h profile, bool* i
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_cellular_service_type(connection_profile_h profile,
+EXPORT_API int connection_profile_set_cellular_service_type(connection_profile_h profile,
 		connection_cellular_service_type_e service_type)
 {
 	if (!(_connection_libnet_check_profile_validity(profile))) {
@@ -1285,7 +1282,7 @@ int connection_profile_set_cellular_service_type(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_cellular_apn(connection_profile_h profile, const char* apn)
+EXPORT_API int connection_profile_set_cellular_apn(connection_profile_h profile, const char* apn)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || apn == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1302,7 +1299,7 @@ int connection_profile_set_cellular_apn(connection_profile_h profile, const char
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_cellular_auth_info(connection_profile_h profile,
+EXPORT_API int connection_profile_set_cellular_auth_info(connection_profile_h profile,
 		connection_cellular_auth_type_e type, const char* user_name, const char* password)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
@@ -1336,7 +1333,7 @@ int connection_profile_set_cellular_auth_info(connection_profile_h profile,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_profile_set_cellular_home_url(connection_profile_h profile, const char* home_url)
+EXPORT_API int connection_profile_set_cellular_home_url(connection_profile_h profile, const char* home_url)
 {
 	if (!(_connection_libnet_check_profile_validity(profile)) || home_url == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -1352,4 +1349,3 @@ int connection_profile_set_cellular_home_url(connection_profile_h profile, const
 
 	return CONNECTION_ERROR_NONE;
 }
-

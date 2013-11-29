@@ -14,9 +14,7 @@
  * limitations under the License. 
  */
 
-
-
-#ifndef __NET_CONNECTION_PRIVATE_H__        /* To prevent inclusion of a header file twice */
+#ifndef __NET_CONNECTION_PRIVATE_H__
 #define __NET_CONNECTION_PRIVATE_H__
 
 #include <dlog.h>
