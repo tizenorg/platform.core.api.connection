@@ -88,7 +88,6 @@ static const char* __profile_get_ethernet_proxy(void)
 		return NULL;
 	}
 
-	CONNECTION_LOG(CONNECTION_INFO, "Get system proxy: %s", proxy);
 	return proxy;
 }
 

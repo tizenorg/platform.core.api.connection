@@ -257,6 +257,8 @@ EXPORT_API int connection_create(connection_h* connection)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
+	CONNECTION_LOG(CONNECTION_ERROR, "Connection successfully created!\n");
+
 	*connection = g_try_malloc0(sizeof(connection_handle_s));
 	if (*connection != NULL) {
 		CONNECTION_LOG(CONNECTION_INFO, "New Handle Created %p\n", *connection);
@@ -345,8 +347,6 @@ EXPORT_API int connection_get_ip_address(connection_h connection,
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
-	CONNECTION_LOG(CONNECTION_INFO, "IP Address %s\n", *ip_address);
-
 	return CONNECTION_ERROR_NONE;
 }
 
@@ -375,8 +375,6 @@ EXPORT_API int connection_get_proxy(connection_h connection,
 		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed\n");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-
-	CONNECTION_LOG(CONNECTION_INFO, "Proxy Address %s\n", *proxy);
 
 	return CONNECTION_ERROR_NONE;
 }
