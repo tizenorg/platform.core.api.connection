@@ -1,3 +1,11 @@
+capi-network-connection (0.1.3-14) unstable; urgency=low
+
+  * Set CFLAGS fvisibility hidden
+  * Git: framework/api/connection
+  * Tag: capi-network-connection_0.1.3-14
+
+ -- JaeHyun Kim <jeik01.kim@samsung.com>  Thu, 09 May 2013 21:19:46 +0900
+
 capi-network-connection (0.1.3-12) unstable; urgency=low
 
   * Check return value of read()

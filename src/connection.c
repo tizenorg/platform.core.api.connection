@@ -26,7 +26,6 @@ static void __connection_cb_state_change_cb(keynode_t *node, void *user_data);
 static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data);
 static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data);
 
-
 static int __connection_convert_net_state(int status)
 {
 	switch (status) {
@@ -241,9 +240,8 @@ static int __connection_get_handle_count(void)
 	return count;
 }
 
-/* Connection Manager module ********************************************************************/
-
-int connection_create(connection_h* connection)
+/* Connection Manager ********************************************************/
+EXPORT_API int connection_create(connection_h* connection)
 {
 	CONNECTION_MUTEX_LOCK;
 
@@ -273,7 +271,7 @@ int connection_create(connection_h* connection)
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_destroy(connection_h connection)
+EXPORT_API int connection_destroy(connection_h connection)
 {
 	CONNECTION_MUTEX_LOCK;
 
@@ -300,7 +298,7 @@ int connection_destroy(connection_h connection)
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_type(connection_h connection, connection_type_e* type)
+EXPORT_API int connection_get_type(connection_h connection, connection_type_e* type)
 {
 	int status = 0;
 
@@ -321,7 +319,7 @@ int connection_get_type(connection_h connection, connection_type_e* type)
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_ip_address(connection_h connection,
+EXPORT_API int connection_get_ip_address(connection_h connection,
 				connection_address_family_e address_family, char** ip_address)
 {
 	if (ip_address == NULL || !(__connection_check_handle_validity(connection))) {
@@ -352,7 +350,7 @@ int connection_get_ip_address(connection_h connection,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_proxy(connection_h connection,
+EXPORT_API int connection_get_proxy(connection_h connection,
 				connection_address_family_e address_family, char** proxy)
 {
 	if (proxy == NULL || !(__connection_check_handle_validity(connection))) {
@@ -383,7 +381,7 @@ int connection_get_proxy(connection_h connection,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_cellular_state(connection_h connection, connection_cellular_state_e* state)
+EXPORT_API int connection_get_cellular_state(connection_h connection, connection_cellular_state_e* state)
 {
 	int status = 0;
 	int cellular_state = 0;
@@ -419,7 +417,7 @@ int connection_get_cellular_state(connection_h connection, connection_cellular_s
 	}
 }
 
-int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* state)
+EXPORT_API int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* state)
 {
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -436,7 +434,7 @@ int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* 
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_ethernet_state(connection_h connection, connection_ethernet_state_e* state)
+EXPORT_API int connection_get_ethernet_state(connection_h connection, connection_ethernet_state_e* state)
 {
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -449,7 +447,7 @@ int connection_get_ethernet_state(connection_h connection, connection_ethernet_s
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_bt_state(connection_h connection, connection_bt_state_e* state)
+EXPORT_API int connection_get_bt_state(connection_h connection, connection_bt_state_e* state)
 {
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -462,7 +460,7 @@ int connection_get_bt_state(connection_h connection, connection_bt_state_e* stat
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_set_type_changed_cb(connection_h connection,
+EXPORT_API int connection_set_type_changed_cb(connection_h connection,
 					connection_type_changed_cb callback, void* user_data)
 {
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
@@ -473,7 +471,7 @@ int connection_set_type_changed_cb(connection_h connection,
 	return __connection_set_type_changed_callback(connection, callback, user_data);
 }
 
-int connection_unset_type_changed_cb(connection_h connection)
+EXPORT_API int connection_unset_type_changed_cb(connection_h connection)
 {
 	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -483,7 +481,7 @@ int connection_unset_type_changed_cb(connection_h connection)
 	return __connection_set_type_changed_callback(connection, NULL, NULL);
 }
 
-int connection_set_ip_address_changed_cb(connection_h connection,
+EXPORT_API int connection_set_ip_address_changed_cb(connection_h connection,
 				connection_address_changed_cb callback, void* user_data)
 {
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
@@ -494,7 +492,7 @@ int connection_set_ip_address_changed_cb(connection_h connection,
 	return __connection_set_ip_changed_callback(connection, callback, user_data);
 }
 
-int connection_unset_ip_address_changed_cb(connection_h connection)
+EXPORT_API int connection_unset_ip_address_changed_cb(connection_h connection)
 {
 	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -504,7 +502,7 @@ int connection_unset_ip_address_changed_cb(connection_h connection)
 	return __connection_set_ip_changed_callback(connection, NULL, NULL);
 }
 
-int connection_set_proxy_address_changed_cb(connection_h connection,
+EXPORT_API int connection_set_proxy_address_changed_cb(connection_h connection,
 				connection_address_changed_cb callback, void* user_data)
 {
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
@@ -515,7 +513,7 @@ int connection_set_proxy_address_changed_cb(connection_h connection,
 	return __connection_set_proxy_changed_callback(connection, callback, user_data);
 }
 
-int connection_unset_proxy_address_changed_cb(connection_h connection)
+EXPORT_API int connection_unset_proxy_address_changed_cb(connection_h connection)
 {
 	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -525,7 +523,7 @@ int connection_unset_proxy_address_changed_cb(connection_h connection)
 	return __connection_set_proxy_changed_callback(connection, NULL, NULL);
 }
 
-int connection_add_profile(connection_h connection, connection_profile_h profile)
+EXPORT_API int connection_add_profile(connection_h connection, connection_profile_h profile)
 {
 	if (!(__connection_check_handle_validity(connection)) ||
 	    !(_connection_libnet_check_profile_validity(profile))) {
@@ -551,7 +549,7 @@ int connection_add_profile(connection_h connection, connection_profile_h profile
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_remove_profile(connection_h connection, connection_profile_h profile)
+EXPORT_API int connection_remove_profile(connection_h connection, connection_profile_h profile)
 {
 	if (!(__connection_check_handle_validity(connection)) ||
 	    !(_connection_libnet_check_profile_validity(profile))) {
@@ -577,7 +575,7 @@ int connection_remove_profile(connection_h connection, connection_profile_h prof
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_update_profile(connection_h connection, connection_profile_h profile)
+EXPORT_API int connection_update_profile(connection_h connection, connection_profile_h profile)
 {
 	if (!(__connection_check_handle_validity(connection)) ||
 	    !(_connection_libnet_check_profile_validity(profile))) {
@@ -597,7 +595,7 @@ int connection_update_profile(connection_h connection, connection_profile_h prof
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_profile_iterator(connection_h connection,
+EXPORT_API int connection_get_profile_iterator(connection_h connection,
 		connection_iterator_type_e type, connection_profile_iterator_h* profile_iterator)
 {
 	if (!(__connection_check_handle_validity(connection)) ||
@@ -610,23 +608,23 @@ int connection_get_profile_iterator(connection_h connection,
 	return _connection_libnet_get_profile_iterator(type, profile_iterator);
 }
 
-int connection_profile_iterator_next(connection_profile_iterator_h profile_iterator,
+EXPORT_API int connection_profile_iterator_next(connection_profile_iterator_h profile_iterator,
 							connection_profile_h* profile)
 {
 	return _connection_libnet_get_iterator_next(profile_iterator, profile);
 }
 
-bool connection_profile_iterator_has_next(connection_profile_iterator_h profile_iterator)
+EXPORT_API bool connection_profile_iterator_has_next(connection_profile_iterator_h profile_iterator)
 {
 	return _connection_libnet_iterator_has_next(profile_iterator);
 }
 
-int connection_destroy_profile_iterator(connection_profile_iterator_h profile_iterator)
+EXPORT_API int connection_destroy_profile_iterator(connection_profile_iterator_h profile_iterator)
 {
 	return _connection_libnet_destroy_iterator(profile_iterator);
 }
 
-int connection_get_current_profile(connection_h connection, connection_profile_h* profile)
+EXPORT_API int connection_get_current_profile(connection_h connection, connection_profile_h* profile)
 {
 	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -636,18 +634,7 @@ int connection_get_current_profile(connection_h connection, connection_profile_h
 	return _connection_libnet_get_current_profile(profile);
 }
 
-int connection_open_profile(connection_h connection, connection_profile_h profile,
-					connection_opened_cb callback, void* user_data)
-{
-	if (!(__connection_check_handle_validity(connection)) ||
-	    profile == NULL || callback == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
-	}
-
-	return _connection_libnet_open_profile(profile, callback, user_data);
-}
-int connection_get_default_cellular_service_profile(connection_h connection,
+EXPORT_API int connection_get_default_cellular_service_profile(connection_h connection,
 		connection_cellular_service_type_e type, connection_profile_h* profile)
 {
 	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
@@ -658,7 +645,7 @@ int connection_get_default_cellular_service_profile(connection_h connection,
 	return _connection_libnet_get_cellular_service_profile(type, profile);
 }
 
-int connection_set_default_cellular_service_profile(connection_h connection,
+EXPORT_API int connection_set_default_cellular_service_profile(connection_h connection,
 		connection_cellular_service_type_e type, connection_profile_h profile)
 {
 	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
@@ -669,7 +656,7 @@ int connection_set_default_cellular_service_profile(connection_h connection,
 	return _connection_libnet_set_cellular_service_profile_sync(type, profile);
 }
 
-int connection_set_default_cellular_service_profile_async(connection_h connection,
+EXPORT_API int connection_set_default_cellular_service_profile_async(connection_h connection,
 		connection_cellular_service_type_e type, connection_profile_h profile,
 		connection_set_default_cb callback, void* user_data)
 {
@@ -682,7 +669,19 @@ int connection_set_default_cellular_service_profile_async(connection_h connectio
 	return _connection_libnet_set_cellular_service_profile_async(type, profile, callback, user_data);
 }
 
-int connection_close_profile(connection_h connection, connection_profile_h profile,
+EXPORT_API int connection_open_profile(connection_h connection, connection_profile_h profile,
+					connection_opened_cb callback, void* user_data)
+{
+	if (!(__connection_check_handle_validity(connection)) ||
+	    profile == NULL || callback == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_open_profile(profile, callback, user_data);
+}
+
+EXPORT_API int connection_close_profile(connection_h connection, connection_profile_h profile,
 					connection_closed_cb callback, void* user_data)
 {
 	if (!(__connection_check_handle_validity(connection)) ||
@@ -694,7 +693,7 @@ int connection_close_profile(connection_h connection, connection_profile_h profi
 	return _connection_libnet_close_profile(profile, callback, user_data);
 }
 
-int connection_add_route(connection_h connection, const char* interface_name, const char* host_address)
+EXPORT_API int connection_add_route(connection_h connection, const char* interface_name, const char* host_address)
 {
 	if (!(__connection_check_handle_validity(connection)) ||
 	    interface_name == NULL || host_address == NULL) {
@@ -820,15 +819,14 @@ static int __reset_statistic(connection_type_e connection_type,
 	return CONNECTION_ERROR_NONE;
 }
 
-int connection_get_statistics(connection_type_e connection_type,
+EXPORT_API int connection_get_statistics(connection_type_e connection_type,
 				connection_statistics_type_e statistics_type, long long* size)
 {
 	return __get_statistic(connection_type, statistics_type, size);
 }
 
-int connection_reset_statistics(connection_type_e connection_type,
+EXPORT_API int connection_reset_statistics(connection_type_e connection_type,
 				connection_statistics_type_e statistics_type)
 {
 	return __reset_statistic(connection_type, statistics_type);
 }
-

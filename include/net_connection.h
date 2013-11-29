@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-
-#ifndef __NET_CONNECTION_INTF_H__        /* To prevent inclusion of a header file twice */
+#ifndef __NET_CONNECTION_INTF_H__
 #define __NET_CONNECTION_INTF_H__
 
 #include "connection_profile.h"
