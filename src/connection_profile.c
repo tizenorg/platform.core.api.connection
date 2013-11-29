@@ -199,6 +199,7 @@ EXPORT_API int connection_profile_create(connection_profile_type_e type, const c
 	case CONNECTION_PROFILE_TYPE_CELLULAR:
 		if (keyword == NULL) {
 			CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+			g_free(profile_info);
 			return CONNECTION_ERROR_INVALID_PARAMETER;
 		}
 		__profile_init_cellular_profile(profile_info, keyword);
