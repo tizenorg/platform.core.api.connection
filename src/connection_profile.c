@@ -759,6 +759,9 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 	else if (inet_aton(dns_address, &(net_info->DnsAddr[order-1].Data.Ipv4)) == 0)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
+	if (net_info->DnsCount < order)
+		net_info->DnsCount = order;
+
 	return CONNECTION_ERROR_NONE;
 }
 
