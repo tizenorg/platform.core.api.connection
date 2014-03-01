@@ -22,6 +22,10 @@
 #include <network-wifi-intf.h>
 #include "net_connection.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #undef LOG_TAG
 #define LOG_TAG "CAPI_NETWORK_CONNECTION"
 
@@ -42,24 +46,6 @@
 			LOGI(format, ## args); \
 		} \
 	} while(0)
-
-#define CONNECTION_MUTEX_LOCK _connection_inter_mutex_lock()
-#define CONNECTION_MUTEX_UNLOCK _connection_inter_mutex_unlock()
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-typedef struct _connection_handle_s
-{
-	connection_type_changed_cb type_changed_callback;
-	connection_address_changed_cb ip_changed_callback;
-	connection_address_changed_cb proxy_changed_callback;
-	void *state_changed_user_data;
-	void *ip_changed_user_data;
-	void *proxy_changed_user_data;
-} connection_handle_s;
-
 
 bool _connection_libnet_init(void);
 bool _connection_libnet_deinit(void);
@@ -93,9 +79,6 @@ connection_cellular_service_type_e _profile_convert_to_connection_cellular_servi
 connection_profile_state_e _profile_convert_to_cp_state(net_state_type_t state);
 net_service_type_t _connection_profile_convert_to_libnet_cellular_service_type(connection_cellular_service_type_e svc_type);
 net_state_type_t _connection_profile_convert_to_net_state(connection_profile_state_e state);
-
-void _connection_inter_mutex_lock(void);
-void _connection_inter_mutex_unlock(void);
 
 #ifdef __cplusplus
 }

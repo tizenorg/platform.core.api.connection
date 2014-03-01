@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 #include <stdio.h>
@@ -52,7 +52,7 @@ static char* __profile_convert_ip_to_string(net_addr_t *ip_addr)
 	if (ipstr == NULL)
 		return NULL;
 
-	snprintf(ipstr, 16, "%d.%d.%d.%d", ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
+	g_snprintf(ipstr, 16, "%d.%d.%d.%d", ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
 
 	return ipstr;
 }
