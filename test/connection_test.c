@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 #include <stdio.h>
@@ -47,7 +47,8 @@ static bool test_get_user_string(const char *msg, char *buf, int buf_size)
 		return false;
 	}
 
-	buf[strlen(buf) - 1] = '\0';
+	if (rv >= 0)
+		buf[rv] = '\0';
 
 	return true;
 }
