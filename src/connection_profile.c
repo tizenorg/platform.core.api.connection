@@ -836,12 +836,8 @@ EXPORT_API int connection_profile_set_state_changed_cb(connection_profile_h prof
 
 EXPORT_API int connection_profile_unset_state_changed_cb(connection_profile_h profile)
 {
-	if (!(_connection_libnet_check_profile_cb_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+	if (_connection_libnet_remove_from_profile_cb_list(profile) != true)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
-	}
-
-	_connection_libnet_remove_from_profile_cb_list(profile);
 
 	return CONNECTION_ERROR_NONE;
 }

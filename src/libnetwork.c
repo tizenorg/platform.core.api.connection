@@ -45,6 +45,12 @@ struct _libnet_s {
 	bool registered;
 };
 
+struct _state_notify {
+	connection_profile_state_changed_cb callback;
+	connection_profile_state_e state;
+	void *user_data;
+};
+
 static __thread struct _profile_list_s profile_iterator = {0, 0, NULL};
 static __thread struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
 
@@ -140,63 +146,109 @@ static const char *__libnet_convert_cp_state_to_string(connection_profile_state_
 
 static void __libnet_set_opened_cb(connection_opened_cb user_cb, void *user_data)
 {
-	if (user_cb) {
+	if (user_cb != NULL) {
 		libnet.opened_cb = user_cb;
 		libnet.opened_user_data = user_data;
 	}
 }
 
-static void __libnet_opened_cb(connection_error_e result)
+static gboolean __libnet_opened_cb_idle(gpointer data)
 {
-	if (libnet.opened_cb)
+	connection_error_e result = (connection_error_e)data;
+
+	if (libnet.opened_cb != NULL)
 		libnet.opened_cb(result, libnet.opened_user_data);
 
 	libnet.opened_cb = NULL;
 	libnet.opened_user_data = NULL;
+
+	return FALSE;
+}
+
+static void __libnet_opened_cb(connection_error_e result)
+{
+	if (libnet.opened_cb != NULL)
+		g_idle_add(__libnet_opened_cb_idle, (gpointer)result);
 }
 
 static void __libnet_set_closed_cb(connection_closed_cb user_cb, void *user_data)
 {
-	if (user_cb) {
+	if (user_cb != NULL) {
 		libnet.closed_cb = user_cb;
 		libnet.closed_user_data = user_data;
 	}
 }
 
-static void __libnet_closed_cb(connection_error_e result)
+static gboolean __libnet_closed_cb_idle(gpointer data)
 {
-	if (libnet.closed_cb)
+	connection_error_e result = (connection_error_e)data;
+
+	if (libnet.closed_cb != NULL)
 		libnet.closed_cb(result, libnet.closed_user_data);
 
 	libnet.closed_cb = NULL;
 	libnet.closed_user_data = NULL;
+
+	return FALSE;
+}
+
+static void __libnet_closed_cb(connection_error_e result)
+{
+	if (libnet.closed_cb != NULL)
+		g_idle_add(__libnet_closed_cb_idle, (gpointer)result);
 }
 
 static void __libnet_set_default_cb(connection_set_default_cb user_cb, void *user_data)
 {
-	if (user_cb) {
+	if (user_cb != NULL) {
 		libnet.set_default_cb = user_cb;
 		libnet.set_default_user_data = user_data;
 	}
 }
 
-static void __libnet_default_cb(connection_error_e result)
+static gboolean __libnet_default_cb_idle(gpointer data)
 {
-	if (libnet.set_default_cb)
+	connection_error_e result = (connection_error_e)data;
+
+	if (libnet.set_default_cb != NULL)
 		libnet.set_default_cb(result, libnet.set_default_user_data);
 
 	libnet.set_default_cb = NULL;
 	libnet.set_default_user_data = NULL;
+
+	return FALSE;
+}
+
+static void __libnet_default_cb(connection_error_e result)
+{
+	if (libnet.set_default_cb != NULL)
+		g_idle_add(__libnet_default_cb_idle, (gpointer)result);
+}
+
+static gboolean __libnet_state_changed_cb_idle(gpointer data)
+{
+	struct _state_notify *notify = (struct _state_notify *)data;
+
+	if (notify == NULL)
+		return FALSE;
+
+	if (notify->callback != NULL)
+		notify->callback(notify->state, notify->user_data);
+
+	g_free(notify);
+
+	return FALSE;
 }
 
 static void __libnet_state_changed_cb(char *profile_name, connection_profile_state_e state)
 {
+	struct _state_notify *notify;
+	struct _profile_cb_s *cb_info;
+
 	if (profile_name == NULL)
 		return;
 
-	struct _profile_cb_s *cb_info;
 	cb_info = g_hash_table_lookup(profile_cb_table, profile_name);
-
 	if (cb_info == NULL)
 		return;
 
@@ -205,8 +257,18 @@ static void __libnet_state_changed_cb(char *profile_name, connection_profile_sta
 
 	cb_info->state = state;
 
-	if (state >= 0 && cb_info->callback)
-		cb_info->callback(state, cb_info->user_data);
+	if (state < 0 || cb_info->callback == NULL)
+		return;
+
+	notify = g_try_new0(struct _state_notify, 1);
+	if (notify == NULL)
+		return;
+
+	notify->callback = cb_info->callback;
+	notify->state = state;
+	notify->user_data = cb_info->user_data;
+
+	g_idle_add(__libnet_state_changed_cb_idle, (gpointer)notify);
 }
 
 static void __libnet_clear_profile_list(struct _profile_list_s *profile_list)
@@ -219,7 +281,7 @@ static void __libnet_clear_profile_list(struct _profile_list_s *profile_list)
 	profile_list->profiles = NULL;
 }
 
-static void __libnet_evt_cb(net_event_info_t*  event_cb, void* user_data)
+static void __libnet_evt_cb(net_event_info_t *event_cb, void *user_data)
 {
 	bool is_requested = false;
 	connection_error_e result = CONNECTION_ERROR_NONE;
@@ -282,7 +344,7 @@ static void __libnet_evt_cb(net_event_info_t*  event_cb, void* user_data)
 		if (event_cb->Datalength != sizeof(net_state_type_t))
 			return;
 
-		net_state_type_t *profile_state = (net_state_type_t*)event_cb->Data;
+		net_state_type_t *profile_state = (net_state_type_t *)event_cb->Data;
 		connection_profile_state_e cp_state = _profile_convert_to_cp_state(*profile_state);
 
 		CONNECTION_LOG(CONNECTION_INFO,
@@ -308,7 +370,7 @@ static void __libnet_evt_cb(net_event_info_t*  event_cb, void* user_data)
 		break;
 	case NET_EVENT_WIFI_WPS_RSP:
 		CONNECTION_LOG(CONNECTION_INFO, "Got wifi WPS RSP\n");
-		/* fall through */
+		break;
 	default :
 		CONNECTION_LOG(CONNECTION_ERROR, "Error! Unknown Event\n\n");
 		break;
@@ -801,15 +863,19 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 	profile_cb_info->callback = callback;
 	profile_cb_info->user_data = user_data;
 
-	g_hash_table_insert(profile_cb_table, profile_name, profile_cb_info);
+	g_hash_table_replace(profile_cb_table, profile_name, profile_cb_info);
 
 	return true;
 }
 
-void _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile)
+bool _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile)
 {
 	net_profile_info_t *profile_info = profile;
-	g_hash_table_remove(profile_cb_table, profile_info->ProfileName);
+
+	if (g_hash_table_remove(profile_cb_table, profile_info->ProfileName) == TRUE)
+		return true;
+
+	return false;
 }
 
 int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_type_e statistics_type)
@@ -823,8 +889,7 @@ int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_t
 int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, unsigned long long *size)
 {
 	if (net_get_statistics(NET_DEVICE_WIFI, statistics_type, size) != NET_ERR_NONE)
-			return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED;
 
-		return CONNECTION_ERROR_NONE;
+	return CONNECTION_ERROR_NONE;
 }
-

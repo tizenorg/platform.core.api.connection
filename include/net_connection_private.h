@@ -20,6 +20,7 @@
 #include <dlog.h>
 #include <network-cm-intf.h>
 #include <network-wifi-intf.h>
+
 #include "net_connection.h"
 
 #ifdef __cplusplus
@@ -71,7 +72,7 @@ void _connection_libnet_add_to_profile_list(connection_profile_h profile);
 void _connection_libnet_remove_from_profile_list(connection_profile_h profile);
 bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 		connection_profile_state_changed_cb callback, void *user_data);
-void _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile);
+bool _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile);
 int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_type_e statistics_type);
 int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, unsigned long long *size);
 
