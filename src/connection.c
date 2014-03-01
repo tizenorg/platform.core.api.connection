@@ -14,17 +14,27 @@
  * limitations under the License.
  */
 
+#include <glib.h>
 #include <stdio.h>
 #include <string.h>
-#include <glib.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 #include <vconf/vconf.h>
+
 #include "net_connection_private.h"
 
-static GSList *conn_handle_list = NULL;
+typedef struct _connection_handle_s
+{
+	connection_type_changed_cb type_changed_callback;
+	connection_address_changed_cb ip_changed_callback;
+	connection_address_changed_cb proxy_changed_callback;
+	void *type_changed_user_data;
+	void *ip_changed_user_data;
+	void *proxy_changed_user_data;
+} connection_handle_s;
 
-static void __connection_cb_state_change_cb(keynode_t *node, void *user_data);
-static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data);
-static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data);
+static __thread pid_t current_tid = 0;
+static __thread GSList *conn_handle_list = NULL;
 
 static int __connection_convert_net_state(int status)
 {
@@ -58,232 +68,308 @@ static int __connection_convert_cellular_state(int status)
 	}
 }
 
-static int __connection_get_type_changed_callback_count(void)
+static connection_type_changed_cb
+__connection_get_type_changed_callback(connection_handle_s *local_handle)
 {
-	GSList *list;
-	int count = 0;
-
-	for (list = conn_handle_list; list; list = list->next) {
-		connection_handle_s *local_handle = (connection_handle_s *)list->data;
-		if (local_handle->type_changed_callback) count++;
-	}
-
-	return count;
+	return local_handle->type_changed_callback;
 }
 
-static int __connection_get_ip_changed_callback_count(void)
+static void *__connection_get_type_changed_userdata(
+					connection_handle_s *local_handle)
 {
-	GSList *list;
-	int count = 0;
-
-	for (list = conn_handle_list; list; list = list->next) {
-		connection_handle_s *local_handle = (connection_handle_s *)list->data;
-		if (local_handle->ip_changed_callback) count++;
-	}
-
-	return count;
+	return local_handle->type_changed_user_data;
 }
 
-static int __connection_get_proxy_changed_callback_count(void)
+static void __connection_cb_type_change_cb(keynode_t *node, void *user_data)
 {
 	GSList *list;
-	int count = 0;
+	int state;
+	void *data;
+	connection_type_changed_cb callback;
 
-	for (list = conn_handle_list; list; list = list->next) {
-		connection_handle_s *local_handle = (connection_handle_s *)list->data;
-		if (local_handle->proxy_changed_callback) count++;
+	if (syscall(SYS_gettid) != current_tid) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Thread integrity broken; multi-threaded"
+				" process should use this API in GMainLoop-running thread."
+				" If not, network API might not be working correctly.");
+		return;
 	}
 
-	return count;
+	state = __connection_convert_net_state(vconf_keynode_get_int(node));
+	CONNECTION_LOG(CONNECTION_INFO, "Network status changed (%d), %p\n",
+			state, conn_handle_list);
+
+	for (list = conn_handle_list; list; list = list->next) {
+		CONNECTION_LOG(CONNECTION_INFO, "list %p, conn %p\n", list, conn_handle_list);
+		connection_handle_s *local_handle = (connection_handle_s *)list->data;
+
+		callback = __connection_get_type_changed_callback(local_handle);
+		data = __connection_get_type_changed_userdata(local_handle);
+		if (callback)
+			callback(state, data);
+	}
 }
 
 static int __connection_set_type_changed_callback(connection_h connection,
 							void *callback, void *user_data)
 {
-	connection_handle_s *local_handle = (connection_handle_s *)connection;
+	static __thread gint refcount = 0;
+	connection_handle_s *local_handle;
+
+	local_handle = (connection_handle_s *)connection;
 
 	if (callback) {
-		if (__connection_get_type_changed_callback_count() == 0)
-			if (vconf_notify_key_changed(VCONFKEY_NETWORK_STATUS ,
-					__connection_cb_state_change_cb, NULL))
+		if (refcount == 0)
+			if (vconf_notify_key_changed(VCONFKEY_NETWORK_STATUS,
+					__connection_cb_type_change_cb, NULL))
 				return CONNECTION_ERROR_OPERATION_FAILED;
 
-		local_handle->state_changed_user_data = user_data;
+		refcount++;
+		CONNECTION_LOG(CONNECTION_INFO, "Successfully registered(%d)\n", refcount);
 	} else {
-		if (local_handle->type_changed_callback &&
-		    __connection_get_type_changed_callback_count() == 1)
-			if (vconf_ignore_key_changed(VCONFKEY_NETWORK_STATUS,
-					__connection_cb_state_change_cb))
-				return CONNECTION_ERROR_OPERATION_FAILED;
+		if (refcount > 0 &&
+				__connection_get_type_changed_callback(local_handle) != NULL) {
+			if (--refcount == 0) {
+				if (vconf_ignore_key_changed(VCONFKEY_NETWORK_STATUS,
+						__connection_cb_type_change_cb) < 0) {
+					CONNECTION_LOG(CONNECTION_ERROR,
+							"Error to de-register vconf callback(%d)\n", refcount);
+				} else {
+					CONNECTION_LOG(CONNECTION_INFO,
+							"Successfully de-registered(%d)\n", refcount);
+				}
+			}
+		}
 	}
 
+	local_handle->type_changed_user_data = user_data;
 	local_handle->type_changed_callback = callback;
+
 	return CONNECTION_ERROR_NONE;
+}
+
+static connection_address_changed_cb
+__connection_get_ip_changed_callback(connection_handle_s *local_handle)
+{
+	return local_handle->ip_changed_callback;
+}
+
+static void *__connection_get_ip_changed_userdata(
+							connection_handle_s *local_handle)
+{
+	return local_handle->ip_changed_user_data;
+}
+
+static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data)
+{
+	GSList *list;
+	char *ip_addr;
+	void *data;
+	connection_address_changed_cb callback;
+
+	if (syscall(SYS_gettid) != current_tid) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Thread integrity broken; multi-threaded"
+				" process should use this API in GMainLoop-running thread."
+				" If not, network API might not be working correctly.");
+		return;
+	}
+
+	ip_addr = vconf_keynode_get_str(node);
+	CONNECTION_LOG(CONNECTION_INFO, "IP changed (%s)\n", ip_addr);
+
+	for (list = conn_handle_list; list; list = list->next) {
+		CONNECTION_LOG(CONNECTION_INFO, "list %p, conn %p\n", list, conn_handle_list);
+		connection_handle_s *local_handle = (connection_handle_s *)list->data;
+
+		callback = __connection_get_ip_changed_callback(local_handle);
+		data = __connection_get_ip_changed_userdata(local_handle);
+		/* TODO: IPv6 should be supported */
+		if (callback)
+			callback(ip_addr, NULL, data);
+	}
 }
 
 static int __connection_set_ip_changed_callback(connection_h connection,
 							void *callback, void *user_data)
 {
-	connection_handle_s *local_handle = (connection_handle_s *)connection;
+	static __thread gint refcount = 0;
+	connection_handle_s *local_handle;
+
+	local_handle = (connection_handle_s *)connection;
 
 	if (callback) {
-		if (__connection_get_ip_changed_callback_count() == 0)
+		if (refcount == 0)
 			if (vconf_notify_key_changed(VCONFKEY_NETWORK_IP,
 					__connection_cb_ip_change_cb, NULL))
 				return CONNECTION_ERROR_OPERATION_FAILED;
 
-		local_handle->ip_changed_user_data = user_data;
+		refcount++;
+		CONNECTION_LOG(CONNECTION_INFO, "Successfully registered(%d)\n", refcount);
 	} else {
-		if (local_handle->ip_changed_callback &&
-		    __connection_get_ip_changed_callback_count() == 1)
-			if (vconf_ignore_key_changed(VCONFKEY_NETWORK_IP,
-					__connection_cb_ip_change_cb))
-				return CONNECTION_ERROR_OPERATION_FAILED;
+		if (refcount > 0 &&
+				__connection_get_ip_changed_callback(local_handle) != NULL) {
+			if (--refcount == 0) {
+				if (vconf_ignore_key_changed(VCONFKEY_NETWORK_IP,
+						__connection_cb_ip_change_cb) < 0) {
+					CONNECTION_LOG(CONNECTION_ERROR,
+							"Error to de-register vconf callback(%d)\n", refcount);
+				} else {
+					CONNECTION_LOG(CONNECTION_INFO,
+							"Successfully de-registered(%d)\n", refcount);
+				}
+			}
+		}
 	}
 
+	local_handle->ip_changed_user_data = user_data;
 	local_handle->ip_changed_callback = callback;
+
 	return CONNECTION_ERROR_NONE;
+}
+
+static connection_address_changed_cb
+__connection_get_proxy_changed_callback(connection_handle_s *local_handle)
+{
+	return local_handle->proxy_changed_callback;
+}
+
+static void *__connection_get_proxy_changed_userdata(
+							connection_handle_s *local_handle)
+{
+	return local_handle->proxy_changed_user_data;
+}
+
+static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data)
+{
+	GSList *list;
+	char *proxy;
+	void *data;
+	connection_address_changed_cb callback;
+
+	if (syscall(SYS_gettid) != current_tid) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Thread integrity broken; multi-threaded"
+				" process should use this API in GMainLoop-running thread."
+				" If not, network API might not be working correctly.");
+		return;
+	}
+
+	proxy = vconf_keynode_get_str(node);
+	CONNECTION_LOG(CONNECTION_INFO, "Proxy changed (%s)\n", proxy);
+
+	for (list = conn_handle_list; list; list = list->next) {
+		CONNECTION_LOG(CONNECTION_INFO, "list %p, conn %p\n", list, conn_handle_list);
+		connection_handle_s *local_handle = (connection_handle_s *)list->data;
+
+		callback = __connection_get_proxy_changed_callback(local_handle);
+		data = __connection_get_proxy_changed_userdata(local_handle);
+		/* TODO: IPv6 should be supported */
+		if (callback)
+			callback(proxy, NULL, data);
+	}
 }
 
 static int __connection_set_proxy_changed_callback(connection_h connection,
 							void *callback, void *user_data)
 {
-	connection_handle_s *local_handle = (connection_handle_s *)connection;
+	static __thread gint refcount = 0;
+	connection_handle_s *local_handle;
+
+	local_handle = (connection_handle_s *)connection;
 
 	if (callback) {
-		if (__connection_get_proxy_changed_callback_count() == 0)
+		if (refcount == 0)
 			if (vconf_notify_key_changed(VCONFKEY_NETWORK_PROXY,
 					__connection_cb_proxy_change_cb, NULL))
 				return CONNECTION_ERROR_OPERATION_FAILED;
 
-		local_handle->proxy_changed_user_data = user_data;
+		refcount++;
+		CONNECTION_LOG(CONNECTION_INFO, "Successfully registered(%d)\n", refcount);
 	} else {
-		if (local_handle->proxy_changed_callback &&
-		    __connection_get_proxy_changed_callback_count() == 1)
-			if (vconf_ignore_key_changed(VCONFKEY_NETWORK_PROXY,
-					__connection_cb_proxy_change_cb))
-				return CONNECTION_ERROR_OPERATION_FAILED;
+		if (refcount > 0 &&
+				__connection_get_proxy_changed_callback(local_handle) != NULL) {
+			if (--refcount == 0) {
+				if (vconf_ignore_key_changed(VCONFKEY_NETWORK_PROXY,
+						__connection_cb_proxy_change_cb) < 0) {
+					CONNECTION_LOG(CONNECTION_ERROR,
+							"Error to de-register vconf callback(%d)\n", refcount);
+				} else {
+					CONNECTION_LOG(CONNECTION_INFO,
+							"Successfully de-registered(%d)\n", refcount);
+				}
+			}
+		}
 	}
 
+	local_handle->proxy_changed_user_data = user_data;
 	local_handle->proxy_changed_callback = callback;
+
 	return CONNECTION_ERROR_NONE;
-}
-
-static void __connection_cb_state_change_cb(keynode_t *node, void *user_data)
-{
-	CONNECTION_LOG(CONNECTION_INFO, "Net Status Changed Indication\n");
-
-	GSList *list;
-	int state = vconf_keynode_get_int(node);
-
-	for (list = conn_handle_list; list; list = list->next) {
-		connection_handle_s *local_handle = (connection_handle_s *)list->data;
-		if (local_handle->type_changed_callback)
-			local_handle->type_changed_callback(
-					__connection_convert_net_state(state),
-					local_handle->state_changed_user_data);
-	}
-}
-
-static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data)
-{
-	CONNECTION_LOG(CONNECTION_INFO, "Net IP Changed Indication\n");
-
-	GSList *list;
-	char *ip_addr = vconf_keynode_get_str(node);
-
-	for (list = conn_handle_list; list; list = list->next) {
-		connection_handle_s *local_handle = (connection_handle_s *)list->data;
-		if (local_handle->ip_changed_callback)
-			local_handle->ip_changed_callback(
-					ip_addr, NULL,
-					local_handle->ip_changed_user_data);
-	}
-}
-
-static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data)
-{
-	CONNECTION_LOG(CONNECTION_INFO, "Net IP Changed Indication\n");
-
-	GSList *list;
-	char *proxy = vconf_keynode_get_str(node);
-
-	for (list = conn_handle_list; list; list = list->next) {
-		connection_handle_s *local_handle = (connection_handle_s *)list->data;
-		if (local_handle->proxy_changed_callback)
-			local_handle->proxy_changed_callback(
-					proxy, NULL,
-					local_handle->proxy_changed_user_data);
-	}
 }
 
 static bool __connection_check_handle_validity(connection_h connection)
 {
-	GSList *list;
+	bool ret = false;
 
-	for (list = conn_handle_list; list; list = list->next)
-		if (connection == list->data) return true;
+	if (connection == NULL)
+		return false;
 
-	return false;
+	if (g_slist_find(conn_handle_list, connection) != NULL) {
+		CONNECTION_LOG(CONNECTION_INFO, "found (%p)\n", connection);
+		ret = true;
+	}
+
+	return ret;
 }
 
 static int __connection_get_handle_count(void)
 {
-	GSList *list;
-	int count = 0;
-
-	if (!conn_handle_list)
-		return count;
-
-	for (list = conn_handle_list; list; list = list->next) count++;
-
-	return count;
+	return ((int)g_slist_length(conn_handle_list));
 }
 
 /* Connection Manager ********************************************************/
-EXPORT_API int connection_create(connection_h* connection)
+EXPORT_API int connection_create(connection_h *connection)
 {
-	CONNECTION_MUTEX_LOCK;
+	pid_t tid = 0;
 
 	if (connection == NULL || __connection_check_handle_validity(*connection)) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
-		CONNECTION_MUTEX_UNLOCK;
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	tid = syscall(SYS_gettid);
+	if (syscall(SYS_getpid) != tid)
+		CONNECTION_LOG(CONNECTION_ERROR, "Warning!! Multi-threaded process"
+				" should use this API in GMainLoop-running thread."
+				" If not, network API might not be working correctly.");
+
+	if (current_tid == 0)
+		current_tid = tid;
+
 	if (_connection_libnet_init() == false) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Creation failed!\n");
-		CONNECTION_MUTEX_UNLOCK;
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	CONNECTION_LOG(CONNECTION_ERROR, "Connection successfully created!\n");
 
 	*connection = g_try_malloc0(sizeof(connection_handle_s));
-	if (*connection != NULL) {
+	if (*connection != NULL)
 		CONNECTION_LOG(CONNECTION_INFO, "New Handle Created %p\n", *connection);
-	} else {
-		CONNECTION_MUTEX_UNLOCK;
+	else
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
-	}
 
-	conn_handle_list = g_slist_append(conn_handle_list, *connection);
+	conn_handle_list = g_slist_prepend(conn_handle_list, *connection);
 
-	CONNECTION_MUTEX_UNLOCK;
 	return CONNECTION_ERROR_NONE;
 }
 
 EXPORT_API int connection_destroy(connection_h connection)
 {
-	CONNECTION_MUTEX_LOCK;
-
-	if (connection == NULL || !(__connection_check_handle_validity(connection))) {
+	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
-		CONNECTION_MUTEX_UNLOCK;
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	CONNECTION_LOG(CONNECTION_INFO, "Destroy Handle : %p\n", connection);
+	CONNECTION_LOG(CONNECTION_ERROR, "Destroy handle: %p\n", connection);
 
 	__connection_set_type_changed_callback(connection, NULL, NULL);
 	__connection_set_ip_changed_callback(connection, NULL, NULL);
@@ -292,11 +378,11 @@ EXPORT_API int connection_destroy(connection_h connection)
 	conn_handle_list = g_slist_remove(conn_handle_list, connection);
 
 	g_free(connection);
+	connection = NULL;
 
 	if (__connection_get_handle_count() == 0)
 		_connection_libnet_deinit();
 
-	CONNECTION_MUTEX_UNLOCK;
 	return CONNECTION_ERROR_NONE;
 }
 
@@ -768,7 +854,7 @@ static int __get_statistic(connection_type_e connection_type,
 			return CONNECTION_ERROR_OPERATION_FAILED;
 		}
 
-		CONNECTION_LOG(CONNECTION_INFO,"%d bytes\n", ull_size);
+		CONNECTION_LOG(CONNECTION_INFO,"%lld bytes\n", ull_size);
 		*llsize = (long long)ull_size;
 	} else
 		return CONNECTION_ERROR_INVALID_PARAMETER;
