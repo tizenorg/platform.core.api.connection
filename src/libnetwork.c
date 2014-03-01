@@ -20,8 +20,8 @@
 #include <vconf/vconf.h>
 #include "net_connection_private.h"
 
-static GSList *prof_handle_list = NULL;
-static GHashTable *profile_cb_table = NULL;
+static __thread GSList *prof_handle_list = NULL;
+static __thread GHashTable *profile_cb_table = NULL;
 
 struct _profile_cb_s {
 	connection_profile_state_changed_cb callback;
@@ -45,8 +45,18 @@ struct _libnet_s {
 	bool registered;
 };
 
-static struct _profile_list_s profile_iterator = {0, 0, NULL};
-static struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
+static __thread struct _profile_list_s profile_iterator = {0, 0, NULL};
+static __thread struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
+
+static bool __get_registered(void)
+{
+	return libnet.registered;
+}
+
+static void __set_registered(bool reg)
+{
+	libnet.registered = reg;
+}
 
 static connection_error_e __libnet_convert_to_cp_error_type(net_err_t err_type)
 {
@@ -336,12 +346,12 @@ bool _connection_libnet_init(void)
 {
 	int rv;
 
-	if (!libnet.registered) {
+	if (__get_registered() != true) {
 		rv = net_register_client_ext((net_event_cb_t)__libnet_evt_cb, NET_DEVICE_DEFAULT, NULL);
 		if (rv != NET_ERR_NONE)
 			return false;
 
-		libnet.registered = true;
+		__set_registered(true);
 
 		if (profile_cb_table == NULL)
 			profile_cb_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
@@ -352,11 +362,11 @@ bool _connection_libnet_init(void)
 
 bool _connection_libnet_deinit(void)
 {
-	if (libnet.registered) {
+	if (__get_registered() == true) {
 		if (net_deregister_client_ext(NET_DEVICE_DEFAULT) != NET_ERR_NONE)
 			return false;
 
-		libnet.registered = false;
+		__set_registered(false);
 
 		if (profile_cb_table) {
 			g_hash_table_destroy(profile_cb_table);
