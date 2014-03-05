@@ -83,7 +83,7 @@ static const char* __profile_get_ethernet_proxy(void)
 
 	proxy = getenv(HTTP_PROXY);
 
-	if(proxy == NULL) {
+	if (proxy == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Fail to get system proxy");
 		return NULL;
 	}

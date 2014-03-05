@@ -42,7 +42,7 @@ struct _libnet_s {
 	void *opened_user_data;
 	void *closed_user_data;
 	void *set_default_user_data;
-	bool registered;
+	bool is_created;
 };
 
 struct _state_notify {
@@ -51,17 +51,24 @@ struct _state_notify {
 	void *user_data;
 };
 
+struct managed_idle_data {
+	GSourceFunc func;
+	gpointer user_data;
+	guint id;
+};
+
 static __thread struct _profile_list_s profile_iterator = {0, 0, NULL};
 static __thread struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
+static __thread GSList *managed_idler_list = NULL;
 
-static bool __get_registered(void)
+bool _connection_is_created(void)
 {
-	return libnet.registered;
+	return libnet.is_created;
 }
 
-static void __set_registered(bool reg)
+static void __connection_set_created(bool tag)
 {
-	libnet.registered = reg;
+	libnet.is_created = tag;
 }
 
 static connection_error_e __libnet_convert_to_cp_error_type(net_err_t err_type)
@@ -167,8 +174,14 @@ static gboolean __libnet_opened_cb_idle(gpointer data)
 
 static void __libnet_opened_cb(connection_error_e result)
 {
+	if (_connection_is_created() != true) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Application is not registered"
+				"If multi-threaded, thread integrity be broken.\n");
+		return;
+	}
+
 	if (libnet.opened_cb != NULL)
-		g_idle_add(__libnet_opened_cb_idle, (gpointer)result);
+		_connectioin_callback_add(__libnet_opened_cb_idle, (gpointer)result);
 }
 
 static void __libnet_set_closed_cb(connection_closed_cb user_cb, void *user_data)
@@ -194,8 +207,14 @@ static gboolean __libnet_closed_cb_idle(gpointer data)
 
 static void __libnet_closed_cb(connection_error_e result)
 {
+	if (_connection_is_created() != true) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Application is not registered"
+				"If multi-threaded, thread integrity be broken.\n");
+		return;
+	}
+
 	if (libnet.closed_cb != NULL)
-		g_idle_add(__libnet_closed_cb_idle, (gpointer)result);
+		_connectioin_callback_add(__libnet_closed_cb_idle, (gpointer)result);
 }
 
 static void __libnet_set_default_cb(connection_set_default_cb user_cb, void *user_data)
@@ -221,8 +240,14 @@ static gboolean __libnet_default_cb_idle(gpointer data)
 
 static void __libnet_default_cb(connection_error_e result)
 {
+	if (_connection_is_created() != true) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Application is not registered"
+				"If multi-threaded, thread integrity be broken.\n");
+		return;
+	}
+
 	if (libnet.set_default_cb != NULL)
-		g_idle_add(__libnet_default_cb_idle, (gpointer)result);
+		_connectioin_callback_add(__libnet_default_cb_idle, (gpointer)result);
 }
 
 static gboolean __libnet_state_changed_cb_idle(gpointer data)
@@ -242,8 +267,15 @@ static gboolean __libnet_state_changed_cb_idle(gpointer data)
 
 static void __libnet_state_changed_cb(char *profile_name, connection_profile_state_e state)
 {
+	guint id;
 	struct _state_notify *notify;
 	struct _profile_cb_s *cb_info;
+
+	if (_connection_is_created() != true) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Application is not registered"
+				"If multi-threaded, thread integrity be broken.\n");
+		return;
+	}
 
 	if (profile_name == NULL)
 		return;
@@ -268,7 +300,10 @@ static void __libnet_state_changed_cb(char *profile_name, connection_profile_sta
 	notify->state = state;
 	notify->user_data = cb_info->user_data;
 
-	g_idle_add(__libnet_state_changed_cb_idle, (gpointer)notify);
+	id = _connectioin_callback_add(__libnet_state_changed_cb_idle,
+			(gpointer)notify);
+	if (!id)
+		g_free(notify);
 }
 
 static void __libnet_clear_profile_list(struct _profile_list_s *profile_list)
@@ -408,12 +443,12 @@ bool _connection_libnet_init(void)
 {
 	int rv;
 
-	if (__get_registered() != true) {
+	if (_connection_is_created() != true) {
 		rv = net_register_client_ext((net_event_cb_t)__libnet_evt_cb, NET_DEVICE_DEFAULT, NULL);
 		if (rv != NET_ERR_NONE)
 			return false;
 
-		__set_registered(true);
+		__connection_set_created(true);
 
 		if (profile_cb_table == NULL)
 			profile_cb_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
@@ -424,11 +459,11 @@ bool _connection_libnet_init(void)
 
 bool _connection_libnet_deinit(void)
 {
-	if (__get_registered() == true) {
+	if (_connection_is_created() == true) {
 		if (net_deregister_client_ext(NET_DEVICE_DEFAULT) != NET_ERR_NONE)
 			return false;
 
-		__set_registered(false);
+		__connection_set_created(false);
 
 		if (profile_cb_table) {
 			g_hash_table_destroy(profile_cb_table);
@@ -892,4 +927,74 @@ int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, uns
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
+}
+
+static void __connection_idle_destroy_cb(gpointer data)
+{
+	if (!data)
+		return;
+
+	managed_idler_list = g_slist_remove(managed_idler_list, data);
+	g_free(data);
+}
+
+static gboolean __connection_idle_cb(gpointer user_data)
+{
+	struct managed_idle_data *data = (struct managed_idle_data *)user_data;
+
+	if (!data)
+		return FALSE;
+
+	return data->func(data->user_data);
+}
+
+guint _connectioin_callback_add(GSourceFunc func, gpointer user_data)
+{
+	guint id;
+	struct managed_idle_data *data;
+
+	if (!func)
+		return 0;
+
+	data = g_try_new0(struct managed_idle_data, 1);
+	if (!data)
+		return 0;
+
+	data->func = func;
+	data->user_data = user_data;
+
+	id = g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, __connection_idle_cb, data,
+			__connection_idle_destroy_cb);
+	if (!id) {
+		g_free(data);
+		return id;
+	}
+
+	data->id = id;
+
+	managed_idler_list = g_slist_append(managed_idler_list, data);
+
+	return id;
+}
+
+void _connection_callback_cleanup(void)
+{
+	GSList *cur = managed_idler_list;
+	GSource *src;
+	struct managed_idle_data *data;
+
+	while (cur) {
+		GSList *next = cur->next;
+		data = (struct managed_idle_data *)cur->data;
+
+		src = g_main_context_find_source_by_id(g_main_context_default(), data->id);
+		if (src) {
+			g_source_destroy(src);
+			cur = managed_idler_list;
+		} else
+			cur = next;
+	}
+
+	g_slist_free(managed_idler_list);
+	managed_idler_list = NULL;
 }

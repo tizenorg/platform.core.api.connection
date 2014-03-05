@@ -122,10 +122,16 @@ static void __connection_cb_type_change_cb(keynode_t *node, void *user_data)
 	GSList *list;
 	connection_h handle;
 
+	if (_connection_is_created() != true) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Application is not registered"
+				"If multi-threaded, thread integrity be broken.\n");
+		return;
+	}
+
 	for (list = conn_handle_list; list; list = list->next) {
 		CONNECTION_LOG(CONNECTION_INFO, "list %p, conn %p\n", list, conn_handle_list);
 		handle = (connection_h)list->data;
-		g_idle_add(__connection_cb_type_changed_cb_idle, (gpointer)handle);
+		_connectioin_callback_add(__connection_cb_type_changed_cb_idle, (gpointer)handle);
 	}
 }
 
@@ -205,10 +211,16 @@ static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data)
 	GSList *list;
 	connection_h handle;
 
+	if (_connection_is_created() != true) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Application is not registered"
+				"If multi-threaded, thread integrity be broken.\n");
+		return;
+	}
+
 	for (list = conn_handle_list; list; list = list->next) {
 		CONNECTION_LOG(CONNECTION_INFO, "list %p, conn %p\n", list, conn_handle_list);
 		handle = (connection_h)list->data;
-		g_idle_add(__connection_cb_ip_changed_cb_idle, (gpointer)handle);
+		_connectioin_callback_add(__connection_cb_ip_changed_cb_idle, (gpointer)handle);
 	}
 }
 
@@ -288,10 +300,16 @@ static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data)
 	GSList *list;
 	connection_h handle;
 
+	if (_connection_is_created() != true) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Application is not registered"
+				"If multi-threaded, thread integrity be broken.\n");
+		return;
+	}
+
 	for (list = conn_handle_list; list; list = list->next) {
 		CONNECTION_LOG(CONNECTION_INFO, "list %p, conn %p\n", list, conn_handle_list);
 		handle = (connection_h)list->data;
-		g_idle_add(__connection_cb_proxy_changed_cb_idle, (gpointer)handle);
+		_connectioin_callback_add(__connection_cb_proxy_changed_cb_idle, (gpointer)handle);
 	}
 }
 
@@ -381,8 +399,10 @@ EXPORT_API int connection_destroy(connection_h connection)
 	g_free(connection);
 	connection = NULL;
 
-	if (__connection_get_handle_count() == 0)
+	if (__connection_get_handle_count() == 0) {
 		_connection_libnet_deinit();
+		_connection_callback_cleanup();
+	}
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -789,9 +809,6 @@ EXPORT_API int connection_add_route(connection_h connection, const char* interfa
 	return _connection_libnet_add_route(interface_name, host_address);
 }
 
-
-/* Connection Statistics module ******************************************************************/
-
 static int __get_statistic(connection_type_e connection_type,
 			connection_statistics_type_e statistics_type, long long* llsize)
 {
@@ -895,9 +912,8 @@ static int __reset_statistic(connection_type_e connection_type,
 	}
 
 	rv = _connection_libnet_set_statistics(conn_type, stat_type);
-	if(rv != CONNECTION_ERROR_NONE)
+	if (rv != CONNECTION_ERROR_NONE)
 		return rv;
-
 
 	CONNECTION_LOG(CONNECTION_INFO,"connection_reset_statistics success\n");
 

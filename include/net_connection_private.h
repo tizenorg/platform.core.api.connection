@@ -48,6 +48,8 @@ extern "C" {
 		} \
 	} while(0)
 
+bool _connection_is_created(void);
+
 bool _connection_libnet_init(void);
 bool _connection_libnet_deinit(void);
 bool _connection_libnet_get_wifi_state(connection_wifi_state_e *state);
@@ -75,6 +77,9 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 bool _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile);
 int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_type_e statistics_type);
 int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, unsigned long long *size);
+
+guint _connectioin_callback_add(GSourceFunc func, gpointer user_data);
+void _connection_callback_cleanup(void);
 
 connection_cellular_service_type_e _profile_convert_to_connection_cellular_service_type(net_service_type_t svc_type);
 connection_profile_state_e _profile_convert_to_cp_state(net_state_type_t state);
