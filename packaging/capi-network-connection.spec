@@ -3,7 +3,7 @@ Summary:    Network Connection library in TIZEN C API
 Version:    0.1.3_18
 Release:    1
 Group:      System/Network
-License:    Apache License Version 2.0
+License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 Source1001: 	capi-network-connection.manifest
 BuildRequires:  cmake
@@ -11,7 +11,6 @@ BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(vconf)
 BuildRequires:  pkgconfig(capi-base-common)
-BuildRequires:  pkgconfig(network)
 
 %description
 Network Connection library in Tizen C API
@@ -23,6 +22,14 @@ Requires: %{name} = %{version}-%{release}
 
 %description devel
 Network Connection library in Tizen C API (Development)
+
+%package test
+Summary:    Test case for connection (DEV)
+Requires:   %{name} = %{version}
+
+%description test
+Test case for connection (DEV). Some test programs to test the APIs
+and interfaces about connection or other inner code.
 
 %prep
 %setup -q
@@ -59,3 +66,7 @@ cp LICENSE.APLv2 %{buildroot}%{_datadir}/license/capi-network-connection
 %{_includedir}/network/*.h
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/libcapi-network-connection.so
+
+%files test
+%manifest %{name}.manifest
+%{_libdir}/winet-capi-test/capi-network-connection-test

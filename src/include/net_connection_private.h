@@ -18,8 +18,7 @@
 #define __NET_CONNECTION_PRIVATE_H__
 
 #include <dlog.h>
-#include <network-cm-intf.h>
-#include <network-wifi-intf.h>
+#include "network-pm-intf.h"
 #include "net_connection.h"
 
 #undef LOG_TAG

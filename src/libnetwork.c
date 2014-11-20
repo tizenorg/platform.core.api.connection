@@ -48,85 +48,85 @@ struct _libnet_s {
 static struct _profile_list_s profile_iterator = {0, 0, NULL};
 static struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
 
-static connection_error_e __libnet_convert_to_cp_error_type(net_err_t err_type)
-{
-	switch (err_type) {
-	case NET_ERR_NONE:
-		return CONNECTION_ERROR_NONE;
-	case NET_ERR_APP_ALREADY_REGISTERED:
-		return CONNECTION_ERROR_INVALID_OPERATION;
-	case NET_ERR_APP_NOT_REGISTERED:
-		return CONNECTION_ERROR_INVALID_OPERATION;
-	case NET_ERR_NO_ACTIVE_CONNECTIONS:
-		return CONNECTION_ERROR_NO_CONNECTION;
-	case NET_ERR_ACTIVE_CONNECTION_EXISTS:
-		return CONNECTION_ERROR_ALREADY_EXISTS;
-	case NET_ERR_CONNECTION_DHCP_FAILED:
-		return CONNECTION_ERROR_DHCP_FAILED;
-	case NET_ERR_CONNECTION_INVALID_KEY:
-		return CONNECTION_ERROR_INVALID_KEY;
-	case NET_ERR_IN_PROGRESS:
-		return CONNECTION_ERROR_NOW_IN_PROGRESS;
-	case NET_ERR_OPERATION_ABORTED:
-		return CONNECTION_ERROR_OPERATION_ABORTED;
-	case NET_ERR_TIME_OUT:
-		return CONNECTION_ERROR_NO_REPLY;
-	default:
-		return CONNECTION_ERROR_OPERATION_FAILED;
-	}
-}
-
-static const char *__libnet_convert_cp_error_type_to_string(connection_error_e err_type)
-{
-	switch (err_type) {
-	case CONNECTION_ERROR_NONE:
-		return "NONE";
-	case CONNECTION_ERROR_INVALID_PARAMETER:
-		return "INVALID_PARAMETER";
-	case CONNECTION_ERROR_OUT_OF_MEMORY:
-		return "OUT_OF_MEMORY";
-	case CONNECTION_ERROR_INVALID_OPERATION:
-		return "INVALID_OPERATION";
-	case CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED:
-		return "ADDRESS_FAMILY_NOT_SUPPORTED";
-	case CONNECTION_ERROR_OPERATION_FAILED:
-		return "OPERATION_FAILED";
-	case CONNECTION_ERROR_ITERATOR_END:
-		return "ITERATOR_END";
-	case CONNECTION_ERROR_NO_CONNECTION:
-		return "NO_CONNECTION";
-	case CONNECTION_ERROR_NOW_IN_PROGRESS:
-		return "NOW_IN_PROGRESS";
-	case CONNECTION_ERROR_ALREADY_EXISTS:
-		return "ALREADY_EXISTS";
-	case CONNECTION_ERROR_OPERATION_ABORTED:
-		return "OPERATION_ABORTED";
-	case CONNECTION_ERROR_DHCP_FAILED:
-		return "DHCP_FAILED";
-	case CONNECTION_ERROR_INVALID_KEY:
-		return "INVALID_KEY";
-	case CONNECTION_ERROR_NO_REPLY:
-		return "NO_REPLY";
-	}
-
-	return "UNKNOWN";
-}
-
-static const char *__libnet_convert_cp_state_to_string(connection_profile_state_e state)
-{
-	switch (state) {
-	case CONNECTION_PROFILE_STATE_DISCONNECTED:
-		return "DISCONNECTED";
-	case CONNECTION_PROFILE_STATE_ASSOCIATION:
-		return "ASSOCIATION";
-	case CONNECTION_PROFILE_STATE_CONFIGURATION:
-		return "CONFIGURATION";
-	case CONNECTION_PROFILE_STATE_CONNECTED:
-		return "CONNECTED";
-	default:
-		return "UNKNOWN";
-	}
-}
+//static connection_error_e __libnet_convert_to_cp_error_type(net_err_t err_type)
+//{
+//	switch (err_type) {
+//	case NET_ERR_NONE:
+//		return CONNECTION_ERROR_NONE;
+//	case NET_ERR_APP_ALREADY_REGISTERED:
+//		return CONNECTION_ERROR_INVALID_OPERATION;
+//	case NET_ERR_APP_NOT_REGISTERED:
+//		return CONNECTION_ERROR_INVALID_OPERATION;
+//	case NET_ERR_NO_ACTIVE_CONNECTIONS:
+//		return CONNECTION_ERROR_NO_CONNECTION;
+//	case NET_ERR_ACTIVE_CONNECTION_EXISTS:
+//		return CONNECTION_ERROR_ALREADY_EXISTS;
+//	case NET_ERR_CONNECTION_DHCP_FAILED:
+//		return CONNECTION_ERROR_DHCP_FAILED;
+//	case NET_ERR_CONNECTION_INVALID_KEY:
+//		return CONNECTION_ERROR_INVALID_KEY;
+//	case NET_ERR_IN_PROGRESS:
+//		return CONNECTION_ERROR_NOW_IN_PROGRESS;
+//	case NET_ERR_OPERATION_ABORTED:
+//		return CONNECTION_ERROR_OPERATION_ABORTED;
+//	case NET_ERR_TIME_OUT:
+//		return CONNECTION_ERROR_NO_REPLY;
+//	default:
+//		return CONNECTION_ERROR_OPERATION_FAILED;
+//	}
+//}
+//
+//static const char *__libnet_convert_cp_error_type_to_string(connection_error_e err_type)
+//{
+//	switch (err_type) {
+//	case CONNECTION_ERROR_NONE:
+//		return "NONE";
+//	case CONNECTION_ERROR_INVALID_PARAMETER:
+//		return "INVALID_PARAMETER";
+//	case CONNECTION_ERROR_OUT_OF_MEMORY:
+//		return "OUT_OF_MEMORY";
+//	case CONNECTION_ERROR_INVALID_OPERATION:
+//		return "INVALID_OPERATION";
+//	case CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED:
+//		return "ADDRESS_FAMILY_NOT_SUPPORTED";
+//	case CONNECTION_ERROR_OPERATION_FAILED:
+//		return "OPERATION_FAILED";
+//	case CONNECTION_ERROR_ITERATOR_END:
+//		return "ITERATOR_END";
+//	case CONNECTION_ERROR_NO_CONNECTION:
+//		return "NO_CONNECTION";
+//	case CONNECTION_ERROR_NOW_IN_PROGRESS:
+//		return "NOW_IN_PROGRESS";
+//	case CONNECTION_ERROR_ALREADY_EXISTS:
+//		return "ALREADY_EXISTS";
+//	case CONNECTION_ERROR_OPERATION_ABORTED:
+//		return "OPERATION_ABORTED";
+//	case CONNECTION_ERROR_DHCP_FAILED:
+//		return "DHCP_FAILED";
+//	case CONNECTION_ERROR_INVALID_KEY:
+//		return "INVALID_KEY";
+//	case CONNECTION_ERROR_NO_REPLY:
+//		return "NO_REPLY";
+//	}
+//
+//	return "UNKNOWN";
+//}
+//
+//static const char *__libnet_convert_cp_state_to_string(connection_profile_state_e state)
+//{
+//	switch (state) {
+//	case CONNECTION_PROFILE_STATE_DISCONNECTED:
+//		return "DISCONNECTED";
+//	case CONNECTION_PROFILE_STATE_ASSOCIATION:
+//		return "ASSOCIATION";
+//	case CONNECTION_PROFILE_STATE_CONFIGURATION:
+//		return "CONFIGURATION";
+//	case CONNECTION_PROFILE_STATE_CONNECTED:
+//		return "CONNECTED";
+//	default:
+//		return "UNKNOWN";
+//	}
+//}
 
 static void __libnet_set_opened_cb(connection_opened_cb user_cb, void *user_data)
 {
@@ -136,14 +136,14 @@ static void __libnet_set_opened_cb(connection_opened_cb user_cb, void *user_data
 	}
 }
 
-static void __libnet_opened_cb(connection_error_e result)
-{
-	if (libnet.opened_cb)
-		libnet.opened_cb(result, libnet.opened_user_data);
-
-	libnet.opened_cb = NULL;
-	libnet.opened_user_data = NULL;
-}
+//static void __libnet_opened_cb(connection_error_e result)
+//{
+//	if (libnet.opened_cb)
+//		libnet.opened_cb(result, libnet.opened_user_data);
+//
+//	libnet.opened_cb = NULL;
+//	libnet.opened_user_data = NULL;
+//}
 
 static void __libnet_set_closed_cb(connection_closed_cb user_cb, void *user_data)
 {
@@ -153,14 +153,14 @@ static void __libnet_set_closed_cb(connection_closed_cb user_cb, void *user_data
 	}
 }
 
-static void __libnet_closed_cb(connection_error_e result)
-{
-	if (libnet.closed_cb)
-		libnet.closed_cb(result, libnet.closed_user_data);
-
-	libnet.closed_cb = NULL;
-	libnet.closed_user_data = NULL;
-}
+//static void __libnet_closed_cb(connection_error_e result)
+//{
+//	if (libnet.closed_cb)
+//		libnet.closed_cb(result, libnet.closed_user_data);
+//
+//	libnet.closed_cb = NULL;
+//	libnet.closed_user_data = NULL;
+//}
 
 static void __libnet_set_default_cb(connection_set_default_cb user_cb, void *user_data)
 {
@@ -170,34 +170,34 @@ static void __libnet_set_default_cb(connection_set_default_cb user_cb, void *use
 	}
 }
 
-static void __libnet_default_cb(connection_error_e result)
-{
-	if (libnet.set_default_cb)
-		libnet.set_default_cb(result, libnet.set_default_user_data);
-
-	libnet.set_default_cb = NULL;
-	libnet.set_default_user_data = NULL;
-}
-
-static void __libnet_state_changed_cb(char *profile_name, connection_profile_state_e state)
-{
-	if (profile_name == NULL)
-		return;
-
-	struct _profile_cb_s *cb_info;
-	cb_info = g_hash_table_lookup(profile_cb_table, profile_name);
-
-	if (cb_info == NULL)
-		return;
-
-	if (cb_info->state == state)
-		return;
-
-	cb_info->state = state;
-
-	if (state >= 0 && cb_info->callback)
-		cb_info->callback(state, cb_info->user_data);
-}
+//static void __libnet_default_cb(connection_error_e result)
+//{
+//	if (libnet.set_default_cb)
+//		libnet.set_default_cb(result, libnet.set_default_user_data);
+//
+//	libnet.set_default_cb = NULL;
+//	libnet.set_default_user_data = NULL;
+//}
+//
+//static void __libnet_state_changed_cb(char *profile_name, connection_profile_state_e state)
+//{
+//	if (profile_name == NULL)
+//		return;
+//
+//	struct _profile_cb_s *cb_info;
+//	cb_info = g_hash_table_lookup(profile_cb_table, profile_name);
+//
+//	if (cb_info == NULL)
+//		return;
+//
+//	if (cb_info->state == state)
+//		return;
+//
+//	cb_info->state = state;
+//
+//	if (state >= 0 && cb_info->callback)
+//		cb_info->callback(state, cb_info->user_data);
+//}
 
 static void __libnet_clear_profile_list(struct _profile_list_s *profile_list)
 {
@@ -207,102 +207,6 @@ static void __libnet_clear_profile_list(struct _profile_list_s *profile_list)
 	profile_list->count = 0;
 	profile_list->next = 0;
 	profile_list->profiles = NULL;
-}
-
-static void __libnet_evt_cb(net_event_info_t*  event_cb, void* user_data)
-{
-	bool is_requested = false;
-	connection_error_e result = CONNECTION_ERROR_NONE;
-
-	switch (event_cb->Event) {
-	case NET_EVENT_OPEN_RSP:
-		is_requested = true;
-		/* fall through */
-	case NET_EVENT_OPEN_IND:
-		result = __libnet_convert_to_cp_error_type(event_cb->Error);
-		CONNECTION_LOG(CONNECTION_INFO, "Got connection open %s : %s\n",
-					(is_requested) ? "RSP":"IND",
-					__libnet_convert_cp_error_type_to_string(result));
-
-		if (is_requested)
-			__libnet_opened_cb(result);
-
-		switch (event_cb->Error) {
-		case NET_ERR_NONE:
-		case NET_ERR_ACTIVE_CONNECTION_EXISTS:
-			CONNECTION_LOG(CONNECTION_INFO, "'Open connection' succeeded\n");
-
-			__libnet_state_changed_cb(event_cb->ProfileName, CONNECTION_PROFILE_STATE_CONNECTED);
-			return;
-		default:
-			CONNECTION_LOG(CONNECTION_ERROR, "'Open connection' failed!! [%s]\n",
-						__libnet_convert_cp_error_type_to_string(result));
-		}
-
-		__libnet_state_changed_cb(event_cb->ProfileName, CONNECTION_PROFILE_STATE_DISCONNECTED);
-
-		break;
-	case NET_EVENT_CLOSE_RSP:
-		is_requested = true;
-		/* fall through */
-	case NET_EVENT_CLOSE_IND:
-		result = __libnet_convert_to_cp_error_type(event_cb->Error);
-		CONNECTION_LOG(CONNECTION_INFO, "Got connection close %s : %s\n",
-					(is_requested) ? "RSP":"IND",
-					__libnet_convert_cp_error_type_to_string(result));
-
-		if (is_requested)
-			__libnet_closed_cb(result);
-
-		switch (event_cb->Error) {
-		case NET_ERR_NONE:
-			CONNECTION_LOG(CONNECTION_INFO, "'Close connection' succeeded!\n");
-
-			__libnet_state_changed_cb(event_cb->ProfileName, CONNECTION_PROFILE_STATE_DISCONNECTED);
-			return;
-		default:
-			CONNECTION_LOG(CONNECTION_ERROR, "'Close connection' failed!! [%s]\n",
-						__libnet_convert_cp_error_type_to_string(result));
-		}
-
-		break;
-	case NET_EVENT_NET_STATE_IND:
-		CONNECTION_LOG(CONNECTION_INFO, "Got State changed IND\n");
-
-		if (event_cb->Datalength != sizeof(net_state_type_t))
-			return;
-
-		net_state_type_t *profile_state = (net_state_type_t*)event_cb->Data;
-		connection_profile_state_e cp_state = _profile_convert_to_cp_state(*profile_state);
-
-		CONNECTION_LOG(CONNECTION_INFO,
-				"Profile State : %s, profile name : %s\n",
-				__libnet_convert_cp_state_to_string(cp_state),
-				event_cb->ProfileName);
-
-		__libnet_state_changed_cb(event_cb->ProfileName, cp_state);
-
-		break;
-	case NET_EVENT_WIFI_SCAN_IND:
-	case NET_EVENT_WIFI_SCAN_RSP:
-		CONNECTION_LOG(CONNECTION_INFO, "Got wifi scan IND\n");
-		break;
-	case NET_EVENT_WIFI_POWER_IND:
-	case NET_EVENT_WIFI_POWER_RSP:
-		CONNECTION_LOG(CONNECTION_INFO, "Got wifi power IND\n");
-		break;
-	case NET_EVENT_CELLULAR_SET_DEFAULT_RSP:
-		result = __libnet_convert_to_cp_error_type(event_cb->Error);
-		CONNECTION_LOG(CONNECTION_INFO, "Got set default profile RSP %d\n", result);
-		__libnet_default_cb(result);
-		break;
-	case NET_EVENT_WIFI_WPS_RSP:
-		CONNECTION_LOG(CONNECTION_INFO, "Got wifi WPS RSP\n");
-		/* fall through */
-	default :
-		CONNECTION_LOG(CONNECTION_ERROR, "Error! Unknown Event\n\n");
-		break;
-	}
 }
 
 int __libnet_get_connected_count(struct _profile_list_s *profile_list)
@@ -334,7 +238,7 @@ void __libnet_copy_connected_profile(net_profile_info_t **dest, struct _profile_
 
 bool _connection_libnet_init(void)
 {
-	int rv;
+/*	int rv;
 
 	if (!libnet.registered) {
 		rv = net_register_client_ext((net_event_cb_t)__libnet_evt_cb, NET_DEVICE_DEFAULT, NULL);
@@ -345,14 +249,14 @@ bool _connection_libnet_init(void)
 
 		if (profile_cb_table == NULL)
 			profile_cb_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-	}
+	}*/
 
 	return true;
 }
 
 bool _connection_libnet_deinit(void)
 {
-	if (libnet.registered) {
+/*	if (libnet.registered) {
 		if (net_deregister_client_ext(NET_DEVICE_DEFAULT) != NET_ERR_NONE)
 			return false;
 
@@ -369,7 +273,7 @@ bool _connection_libnet_deinit(void)
 			g_slist_free_full(prof_handle_list, g_free);
 			prof_handle_list = NULL;
 		}
-	}
+	}*/
 
 	return true;
 }
@@ -406,13 +310,14 @@ bool _connection_libnet_check_profile_cb_validity(connection_profile_h profile)
 
 bool _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 {
-	net_wifi_state_t wlan_state;
-	net_profile_name_t profile_name;
+	net_wifi_state_t wlan_state = WIFI_OFF;
+//	net_profile_name_t profile_name;
 
-	if (net_get_wifi_state(&wlan_state, &profile_name) != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Error!! net_get_wifi_state() failed.\n");
-		return false;
-	}
+	//TODO:
+//	if (net_get_wifi_state(&wlan_state, &profile_name) != NET_ERR_NONE) {
+//		CONNECTION_LOG(CONNECTION_ERROR, "Error!! net_get_wifi_state() failed.\n");
+//		return false;
+//	}
 
 	switch (wlan_state) {
 	case WIFI_OFF:
@@ -437,7 +342,8 @@ bool _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 bool _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
 {
 	struct _profile_list_s ethernet_profiles = {0, 0, NULL};
-	net_get_profile_list(NET_DEVICE_ETHERNET, &ethernet_profiles.profiles, &ethernet_profiles.count);
+	//TODO:
+//	net_get_profile_list(NET_DEVICE_ETHERNET, &ethernet_profiles.profiles, &ethernet_profiles.count);
 
 	if (ethernet_profiles.count == 0) {
 		*state = CONNECTION_ETHERNET_STATE_DEACTIVATED;
@@ -469,7 +375,8 @@ bool _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 {
 	int i = 0;
 	struct _profile_list_s bluetooth_profiles = {0, 0, NULL};
-	net_get_profile_list(NET_DEVICE_BLUETOOTH, &bluetooth_profiles.profiles, &bluetooth_profiles.count);
+	//TODO:
+//	net_get_profile_list(NET_DEVICE_BLUETOOTH, &bluetooth_profiles.profiles, &bluetooth_profiles.count);
 
 	if (bluetooth_profiles.count == 0) {
 		*state = CONNECTION_BT_STATE_DEACTIVATED;
@@ -504,14 +411,14 @@ done:
 int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, connection_profile_iterator_h* profile_iter_h)
 {
 	int count = 0;
-	int rv;
+	int rv = NET_ERR_NONE;
 	net_profile_info_t *profiles = NULL;
 
 	struct _profile_list_s all_profiles = {0, 0, NULL};
 
 	__libnet_clear_profile_list(&profile_iterator);
-
-	rv = net_get_profile_list(NET_DEVICE_MAX, &all_profiles.profiles, &all_profiles.count);
+	//TODO:
+//	rv = net_get_profile_list(NET_DEVICE_MAX, &all_profiles.profiles, &all_profiles.count);
 
 	if (rv != NET_ERR_NONE) {
 		if (rv == NET_ERR_NO_SERVICE) {
@@ -597,9 +504,9 @@ int _connection_libnet_destroy_iterator(connection_profile_iterator_h profile_it
 int _connection_libnet_get_current_profile(connection_profile_h *profile)
 {
 	net_profile_info_t active_profile;
-	int rv;
-
-	rv = net_get_active_net_info(&active_profile);
+	int rv = NET_ERR_NONE;
+	//TODO:
+//	rv = net_get_active_net_info(&active_profile);
 	if (rv == NET_ERR_NO_SERVICE)
 		return CONNECTION_ERROR_NO_CONNECTION;
 	else if (rv != NET_ERR_NONE)
@@ -622,10 +529,10 @@ int _connection_libnet_open_profile(connection_profile_h profile, connection_ope
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	net_profile_info_t *profile_info = profile;
-
-	if (net_open_connection_with_profile(profile_info->ProfileName) != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+//	net_profile_info_t *profile_info = profile;
+	//TODO:
+//	if (net_open_connection_with_profile(profile_info->ProfileName) != NET_ERR_NONE)
+//		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	__libnet_set_opened_cb(callback, user_data);
 
@@ -636,14 +543,15 @@ int _connection_libnet_get_cellular_service_profile(connection_cellular_service_
 {
 	int i = 0;
 	int j = 0;
-	int rv = NET_ERR_NONE;
+	//int rv = NET_ERR_NONE;
 	net_service_type_t service_type = _connection_profile_convert_to_libnet_cellular_service_type(type);
 
 	struct _profile_list_s cellular_profiles = {0, 0, NULL};
 
-	rv = net_get_profile_list(NET_DEVICE_CELLULAR, &cellular_profiles.profiles, &cellular_profiles.count);
-	if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	//TODO:
+//	rv = net_get_profile_list(NET_DEVICE_CELLULAR, &cellular_profiles.profiles, &cellular_profiles.count);
+//	if (rv != NET_ERR_NONE)
+//		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	for (;i < cellular_profiles.count;i++)
 		if (cellular_profiles.profiles[i].ProfileInfo.Pdp.ServiceType == service_type)
@@ -698,9 +606,9 @@ int _connection_libnet_set_cellular_service_profile_sync(connection_cellular_ser
 
 	if (service_type != type)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
-
-	if (net_set_default_cellular_service_profile(profile_info->ProfileName) != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	//TODO:
+//	if (net_set_default_cellular_service_profile(profile_info->ProfileName) != NET_ERR_NONE)
+//		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -720,9 +628,9 @@ int _connection_libnet_set_cellular_service_profile_async(connection_cellular_se
 
 	if (service_type != type)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
-
-	if (net_set_default_cellular_service_profile_async(profile_info->ProfileName) != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	//TODO:
+//	if (net_set_default_cellular_service_profile_async(profile_info->ProfileName) != NET_ERR_NONE)
+//		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	__libnet_set_default_cb(callback, user_data);
 
@@ -736,10 +644,10 @@ int _connection_libnet_close_profile(connection_profile_h profile, connection_cl
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	net_profile_info_t *profile_info = profile;
-
-	if (net_close_connection(profile_info->ProfileName) != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+//	net_profile_info_t *profile_info = profile;
+	//TODO:
+//	if (net_close_connection(profile_info->ProfileName) != NET_ERR_NONE)
+//		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	__libnet_set_closed_cb(callback, user_data);
 
@@ -758,9 +666,9 @@ int _connection_libnet_add_route(const char *interface_name, const char *host_ad
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
-
-	if (net_add_route(host_address, interface_name) != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	//TODO:
+//	if (net_add_route(host_address, interface_name) != NET_ERR_NONE)
+//		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -804,16 +712,18 @@ void _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile
 
 int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_type_e statistics_type)
 {
-	if (net_set_statistics(device_type, statistics_type) != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	//TODO:
+//	if (net_set_statistics(device_type, statistics_type) != NET_ERR_NONE)
+//		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
 }
 
 int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, unsigned long long *size)
 {
-	if (net_get_statistics(NET_DEVICE_WIFI, statistics_type, size) != NET_ERR_NONE)
-			return CONNECTION_ERROR_OPERATION_FAILED;
+	//TODO:
+//	if (net_get_statistics(NET_DEVICE_WIFI, statistics_type, size) != NET_ERR_NONE)
+//			return CONNECTION_ERROR_OPERATION_FAILED;
 
 		return CONNECTION_ERROR_NONE;
 }
