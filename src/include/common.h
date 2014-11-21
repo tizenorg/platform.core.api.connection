@@ -21,6 +21,7 @@
 #define __NETWORK_PM_WLAN_H__
 
 #include "network-pm-config.h"
+#include "network-cm-error.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -154,75 +155,6 @@ typedef enum
 /**
  * \}
  */
-
-typedef enum {
-	/** No error */
-	NET_ERR_NONE = 0x00,
-
-	/* Common Error value */
-
-	/** Error unknown */
-	NET_ERR_UNKNOWN = -999,
-
-	/* Client Register related Errors used in API return */
-
-	/** Application is already registered */
-	NET_ERR_APP_ALREADY_REGISTERED = -990,
-	/** Application is not registered */
-	NET_ERR_APP_NOT_REGISTERED = -989,
-
-	/* Connection Related Error */
-
-	/** No active connection exists for the given profile name */
-	NET_ERR_NO_ACTIVE_CONNECTIONS = -899,
-	/** Active connection already exists for the given profile name  */
-	NET_ERR_ACTIVE_CONNECTION_EXISTS = -898,
-
-	/** Connection failure : out of range */
-	NET_ERR_CONNECTION_OUT_OF_RANGE = -897,
-	/** Connection failure : pin missing */
-	NET_ERR_CONNECTION_PIN_MISSING = -896,
-	/** Connection failure : dhcp failed */
-	NET_ERR_CONNECTION_DHCP_FAILED = -895,
-	/** Connection failure */
-	NET_ERR_CONNECTION_CONNECT_FAILED = -894,
-	/** Connection failure : login failed */
-	NET_ERR_CONNECTION_LOGIN_FAILED = -893,
-	/** Connection failure : authentication failed */
-	NET_ERR_CONNECTION_AUTH_FAILED = -892,
-	/** Connection failure : invalid key */
-	NET_ERR_CONNECTION_INVALID_KEY = -891,
-
-	/* Other Error */
-
-	/** Access(permission) denied */
-	NET_ERR_ACCESS_DENIED = -799,
-	/** Operation is in progress */
-	NET_ERR_IN_PROGRESS = -798,
-	/** Operation was aborted by client or network*/
-	NET_ERR_OPERATION_ABORTED = -797,
-	/** Invalid value of API parameter */
-	NET_ERR_INVALID_PARAM = -796,
-	/** Invalid operation depending on current state */
-	NET_ERR_INVALID_OPERATION = -795,
-
-	/** Feature not supported */
-	NET_ERR_NOT_SUPPORTED = -794,
-	/** TimeOut Error */
-	NET_ERR_TIME_OUT = -793,
-	/** Network service is not available */
-	NET_ERR_NO_SERVICE = -792,
-	/** DBus can't find appropriate method */
-	NET_ERR_UNKNOWN_METHOD = -791,
-	/** Operation is restricted */
-	NET_ERR_SECURITY_RESTRICTED = -790,
-	/** Already exists */
-	NET_ERR_ALREADY_EXISTS = -789,
-
-	/** WiFi driver on/off failed */
-	NET_ERR_WIFI_DRIVER_FAILURE = -699,
-	NET_ERR_WIFI_DRIVER_LOAD_INPROGRESS = -698,
-} net_err_t;
 
 /**
 * @enum net_wifi_state_t
@@ -513,6 +445,17 @@ typedef struct {
 	wlan_security_info_t security_info;
 } net_wifi_connection_info_t;
 
+typedef struct
+{
+	/** Device Type of the profile */
+	net_device_t  	profile_type;
+	/** Profile name */
+	char	ProfileName[NET_PROFILE_NAME_LEN_MAX+1];
+	/** Service state */
+	net_state_type_t        ProfileState;
+	/** Favourite flag */
+	char Favourite;
+} net_profile_info_t;
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

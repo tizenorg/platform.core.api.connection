@@ -18,7 +18,7 @@
 #define __NET_CONNECTION_PRIVATE_H__
 
 #include <dlog.h>
-#include "network-pm-intf.h"
+#include "common.h"
 #include "net_connection.h"
 
 #undef LOG_TAG
