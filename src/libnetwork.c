@@ -21,7 +21,7 @@
 #include "net_connection_private.h"
 
 static GSList *prof_handle_list = NULL;
-static GHashTable *profile_cb_table = NULL;
+//static GHashTable *profile_cb_table = NULL;
 
 struct _profile_cb_s {
 	connection_profile_state_changed_cb callback;
@@ -225,15 +225,15 @@ int __libnet_get_connected_count(struct _profile_list_s *profile_list)
 
 void __libnet_copy_connected_profile(net_profile_info_t **dest, struct _profile_list_s *source)
 {
-	int i = 0;
+//	int i = 0;
 
-	for (;i < source->count;i++) {
-		if (source->profiles[i].ProfileState == NET_STATE_TYPE_ONLINE ||
-		    source->profiles[i].ProfileState == NET_STATE_TYPE_READY) {
-			memcpy(*dest, &source->profiles[i], sizeof(net_profile_info_t));
-			(*dest)++;
-		}
-	}
+//	for (;i < source->count;i++) {
+//		if (source->profiles[i].ProfileState == NET_STATE_TYPE_ONLINE ||
+//		    source->profiles[i].ProfileState == NET_STATE_TYPE_READY) {
+//			memcpy(*dest, &source->profiles[i], sizeof(net_profile_info_t));
+//			(*dest)++;
+//		}
+//	}
 }
 
 bool _connection_libnet_init(void)
@@ -294,15 +294,15 @@ bool _connection_libnet_check_profile_validity(connection_profile_h profile)
 
 bool _connection_libnet_check_profile_cb_validity(connection_profile_h profile)
 {
-	struct _profile_cb_s *cb_info;
-	net_profile_info_t *profile_info = profile;
-
-	if (profile == NULL)
-		return false;
-
-	cb_info = g_hash_table_lookup(profile_cb_table, profile_info->ProfileName);
-	if (cb_info != NULL)
-		return true;
+//	struct _profile_cb_s *cb_info;
+//	net_profile_info_t *profile_info = profile;
+//
+//	if (profile == NULL)
+//		return false;
+//
+//	cb_info = g_hash_table_lookup(profile_cb_table, profile_info->ProfileName);
+//	if (cb_info != NULL)
+//		return true;
 
 	return false;
 }
@@ -541,53 +541,53 @@ int _connection_libnet_open_profile(connection_profile_h profile, connection_ope
 
 int _connection_libnet_get_cellular_service_profile(connection_cellular_service_type_e type, connection_profile_h *profile)
 {
-	int i = 0;
-	int j = 0;
-	//int rv = NET_ERR_NONE;
-	net_service_type_t service_type = _connection_profile_convert_to_libnet_cellular_service_type(type);
-
-	struct _profile_list_s cellular_profiles = {0, 0, NULL};
+//	int i = 0;
+//	int j = 0;
+//	//int rv = NET_ERR_NONE;
+//	net_service_type_t service_type = _connection_profile_convert_to_libnet_cellular_service_type(type);
+//
+//	struct _profile_list_s cellular_profiles = {0, 0, NULL};
 
 	//TODO:
 //	rv = net_get_profile_list(NET_DEVICE_CELLULAR, &cellular_profiles.profiles, &cellular_profiles.count);
 //	if (rv != NET_ERR_NONE)
 //		return CONNECTION_ERROR_OPERATION_FAILED;
-
-	for (;i < cellular_profiles.count;i++)
-		if (cellular_profiles.profiles[i].ProfileInfo.Pdp.ServiceType == service_type)
-			break;
-
-	if (i >= cellular_profiles.count)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
-	*profile = g_try_malloc0(sizeof(net_profile_info_t));
-	if (*profile == NULL)
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
-
-	memcpy(*profile, &cellular_profiles.profiles[i], sizeof(net_profile_info_t));
-
-	if (cellular_profiles.profiles[i].ProfileInfo.Pdp.DefaultConn)
-		goto done;
-
-	if (type != CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET &&
-	    type != CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_INTERNET)
-		goto done;
-
-	for (;j < cellular_profiles.count;j++) {
-		if (i == j)
-			continue;
-
-		if (cellular_profiles.profiles[j].ProfileInfo.Pdp.ServiceType != service_type)
-			continue;
-
-		if (cellular_profiles.profiles[j].ProfileInfo.Pdp.DefaultConn) {
-			memcpy(*profile, &cellular_profiles.profiles[j], sizeof(net_profile_info_t));
-			goto done;
-		}
-	}
-
-done:
-	prof_handle_list = g_slist_append(prof_handle_list, *profile);
+//
+//	for (;i < cellular_profiles.count;i++)
+//		if (cellular_profiles.profiles[i].ProfileInfo.Pdp.ServiceType == service_type)
+//			break;
+//
+//	if (i >= cellular_profiles.count)
+//		return CONNECTION_ERROR_OPERATION_FAILED;
+//
+//	*profile = g_try_malloc0(sizeof(net_profile_info_t));
+//	if (*profile == NULL)
+//		return CONNECTION_ERROR_OUT_OF_MEMORY;
+//
+//	memcpy(*profile, &cellular_profiles.profiles[i], sizeof(net_profile_info_t));
+//
+//	if (cellular_profiles.profiles[i].ProfileInfo.Pdp.DefaultConn)
+//		goto done;
+//
+//	if (type != CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET &&
+//	    type != CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_INTERNET)
+//		goto done;
+//
+//	for (;j < cellular_profiles.count;j++) {
+//		if (i == j)
+//			continue;
+//
+//		if (cellular_profiles.profiles[j].ProfileInfo.Pdp.ServiceType != service_type)
+//			continue;
+//
+//		if (cellular_profiles.profiles[j].ProfileInfo.Pdp.DefaultConn) {
+//			memcpy(*profile, &cellular_profiles.profiles[j], sizeof(net_profile_info_t));
+//			goto done;
+//		}
+//	}
+//
+//done:
+//	prof_handle_list = g_slist_append(prof_handle_list, *profile);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -599,13 +599,13 @@ int _connection_libnet_set_cellular_service_profile_sync(connection_cellular_ser
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	net_profile_info_t *profile_info = profile;
-	connection_cellular_service_type_e service_type;
-
-	service_type = _profile_convert_to_connection_cellular_service_type(profile_info->ProfileInfo.Pdp.ServiceType);
-
-	if (service_type != type)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+//	net_profile_info_t *profile_info = profile;
+//	connection_cellular_service_type_e service_type;
+//
+//	service_type = _profile_convert_to_connection_cellular_service_type(profile_info->ProfileInfo.Pdp.ServiceType);
+//
+//	if (service_type != type)
+//		return CONNECTION_ERROR_INVALID_PARAMETER;
 	//TODO:
 //	if (net_set_default_cellular_service_profile(profile_info->ProfileName) != NET_ERR_NONE)
 //		return CONNECTION_ERROR_OPERATION_FAILED;
@@ -621,13 +621,13 @@ int _connection_libnet_set_cellular_service_profile_async(connection_cellular_se
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	net_profile_info_t *profile_info = profile;
-	connection_cellular_service_type_e service_type;
-
-	service_type = _profile_convert_to_connection_cellular_service_type(profile_info->ProfileInfo.Pdp.ServiceType);
-
-	if (service_type != type)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+//	net_profile_info_t *profile_info = profile;
+//	connection_cellular_service_type_e service_type;
+//
+//	service_type = _profile_convert_to_connection_cellular_service_type(profile_info->ProfileInfo.Pdp.ServiceType);
+//
+//	if (service_type != type)
+//		return CONNECTION_ERROR_INVALID_PARAMETER;
 	//TODO:
 //	if (net_set_default_cellular_service_profile_async(profile_info->ProfileName) != NET_ERR_NONE)
 //		return CONNECTION_ERROR_OPERATION_FAILED;
@@ -687,27 +687,27 @@ void _connection_libnet_remove_from_profile_list(connection_profile_h profile)
 bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 		connection_profile_state_changed_cb callback, void *user_data)
 {
-	net_profile_info_t *profile_info = profile;
-	char *profile_name = g_strdup(profile_info->ProfileName);
-
-	struct _profile_cb_s *profile_cb_info = g_try_malloc0(sizeof(struct _profile_cb_s));
-	if (profile_cb_info == NULL) {
-		g_free(profile_name);
-		return false;
-	}
-
-	profile_cb_info->callback = callback;
-	profile_cb_info->user_data = user_data;
-
-	g_hash_table_insert(profile_cb_table, profile_name, profile_cb_info);
+//	net_profile_info_t *profile_info = profile;
+//	char *profile_name = g_strdup(profile_info->ProfileName);
+//
+//	struct _profile_cb_s *profile_cb_info = g_try_malloc0(sizeof(struct _profile_cb_s));
+//	if (profile_cb_info == NULL) {
+//		g_free(profile_name);
+//		return false;
+//	}
+//
+//	profile_cb_info->callback = callback;
+//	profile_cb_info->user_data = user_data;
+//
+//	g_hash_table_insert(profile_cb_table, profile_name, profile_cb_info);
 
 	return true;
 }
 
 void _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile)
 {
-	net_profile_info_t *profile_info = profile;
-	g_hash_table_remove(profile_cb_table, profile_info->ProfileName);
+//	net_profile_info_t *profile_info = profile;
+//	g_hash_table_remove(profile_cb_table, profile_info->ProfileName);
 }
 
 int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_type_e statistics_type)

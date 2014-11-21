@@ -277,59 +277,6 @@ typedef struct
 	char			ProfileName[NET_PROFILE_NAME_LEN_MAX+1];
 } net_profile_name_t;
 
-/**
- * PDP Authentication Information
- */
-typedef struct
-{
-	/** Authentication type  */
-	net_auth_type_t 	AuthType;
-
-	/** UserName to be used during authentication */
-	char 			UserName[NET_PDP_AUTH_USERNAME_LEN_MAX+1];
-
-	/** Password to be used during authentication */
-	char 			Password[NET_PDP_AUTH_PASSWORD_LEN_MAX+1];
-} net_auth_info_t;
-
-/**
- * Device Info in Connect response event
- */
-typedef struct
-{
-	/** Profile Name of the connection link */
-	char		ProfileName[NET_PROFILE_NAME_LEN_MAX+1];
-
-	/** Device Name of the connection link */
-	char		DevName[NET_MAX_DEVICE_NAME_LEN+1];
-
-	/** Dns Server Address of the connection link */
-	net_addr_t	DnsAddr[NET_DNS_ADDR_MAX];
-	/** No of DNS Address for the connection link */
-	int		DnsCount;
-
-	/** Net IP configuration Type */
-	net_ip_config_type_t IpConfigType;
-
-	/** IP Address for the connection link */
-	net_addr_t	IpAddr;
-	/** Whether subnet mask present or not. */
-	char		BNetmask;
-	/** Subnet mask */
-	net_addr_t	SubnetMask;
-	/** Whether gateway address present or not */
-	char		BDefGateway;
-	/** Gateway address */
-	net_addr_t	GatewayAddr;
-
-	/** Proxy Method type */
-	net_proxy_type_t	ProxyMethod;
-	/** Proxy address */
-	char			ProxyAddr[NET_PROXY_LEN_MAX+1];
-
-	/** MAC address */
-	char			MacAddr[NET_MAX_MAC_ADDR_LEN+1];
-} net_dev_info_t;
 
 /**
  * \}

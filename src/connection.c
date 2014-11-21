@@ -531,12 +531,12 @@ EXPORT_API int connection_add_profile(connection_h connection, connection_profil
 
 	int rv = 0;
 
-	net_profile_info_t *profile_info = profile;
-
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
-	}
+//	net_profile_info_t *profile_info = profile;
+//
+//	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+//		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+//		return CONNECTION_ERROR_INVALID_PARAMETER;
+//	}
 	//TODO:
 //	rv = net_add_profile(profile_info->ProfileInfo.Pdp.ServiceType, (net_profile_info_t*)profile);
 	if (rv != NET_ERR_NONE) {
@@ -556,13 +556,13 @@ EXPORT_API int connection_remove_profile(connection_h connection, connection_pro
 	}
 
 	//int rv = 0;
-	net_profile_info_t *profile_info = profile;
-
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR &&
-	    profile_info->profile_type != NET_DEVICE_WIFI) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
-	}
+//	net_profile_info_t *profile_info = profile;
+//
+//	if (profile_info->profile_type != NET_DEVICE_CELLULAR &&
+//	    profile_info->profile_type != NET_DEVICE_WIFI) {
+//		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+//		return CONNECTION_ERROR_INVALID_PARAMETER;
+//	}
 //	TODO:
 //	rv = net_delete_profile(profile_info->ProfileName);
 //	if (rv != NET_ERR_NONE) {
