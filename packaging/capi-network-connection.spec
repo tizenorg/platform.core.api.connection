@@ -3,7 +3,7 @@ Summary:    Network Connection library in TIZEN C API
 Version:    0.1.3_18
 Release:    1
 Group:      System/Network
-License:    Apache License Version 2.0
+License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 Source1001: 	capi-network-connection.manifest
 BuildRequires:  cmake
