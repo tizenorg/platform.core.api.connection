@@ -11,6 +11,8 @@ BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(vconf)
 BuildRequires:  pkgconfig(capi-base-common)
+BuildRequires:  pkgconfig(winet-lib)
+BuildRequires:  pkgconfig(connman-lib)
 
 %description
 Network Connection library in Tizen C API
