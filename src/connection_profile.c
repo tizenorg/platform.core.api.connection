@@ -24,6 +24,7 @@
 
 #define HTTP_PROXY "http_proxy"
 
+/*
 static net_dev_info_t* __profile_get_net_info(net_profile_info_t *profile_info)
 {
 	switch (profile_info->profile_type) {
@@ -42,6 +43,8 @@ static net_dev_info_t* __profile_get_net_info(net_profile_info_t *profile_info)
 	default:
 		return NULL;
 	}
+
+	return NULL;
 }
 
 static char* __profile_convert_ip_to_string(net_addr_t *ip_addr)
@@ -90,6 +93,7 @@ static const char* __profile_get_ethernet_proxy(void)
 
 	return proxy;
 }
+*/
 
 connection_cellular_service_type_e _profile_convert_to_connection_cellular_service_type(net_service_type_t svc_type)
 {
@@ -190,6 +194,7 @@ EXPORT_API int connection_profile_create(connection_profile_type_e type, const c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = g_try_malloc0(sizeof(net_profile_info_t));
 	if (profile_info == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
@@ -212,6 +217,7 @@ EXPORT_API int connection_profile_create(connection_profile_type_e type, const c
 
 	*profile = (connection_profile_h)profile_info;
 	_connection_libnet_add_to_profile_list(*profile);
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -235,12 +241,14 @@ EXPORT_API int connection_profile_clone(connection_profile_h* cloned_profile, co
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	*cloned_profile = g_try_malloc0(sizeof(net_profile_info_t));
 	if (*cloned_profile == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 
 	memcpy(*cloned_profile, origin_profile, sizeof(net_profile_info_t));
 	_connection_libnet_add_to_profile_list(*cloned_profile);
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -252,6 +260,7 @@ EXPORT_API int connection_profile_get_id(connection_profile_h profile, char** pr
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	char *prof_id = strrchr(profile_info->ProfileName, '/');
@@ -263,6 +272,7 @@ EXPORT_API int connection_profile_get_id(connection_profile_h profile, char** pr
 
 	if (*profile_id == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -274,6 +284,7 @@ EXPORT_API int connection_profile_get_name(connection_profile_h profile, char** 
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	switch (profile_info->profile_type) {
@@ -297,6 +308,7 @@ EXPORT_API int connection_profile_get_name(connection_profile_h profile, char** 
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
+	 */
 
 	if (*profile_name == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
@@ -311,6 +323,7 @@ EXPORT_API int connection_profile_get_type(connection_profile_h profile, connect
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	switch (profile_info->profile_type) {
@@ -330,6 +343,7 @@ EXPORT_API int connection_profile_get_type(connection_profile_h profile, connect
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid profile type\n");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -341,6 +355,7 @@ EXPORT_API int connection_profile_get_network_interface_name(connection_profile_
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -349,6 +364,7 @@ EXPORT_API int connection_profile_get_network_interface_name(connection_profile_
 	*interface_name = g_strdup(net_info->DevName);
 	if (*interface_name == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -361,12 +377,15 @@ EXPORT_API int connection_profile_refresh(connection_profile_h profile)
 	}
 
 	net_profile_info_t profile_info_local;
+	/*
 	net_profile_info_t *profile_info = profile;
 
-	if (net_get_profile_info(profile_info->ProfileName, &profile_info_local) != NET_ERR_NONE) {
+	TODO:
+	if (net_get_profile_info(profile_info->ProfileName, &profile_info_local) != CONNMAN_LIB_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Error!!! net_get_profile_info() failed\n");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	memcpy(profile, &profile_info_local, sizeof(net_profile_info_t));
 
@@ -380,10 +399,12 @@ EXPORT_API int connection_profile_get_state(connection_profile_h profile, connec
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	*state = _profile_convert_to_cp_state(profile_info->ProfileState);
 	if (*state < 0)
 		return CONNECTION_ERROR_OPERATION_FAILED;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -402,6 +423,7 @@ EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profil
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -426,6 +448,7 @@ EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profil
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -441,6 +464,7 @@ EXPORT_API int connection_profile_get_ip_address(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -452,6 +476,7 @@ EXPORT_API int connection_profile_get_ip_address(connection_profile_h profile,
 	*ip_address = __profile_convert_ip_to_string(&net_info->IpAddr);
 	if (*ip_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -467,6 +492,7 @@ EXPORT_API int connection_profile_get_subnet_mask(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -478,6 +504,7 @@ EXPORT_API int connection_profile_get_subnet_mask(connection_profile_h profile,
 	*subnet_mask = __profile_convert_ip_to_string(&net_info->SubnetMask);
 	if (*subnet_mask == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -493,6 +520,7 @@ EXPORT_API int connection_profile_get_gateway_address(connection_profile_h profi
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -504,6 +532,7 @@ EXPORT_API int connection_profile_get_gateway_address(connection_profile_h profi
 	*gateway_address = __profile_convert_ip_to_string(&net_info->GatewayAddr);
 	if (*gateway_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -521,6 +550,7 @@ EXPORT_API int connection_profile_get_dns_address(connection_profile_h profile, 
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -532,6 +562,7 @@ EXPORT_API int connection_profile_get_dns_address(connection_profile_h profile, 
 	*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr[order-1]);
 	if (*dns_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -543,6 +574,7 @@ EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	const char *proxy;
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
@@ -573,6 +605,7 @@ EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, c
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -588,6 +621,7 @@ EXPORT_API int connection_profile_get_proxy_address(connection_profile_h profile
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	const char *proxy;
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
@@ -608,6 +642,7 @@ EXPORT_API int connection_profile_get_proxy_address(connection_profile_h profile
 
 	if (*proxy_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -622,6 +657,7 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -652,6 +688,7 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -666,6 +703,7 @@ EXPORT_API int connection_profile_set_ip_address(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -678,6 +716,7 @@ EXPORT_API int connection_profile_set_ip_address(connection_profile_h profile,
 		net_info->IpAddr.Data.Ipv4.s_addr = 0;
 	else if (inet_aton(ip_address, &(net_info->IpAddr.Data.Ipv4)) == 0)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -692,6 +731,7 @@ EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -704,6 +744,7 @@ EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 		net_info->SubnetMask.Data.Ipv4.s_addr = 0;
 	else if (inet_aton(subnet_mask, &(net_info->SubnetMask.Data.Ipv4)) == 0)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -718,6 +759,7 @@ EXPORT_API int connection_profile_set_gateway_address(connection_profile_h profi
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -730,6 +772,7 @@ EXPORT_API int connection_profile_set_gateway_address(connection_profile_h profi
 		net_info->GatewayAddr.Data.Ipv4.s_addr = 0;
 	else if (inet_aton(gateway_address, &(net_info->GatewayAddr.Data.Ipv4)) == 0)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -746,6 +789,7 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -761,6 +805,7 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 
 	if (net_info->DnsCount < order)
 		net_info->DnsCount = order;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -772,6 +817,7 @@ EXPORT_API int connection_profile_set_proxy_type(connection_profile_h profile, c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -790,6 +836,7 @@ EXPORT_API int connection_profile_set_proxy_type(connection_profile_h profile, c
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -804,6 +851,7 @@ EXPORT_API int connection_profile_set_proxy_address(connection_profile_h profile
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
@@ -816,6 +864,7 @@ EXPORT_API int connection_profile_set_proxy_address(connection_profile_h profile
 		net_info->ProxyAddr[0] = '\0';
 	else
 		g_strlcpy(net_info->ProxyAddr, proxy_address, NET_PROXY_LEN_MAX);
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -855,6 +904,7 @@ EXPORT_API int connection_profile_get_wifi_essid(connection_profile_h profile, c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
@@ -863,6 +913,7 @@ EXPORT_API int connection_profile_get_wifi_essid(connection_profile_h profile, c
 	*essid = g_strdup(profile_info->ProfileInfo.Wlan.essid);
 	if (*essid == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -874,6 +925,7 @@ EXPORT_API int connection_profile_get_wifi_bssid(connection_profile_h profile, c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
@@ -882,6 +934,7 @@ EXPORT_API int connection_profile_get_wifi_bssid(connection_profile_h profile, c
 	*bssid = g_strdup(profile_info->ProfileInfo.Wlan.bssid);
 	if (*bssid == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -893,12 +946,14 @@ EXPORT_API int connection_profile_get_wifi_rssi(connection_profile_h profile, in
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
 	*rssi = (int)profile_info->ProfileInfo.Wlan.Strength;
+	*/
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -910,12 +965,14 @@ EXPORT_API int connection_profile_get_wifi_frequency(connection_profile_h profil
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
 	*frequency = (int)profile_info->ProfileInfo.Wlan.frequency;
+	*/
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -927,12 +984,14 @@ EXPORT_API int connection_profile_get_wifi_max_speed(connection_profile_h profil
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
 	*max_speed = (int)profile_info->ProfileInfo.Wlan.max_rate;
+	*/
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -944,6 +1003,7 @@ EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h pr
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
@@ -968,6 +1028,7 @@ EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h pr
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -979,6 +1040,7 @@ EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h 
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
@@ -1003,6 +1065,7 @@ EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h 
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1014,6 +1077,7 @@ EXPORT_API int connection_profile_is_wifi_passphrase_required(connection_profile
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
@@ -1037,6 +1101,7 @@ EXPORT_API int connection_profile_is_wifi_passphrase_required(connection_profile
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1048,6 +1113,7 @@ EXPORT_API int connection_profile_set_wifi_passphrase(connection_profile_h profi
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
@@ -1055,6 +1121,7 @@ EXPORT_API int connection_profile_set_wifi_passphrase(connection_profile_h profi
 
 	g_strlcpy(profile_info->ProfileInfo.Wlan.security_info.authentication.psk.pskKey,
 						passphrase, NETPM_WLAN_MAX_PSK_PASSPHRASE_LEN);
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1066,6 +1133,7 @@ EXPORT_API int connection_profile_is_wifi_wps_supported(connection_profile_h pro
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
@@ -1075,6 +1143,7 @@ EXPORT_API int connection_profile_is_wifi_wps_supported(connection_profile_h pro
 		*supported = true;
 	else
 		*supported = false;
+	*/
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1088,6 +1157,7 @@ EXPORT_API int connection_profile_get_cellular_network_type(connection_profile_h
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	int network_type;
 	net_profile_info_t *profile_info = profile;
 
@@ -1117,6 +1187,7 @@ EXPORT_API int connection_profile_get_cellular_network_type(connection_profile_h
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1129,6 +1200,7 @@ EXPORT_API int connection_profile_get_cellular_service_type(connection_profile_h
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
@@ -1142,6 +1214,7 @@ EXPORT_API int connection_profile_get_cellular_service_type(connection_profile_h
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid service type Passed\n");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1153,6 +1226,7 @@ EXPORT_API int connection_profile_get_cellular_apn(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
@@ -1161,6 +1235,7 @@ EXPORT_API int connection_profile_get_cellular_apn(connection_profile_h profile,
 	*apn = g_strdup(profile_info->ProfileInfo.Pdp.Apn);
 	if (*apn == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1174,6 +1249,7 @@ EXPORT_API int connection_profile_get_cellular_auth_info(connection_profile_h pr
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
@@ -1202,6 +1278,7 @@ EXPORT_API int connection_profile_get_cellular_auth_info(connection_profile_h pr
 		g_free(*user_name);
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1213,6 +1290,7 @@ EXPORT_API int connection_profile_get_cellular_home_url(connection_profile_h pro
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
@@ -1221,6 +1299,7 @@ EXPORT_API int connection_profile_get_cellular_home_url(connection_profile_h pro
 	*home_url = g_strdup(profile_info->ProfileInfo.Pdp.HomeURL);
 	if (*home_url == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1232,6 +1311,7 @@ EXPORT_API int connection_profile_is_cellular_roaming(connection_profile_h profi
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
@@ -1241,6 +1321,7 @@ EXPORT_API int connection_profile_is_cellular_roaming(connection_profile_h profi
 		*is_roaming = true;
 	else
 		*is_roaming = false;
+	*/
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1253,6 +1334,7 @@ EXPORT_API int connection_profile_set_cellular_service_type(connection_profile_h
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
@@ -1281,6 +1363,7 @@ EXPORT_API int connection_profile_set_cellular_service_type(connection_profile_h
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1292,12 +1375,14 @@ EXPORT_API int connection_profile_set_cellular_apn(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
 	g_strlcpy(profile_info->ProfileInfo.Pdp.Apn, apn, NET_PDP_APN_LEN_MAX+1);
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1311,6 +1396,7 @@ EXPORT_API int connection_profile_set_cellular_auth_info(connection_profile_h pr
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
@@ -1332,6 +1418,7 @@ EXPORT_API int connection_profile_set_cellular_auth_info(connection_profile_h pr
 
 	g_strlcpy(profile_info->ProfileInfo.Pdp.AuthInfo.UserName, user_name, NET_PDP_AUTH_USERNAME_LEN_MAX+1);
 	g_strlcpy(profile_info->ProfileInfo.Pdp.AuthInfo.Password, password, NET_PDP_AUTH_PASSWORD_LEN_MAX+1);
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1343,12 +1430,14 @@ EXPORT_API int connection_profile_set_cellular_home_url(connection_profile_h pro
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
 	g_strlcpy(profile_info->ProfileInfo.Pdp.HomeURL, home_url, NET_HOME_URL_LEN_MAX);
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }

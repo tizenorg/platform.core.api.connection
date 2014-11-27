@@ -11,15 +11,15 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 #ifndef __NET_CONNECTION_PRIVATE_H__
 #define __NET_CONNECTION_PRIVATE_H__
 
 #include <dlog.h>
-#include <network-cm-intf.h>
-#include <network-wifi-intf.h>
+#include <connman-lib-common.h>
+#include "net_cm_intf.h"
 #include "net_connection.h"
 
 #undef LOG_TAG
@@ -41,7 +41,7 @@
 		default: \
 			LOGI(format, ## args); \
 		} \
-	} while(0)
+	} while (0)
 
 #define CONNECTION_MUTEX_LOCK _connection_inter_mutex_lock()
 #define CONNECTION_MUTEX_UNLOCK _connection_inter_mutex_unlock()
@@ -50,8 +50,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-typedef struct _connection_handle_s
-{
+typedef struct _connection_handle_s {
 	connection_type_changed_cb type_changed_callback;
 	connection_address_changed_cb ip_changed_callback;
 	connection_address_changed_cb proxy_changed_callback;
@@ -65,7 +64,7 @@ bool _connection_libnet_init(void);
 bool _connection_libnet_deinit(void);
 bool _connection_libnet_get_wifi_state(connection_wifi_state_e *state);
 bool _connection_libnet_get_ethernet_state(connection_ethernet_state_e *state);
-bool _connection_libnet_get_bluetooth_state(connection_bt_state_e* state);
+bool _connection_libnet_get_bluetooth_state(connection_bt_state_e *state);
 bool _connection_libnet_check_profile_validity(connection_profile_h profile);
 bool _connection_libnet_check_profile_cb_validity(connection_profile_h profile);
 int _connection_libnet_get_profile_iterator(connection_iterator_type_e type,
@@ -78,7 +77,7 @@ int _connection_libnet_open_profile(connection_profile_h profile, connection_ope
 int _connection_libnet_get_cellular_service_profile(connection_cellular_service_type_e type, connection_profile_h *profile);
 int _connection_libnet_set_cellular_service_profile_sync(connection_cellular_service_type_e type, connection_profile_h profile);
 int _connection_libnet_set_cellular_service_profile_async(connection_cellular_service_type_e type,
-			connection_profile_h profile, connection_set_default_cb callback, void* user_data);
+			connection_profile_h profile, connection_set_default_cb callback, void *user_data);
 int _connection_libnet_close_profile(connection_profile_h profile, connection_closed_cb callback, void *user_data);
 int _connection_libnet_add_route(const char *interface_name, const char *host_address);
 void _connection_libnet_add_to_profile_list(connection_profile_h profile);
