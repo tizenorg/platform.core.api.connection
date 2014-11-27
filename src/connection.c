@@ -529,6 +529,7 @@ EXPORT_API int connection_add_profile(connection_h connection, connection_profil
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	int rv = 0;
 
 	net_profile_info_t *profile_info = profile;
@@ -537,13 +538,14 @@ EXPORT_API int connection_add_profile(connection_h connection, connection_profil
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
-
+	TODO:
 	rv = net_add_profile(profile_info->ProfileInfo.Pdp.ServiceType, (net_profile_info_t*)profile);
+
 	if (rv != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "net_add_profile Failed = %d\n", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-
+	*/
 	return CONNECTION_ERROR_NONE;
 }
 
@@ -555,6 +557,7 @@ EXPORT_API int connection_remove_profile(connection_h connection, connection_pro
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	/*
 	int rv = 0;
 	net_profile_info_t *profile_info = profile;
 
@@ -563,12 +566,13 @@ EXPORT_API int connection_remove_profile(connection_h connection, connection_pro
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
-
+	TODO:
 	rv = net_delete_profile(profile_info->ProfileName);
 	if (rv != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "net_delete_profile Failed = %d\n", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -581,14 +585,17 @@ EXPORT_API int connection_update_profile(connection_h connection, connection_pro
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+/*
 	int rv = 0;
 	net_profile_info_t *profile_info = profile;
 
+	TODO:
 	rv = net_modify_profile(profile_info->ProfileName, (net_profile_info_t*)profile);
 	if (rv != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "net_modify_profile Failed = %d\n", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
+*/
 
 	return CONNECTION_ERROR_NONE;
 }
