@@ -20,6 +20,7 @@
 #include <vconf/vconf.h>
 #include <winet-wifi.h>
 #include <connman-lib.h>
+#include <connman-technology.h>
 #include "net_connection_private.h"
 
 static GSList *prof_handle_list = NULL;
@@ -318,33 +319,30 @@ bool _connection_libnet_check_profile_cb_validity(connection_profile_h profile)
 	return false;
 }
 
-
 bool _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 {
-	net_wifi_state_t wlan_state = WIFI_OFF;
-	/*
-	net_profile_name_t profile_name;
-	TODO:
-	if (net_get_wifi_state(&wlan_state, &profile_name) != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Error!! net_get_wifi_state() failed.\n");
+	struct connman_technology *technology;
+	bool powered;
+	bool tethering;
+	bool connected;
+
+	technology = connman_get_technology(TECH_TYPE_WIFI);
+	if (technology == NULL)
 		return false;
-	}
-	 */
-	switch (wlan_state) {
-	case WIFI_OFF:
-		*state = CONNECTION_WIFI_STATE_DEACTIVATED;
-		break;
-	case WIFI_ON:
-	case WIFI_CONNECTING:
-		*state = CONNECTION_WIFI_STATE_DISCONNECTED;
-		break;
-	case WIFI_CONNECTED:
-	case WIFI_DISCONNECTING:
-		*state = CONNECTION_WIFI_STATE_CONNECTED;
-		break;
-	default :
-		CONNECTION_LOG(CONNECTION_ERROR, "Error!! Unknown state\n");
-		return false;
+
+	*state = CONNECTION_WIFI_STATE_DEACTIVATED;
+	powered = connman_get_technology_powered(technology);
+	tethering = connman_get_technology_tethering(technology);
+
+	if (powered) {
+		if (!tethering) {
+			connected = connman_get_technology_connected(
+								technology);
+			if (connected)
+				*state = CONNECTION_WIFI_STATE_CONNECTED;
+			else
+				*state = CONNECTION_WIFI_STATE_DISCONNECTED;
+		}
 	}
 
 	return true;

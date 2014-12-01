@@ -116,27 +116,6 @@ extern "C"
 =============================================================================*/
 
 /**
-* @enum net_wifi_state_t
-* This enum indicates wifi state
-*/
-typedef enum {
-	/** Unknown state */
-	WIFI_UNKNOWN = 0x00,
-	/** Wi-Fi is Off */
-	WIFI_OFF,
-	/** Wi-Fi is On(idle/failure) */
-	WIFI_ON,
-	/** Trying to connect(association/configuration) */
-	WIFI_CONNECTING,
-	/** Wi-Fi is connected to an AP(ready/online) */
-	WIFI_CONNECTED,
-	/** Trying to disconnect(connected,
-	 * but disconnecting process is on going)
-	 */
-	WIFI_DISCONNECTING,
-} net_wifi_state_t;
-
-/**
 *@enum net_wifi_background_scan_mode_t
 * This enum indicates background scanning mode.
 */
