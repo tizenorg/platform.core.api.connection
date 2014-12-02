@@ -350,33 +350,24 @@ bool _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 
 bool _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
 {
-	struct _profile_list_s ethernet_profiles = {0, 0, NULL};
-	/*
-	TODO:
-	net_get_profile_list(NET_DEVICE_ETHERNET, &ethernet_profiles.profiles, &ethernet_profiles.count);
-	 */
-	if (ethernet_profiles.count == 0) {
-		*state = CONNECTION_ETHERNET_STATE_DEACTIVATED;
-		return true;
-	}
+	struct connman_technology *technology;
+	bool powered;
+	bool connected;
 
-	switch (ethernet_profiles.profiles->ProfileState) {
-	case NET_STATE_TYPE_ONLINE:
-	case NET_STATE_TYPE_READY:
-		*state = CONNECTION_ETHERNET_STATE_CONNECTED;
-		break;
-	case NET_STATE_TYPE_IDLE:
-	case NET_STATE_TYPE_FAILURE:
-	case NET_STATE_TYPE_ASSOCIATION:
-	case NET_STATE_TYPE_CONFIGURATION:
-	case NET_STATE_TYPE_DISCONNECT:
-		*state = CONNECTION_ETHERNET_STATE_DISCONNECTED;
-		break;
-	default:
+	technology = connman_get_technology(TECH_TYPE_ETHERNET);
+	if (technology == NULL)
 		return false;
-	}
 
-	__libnet_clear_profile_list(&ethernet_profiles);
+	*state = CONNECTION_ETHERNET_STATE_DEACTIVATED;
+	powered = connman_get_technology_powered(technology);
+
+	if (powered) {
+		connected = connman_get_technology_connected(technology);
+		if (connected)
+			*state = CONNECTION_ETHERNET_STATE_CONNECTED;
+		else
+			*state = CONNECTION_ETHERNET_STATE_DISCONNECTED;
+	}
 
 	return true;
 }
