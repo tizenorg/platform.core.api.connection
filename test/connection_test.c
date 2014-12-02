@@ -1357,6 +1357,23 @@ int test_get_profile_id(void)
 	return 1;
 }
 
+int test_get_eth_state(void)
+{
+	int rv = 0;
+	connection_ethernet_state_e eth_state;
+
+	rv = connection_get_ethernet_state(connection, &eth_state);
+
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to get Ethernet state [%d]\n", rv);
+		return -1;
+	}
+
+	printf("Ethernet state [%d]\n", eth_state);
+
+	return 1;
+}
+
 int main(int argc, char **argv)
 {
 	
@@ -1421,7 +1438,8 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		printf("q 	- Add new route\n");
 		printf("r 	- Get Bluetooth state\n");
 		printf("s 	- Get profile id\n");
-		printf("0 	- Exit \n");
+		printf("t 	- Get Ethernet state\n");
+		printf("0 	- Exit\n");
 		printf("ENTER  - Show options menu.......\n");
 	}
 
@@ -1509,6 +1527,9 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		break;
 	case 's':
 		rv = test_get_profile_id();
+		break;
+	case 't':
+		rv = test_get_eth_state();
 		break;
 	}
 
