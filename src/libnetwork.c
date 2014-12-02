@@ -374,39 +374,24 @@ bool _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
 
 bool _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 {
-	int i = 0;
-	struct _profile_list_s bluetooth_profiles = {0, 0, NULL};
-	/*
-	TODO:
-	net_get_profile_list(NET_DEVICE_BLUETOOTH, &bluetooth_profiles.profiles, &bluetooth_profiles.count);
-	 */
+	struct connman_technology *technology;
+	bool powered;
+	bool connected;
 
-	if (bluetooth_profiles.count == 0) {
-		*state = CONNECTION_BT_STATE_DEACTIVATED;
-		return true;
-	}
+	technology = connman_get_technology(TECH_TYPE_BLUETOOTH);
+	if (technology == NULL)
+		return false;
 
-	for (; i < bluetooth_profiles.count; i++) {
-		switch (bluetooth_profiles.profiles[i].ProfileState) {
-		case NET_STATE_TYPE_ONLINE:
-		case NET_STATE_TYPE_READY:
+	*state = CONNECTION_BT_STATE_DEACTIVATED;
+	powered = connman_get_technology_powered(technology);
+
+	if (powered) {
+		connected = connman_get_technology_connected(technology);
+		if (connected)
 			*state = CONNECTION_BT_STATE_CONNECTED;
-			goto done;
-		case NET_STATE_TYPE_IDLE:
-		case NET_STATE_TYPE_FAILURE:
-		case NET_STATE_TYPE_ASSOCIATION:
-		case NET_STATE_TYPE_CONFIGURATION:
-		case NET_STATE_TYPE_DISCONNECT:
+		else
 			*state = CONNECTION_BT_STATE_DISCONNECTED;
-			break;
-		default:
-			__libnet_clear_profile_list(&bluetooth_profiles);
-			return false;
-		}
 	}
-
-done:
-	__libnet_clear_profile_list(&bluetooth_profiles);
 
 	return true;
 }
