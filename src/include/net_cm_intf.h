@@ -92,8 +92,6 @@ typedef struct {
 	char profile_name[NET_PROFILE_NAME_LEN_MAX+1];
 	/** Service state */
 	net_state_type_t profile_state;
-	/** Favourite flag */
-	char favourite;
 } net_profile_info_t;
 
 #ifdef __cplusplus
