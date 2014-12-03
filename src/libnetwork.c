@@ -226,8 +226,8 @@ int __libnet_get_connected_count(struct _profile_list_s *profile_list)
 	int i = 0;
 
 	for (;i < profile_list->count;i++) {
-		if (profile_list->profiles[i].ProfileState == NET_STATE_TYPE_ONLINE ||
-		    profile_list->profiles[i].ProfileState == NET_STATE_TYPE_READY)
+		if (profile_list->profiles[i].profile_state == NET_STATE_TYPE_ONLINE ||
+		    profile_list->profiles[i].profile_state == NET_STATE_TYPE_READY)
 			count++;
 	}
 
@@ -240,8 +240,8 @@ void __libnet_copy_connected_profile(net_profile_info_t **dest, struct _profile_
 	int i = 0;
 
 	for (;i < source->count;i++) {
-		if (source->profiles[i].ProfileState == NET_STATE_TYPE_ONLINE ||
-		    source->profiles[i].ProfileState == NET_STATE_TYPE_READY) {
+		if (source->profiles[i].profile_state == NET_STATE_TYPE_ONLINE ||
+		    source->profiles[i].profile_state == NET_STATE_TYPE_READY) {
 			memcpy(*dest, &source->profiles[i], sizeof(net_profile_info_t));
 			(*dest)++;
 		}
@@ -312,7 +312,7 @@ bool _connection_libnet_check_profile_cb_validity(connection_profile_h profile)
 	if (profile == NULL)
 		return false;
 
-	cb_info = g_hash_table_lookup(profile_cb_table, profile_info->ProfileName);
+	cb_info = g_hash_table_lookup(profile_cb_table, profile_info->profile_name);
 	if (cb_info != NULL)
 		return true;
 
@@ -525,7 +525,7 @@ int _connection_libnet_open_profile(connection_profile_h profile, connection_ope
 	/*
 	net_profile_info_t *profile_info = profile;
 	TODO:
-	if (net_open_connection_with_profile(profile_info->ProfileName) != NET_ERR_NONE)
+	if (net_open_connection_with_profile(profile_info->profile_name) != NET_ERR_NONE)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	 */
 
@@ -605,7 +605,7 @@ int _connection_libnet_set_cellular_service_profile_sync(connection_cellular_ser
 	if (service_type != type)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	TODO:
-	if (net_set_default_cellular_service_profile(profile_info->ProfileName) != NET_ERR_NONE)
+	if (net_set_default_cellular_service_profile(profile_info->profile_name) != NET_ERR_NONE)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	 */
 
@@ -629,7 +629,7 @@ int _connection_libnet_set_cellular_service_profile_async(connection_cellular_se
 	if (service_type != type)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	TODO:
-	if (net_set_default_cellular_service_profile_async(profile_info->ProfileName) != NET_ERR_NONE)
+	if (net_set_default_cellular_service_profile_async(profile_info->profile_name) != NET_ERR_NONE)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	 */
 
@@ -648,7 +648,7 @@ int _connection_libnet_close_profile(connection_profile_h profile, connection_cl
 	/*
 	net_profile_info_t *profile_info = profile;
 	TODO:
-	if (net_close_connection(profile_info->ProfileName) != NET_ERR_NONE)
+	if (net_close_connection(profile_info->profile_name) != NET_ERR_NONE)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	 */
 
@@ -693,7 +693,7 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 		connection_profile_state_changed_cb callback, void *user_data)
 {
 	net_profile_info_t *profile_info = profile;
-	char *profile_name = g_strdup(profile_info->ProfileName);
+	char *profile_name = g_strdup(profile_info->profile_name);
 
 	struct _profile_cb_s *profile_cb_info = g_try_malloc0(sizeof(struct _profile_cb_s));
 	if (profile_cb_info == NULL) {
@@ -712,7 +712,7 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 void _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile)
 {
 	net_profile_info_t *profile_info = profile;
-	g_hash_table_remove(profile_cb_table, profile_info->ProfileName);
+	g_hash_table_remove(profile_cb_table, profile_info->profile_name);
 }
 
 int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_type_e statistics_type)

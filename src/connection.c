@@ -567,7 +567,7 @@ EXPORT_API int connection_remove_profile(connection_h connection, connection_pro
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 	TODO:
-	rv = net_delete_profile(profile_info->ProfileName);
+	rv = net_delete_profile(profile_info->profile_name);
 	if (rv != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "net_delete_profile Failed = %d\n", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;
@@ -590,7 +590,7 @@ EXPORT_API int connection_update_profile(connection_h connection, connection_pro
 	net_profile_info_t *profile_info = profile;
 
 	TODO:
-	rv = net_modify_profile(profile_info->ProfileName, (net_profile_info_t*)profile);
+	rv = net_modify_profile(profile_info->profile_name, (net_profile_info_t *)profile);
 	if (rv != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "net_modify_profile Failed = %d\n", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;

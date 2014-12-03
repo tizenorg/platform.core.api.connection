@@ -89,11 +89,11 @@ typedef struct {
 	/** Device Type of the profile */
 	net_device_t profile_type;
 	/** Profile name */
-	char ProfileName[NET_PROFILE_NAME_LEN_MAX+1];
+	char profile_name[NET_PROFILE_NAME_LEN_MAX+1];
 	/** Service state */
-	net_state_type_t ProfileState;
+	net_state_type_t profile_state;
 	/** Favourite flag */
-	char Favourite;
+	char favourite;
 } net_profile_info_t;
 
 #ifdef __cplusplus

@@ -265,7 +265,7 @@ typedef struct {
  */
 typedef struct {
 	/** Profile name */
-	char			ProfileName[NET_PROFILE_NAME_LEN_MAX+1];
+	char			profile_name[NET_PROFILE_NAME_LEN_MAX+1];
 } net_profile_name_t;
 
 

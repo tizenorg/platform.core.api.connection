@@ -63,7 +63,7 @@ static char* __profile_convert_ip_to_string(net_addr_t *ip_addr)
 static void __profile_init_cellular_profile(net_profile_info_t *profile_info, const char *keyword)
 {
 	profile_info->profile_type = NET_DEVICE_CELLULAR;
-	profile_info->ProfileState = NET_STATE_TYPE_IDLE;
+	profile_info->profile_state = NET_STATE_TYPE_IDLE;
 	profile_info->ProfileInfo.Pdp.net_info.IpConfigType = NET_IP_CONFIG_TYPE_OFF;
 	profile_info->ProfileInfo.Pdp.net_info.ProxyMethod = NET_PROXY_TYPE_DIRECT;
 	g_strlcpy(profile_info->ProfileInfo.Pdp.Keyword, keyword, NET_PDP_APN_LEN_MAX);
@@ -72,7 +72,7 @@ static void __profile_init_cellular_profile(net_profile_info_t *profile_info, co
 static void __profile_init_wifi_profile(net_profile_info_t *profile_info)
 {
 	profile_info->profile_type = NET_DEVICE_WIFI;
-	profile_info->ProfileState = NET_STATE_TYPE_IDLE;
+	profile_info->profile_state = NET_STATE_TYPE_IDLE;
 	profile_info->ProfileInfo.Wlan.net_info.IpConfigType = NET_IP_CONFIG_TYPE_OFF;
 	profile_info->ProfileInfo.Wlan.net_info.ProxyMethod = NET_PROXY_TYPE_DIRECT;
 	profile_info->ProfileInfo.Wlan.wlan_mode = NETPM_WLAN_CONNMODE_AUTO;
@@ -263,7 +263,7 @@ EXPORT_API int connection_profile_get_id(connection_profile_h profile, char** pr
 	/*
 	net_profile_info_t *profile_info = profile;
 
-	char *prof_id = strrchr(profile_info->ProfileName, '/');
+	char *prof_id = strrchr(profile_info->profile_name, '/');
 	if (prof_id == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
@@ -298,7 +298,7 @@ EXPORT_API int connection_profile_get_name(connection_profile_h profile, char** 
 		*profile_name = g_strdup(profile_info->ProfileInfo.Ethernet.net_info.DevName);
 		break;
 	case NET_DEVICE_BLUETOOTH: {
-		char *bt_name = strrchr(profile_info->ProfileName, '/');
+		char *bt_name = strrchr(profile_info->profile_name, '/');
 		if (bt_name == NULL)
 			return CONNECTION_ERROR_INVALID_PARAMETER;
 
@@ -381,7 +381,7 @@ EXPORT_API int connection_profile_refresh(connection_profile_h profile)
 	net_profile_info_t *profile_info = profile;
 
 	TODO:
-	if (net_get_profile_info(profile_info->ProfileName, &profile_info_local) != NET_ERR_NONE) {
+	if (net_get_profile_info(profile_info->profile_name, &profile_info_local) != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Error!!! net_get_profile_info() failed\n");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
@@ -401,7 +401,7 @@ EXPORT_API int connection_profile_get_state(connection_profile_h profile, connec
 
 	/*
 	net_profile_info_t *profile_info = profile;
-	*state = _profile_convert_to_cp_state(profile_info->ProfileState);
+	*state = _profile_convert_to_cp_state(profile_info->profile_state);
 	if (*state < 0)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	 */
@@ -1083,7 +1083,7 @@ EXPORT_API int connection_profile_is_wifi_passphrase_required(connection_profile
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	if (profile_info->Favourite) {
+	if (profile_info->favourite) {
 		*required = false;
 		return CONNECTION_ERROR_NONE;
 	}
