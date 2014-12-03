@@ -21,6 +21,7 @@
 #include <winet-wifi.h>
 #include <connman-lib.h>
 #include <connman-technology.h>
+#include <connman-service.h>
 #include "net_connection_private.h"
 
 static GSList *prof_handle_list = NULL;
@@ -218,6 +219,78 @@ static void __libnet_clear_profile_list(struct _profile_list_s *profile_list)
 	profile_list->count = 0;
 	profile_list->next = 0;
 	profile_list->profiles = NULL;
+}
+
+static net_device_t __libnet_service_type_string2type(const char *str)
+{
+	if (str == NULL)
+		return NET_DEVICE_UNKNOWN;
+
+	if (g_strcmp0(str, "ethernet") == 0)
+		return NET_DEVICE_ETHERNET;
+	if (g_strcmp0(str, "gadget") == 0)
+		return NET_DEVICE_USB;
+	if (g_strcmp0(str, "wifi") == 0)
+		return NET_DEVICE_WIFI;
+	if (g_strcmp0(str, "cellular") == 0)
+		return NET_DEVICE_CELLULAR;
+	if (g_strcmp0(str, "bluetooth") == 0)
+		return NET_DEVICE_BLUETOOTH;
+
+	return NET_DEVICE_UNKNOWN;
+}
+
+static net_state_type_t __libnet_service_state_string2type(const char *str)
+{
+	if (str == NULL)
+		return NET_STATE_TYPE_UNKNOWN;
+
+	if (g_strcmp0(str, "idle") == 0)
+		return NET_STATE_TYPE_IDLE;
+	if (g_strcmp0(str, "association") == 0)
+		return NET_STATE_TYPE_ASSOCIATION;
+	if (g_strcmp0(str, "configuration") == 0)
+		return NET_STATE_TYPE_CONFIGURATION;
+	if (g_strcmp0(str, "ready") == 0)
+		return NET_STATE_TYPE_READY;
+	if (g_strcmp0(str, "online") == 0)
+		return NET_STATE_TYPE_ONLINE;
+	if (g_strcmp0(str, "disconnect") == 0)
+		return NET_STATE_TYPE_DISCONNECT;
+	if (g_strcmp0(str, "failure") == 0)
+		return NET_STATE_TYPE_FAILURE;
+
+	return NET_STATE_TYPE_UNKNOWN;
+}
+
+static int __libnet_get_active_net_info(net_profile_info_t *active_profile_info)
+{
+	GList *services_list;
+	struct connman_service *service;
+	net_profile_info_t profile_info;
+
+	services_list = connman_get_services();
+	if (services_list == NULL)
+		return CONNECTION_ERROR_NO_CONNECTION;
+
+	service = (struct connman_service *)services_list->data;
+	profile_info.profile_state = __libnet_service_state_string2type(
+					connman_service_get_state(service));
+
+	if ((profile_info.profile_state == NET_STATE_TYPE_READY ||
+			profile_info.profile_state == NET_STATE_TYPE_ONLINE)) {
+		active_profile_info->profile_type =
+					__libnet_service_type_string2type(
+					connman_service_get_type(service));
+		g_strlcpy(active_profile_info->profile_name,
+					connman_service_get_path(service),
+					NET_PROFILE_NAME_LEN_MAX);
+		active_profile_info->profile_state = profile_info.profile_state;
+
+		return CONNECTION_ERROR_NONE;
+	}
+
+	return CONNECTION_ERROR_NO_CONNECTION;
 }
 
 int __libnet_get_connected_count(struct _profile_list_s *profile_list)
@@ -494,16 +567,13 @@ int _connection_libnet_destroy_iterator(connection_profile_iterator_h profile_it
 int _connection_libnet_get_current_profile(connection_profile_h *profile)
 {
 	net_profile_info_t active_profile;
-	/*int rv;*/
-	/*
-	TODO:
-	rv = net_get_active_net_info(&active_profile);
+	int rv;
 
-	if (rv == NET_ERR_NO_SERVICE)
+	rv = __libnet_get_active_net_info(&active_profile);
+	if (rv == CONNECTION_ERROR_NO_CONNECTION)
 		return CONNECTION_ERROR_NO_CONNECTION;
-	else if (rv != NET_ERR_NONE)
+	else if (rv != CONNECTION_ERROR_NONE)
 		return CONNECTION_ERROR_OPERATION_FAILED;
-	 */
 
 	*profile = g_try_malloc0(sizeof(net_profile_info_t));
 	if (*profile == NULL)
