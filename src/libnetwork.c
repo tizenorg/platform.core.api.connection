@@ -156,7 +156,6 @@ static void __libnet_set_closed_cb(connection_closed_cb user_cb, void *user_data
 	}
 }
 
-/*
 static void __libnet_closed_cb(connection_error_e result)
 {
 	if (libnet.closed_cb)
@@ -165,7 +164,6 @@ static void __libnet_closed_cb(connection_error_e result)
 	libnet.closed_cb = NULL;
 	libnet.closed_user_data = NULL;
 }
-*/
 
 static void __libnet_set_default_cb(connection_set_default_cb user_cb, void *user_data)
 {
@@ -212,6 +210,14 @@ static void __libnet_opened_connected_cb(enum connman_lib_err result,
 	CONNECTION_LOG(CONNECTION_INFO, "callback: %d\n", result);
 
 	__libnet_opened_cb(__libnet_convert_to_cp_error_type(result));
+}
+
+static void __libnet_closed_disconnected_cb(enum connman_lib_err result,
+							void *user_data)
+{
+	CONNECTION_LOG(CONNECTION_INFO, "callback: %d\n", result);
+
+	__libnet_closed_cb(__libnet_convert_to_cp_error_type(result));
 }
 
 static void __libnet_clear_profile_list(struct _profile_list_s *profile_list)
@@ -788,19 +794,23 @@ int _connection_libnet_set_cellular_service_profile_async(connection_cellular_se
 	return CONNECTION_ERROR_NONE;
 }
 
-int _connection_libnet_close_profile(connection_profile_h profile, connection_closed_cb callback, void *user_data)
+int _connection_libnet_close_profile(connection_profile_h profile,
+				connection_closed_cb callback, void *user_data)
 {
 	if (!(_connection_libnet_check_profile_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	TODO:
-	if (net_close_connection(profile_info->profile_name) != NET_ERR_NONE)
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	if (connman_service_disconnect(service,
+				__libnet_closed_disconnected_cb, NULL) !=
+				CONNMAN_LIB_ERR_NONE)
 		return CONNECTION_ERROR_OPERATION_FAILED;
-	 */
 
 	__libnet_set_closed_cb(callback, user_data);
 
