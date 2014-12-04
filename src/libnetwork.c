@@ -51,35 +51,33 @@ struct _libnet_s {
 static struct _profile_list_s profile_iterator = {0, 0, NULL};
 static struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
 
-/*
-static connection_error_e __libnet_convert_to_cp_error_type(net_err_t err_type)
+static connection_error_e __libnet_convert_to_cp_error_type(
+						enum connman_lib_err err_type)
 {
 	switch (err_type) {
-	case NET_ERR_NONE:
+	case CONNMAN_LIB_ERR_NONE:
 		return CONNECTION_ERROR_NONE;
-	case NET_ERR_APP_ALREADY_REGISTERED:
+	case CONNMAN_LIB_ERR_ALREADY_EXISTS:
 		return CONNECTION_ERROR_INVALID_OPERATION;
-	case NET_ERR_APP_NOT_REGISTERED:
+	case CONNMAN_LIB_ERR_NOT_REGISTERED:
 		return CONNECTION_ERROR_INVALID_OPERATION;
-	case NET_ERR_NO_ACTIVE_CONNECTIONS:
+	case CONNMAN_LIB_ERR_NOT_CONNECTED:
 		return CONNECTION_ERROR_NO_CONNECTION;
-	case NET_ERR_ACTIVE_CONNECTION_EXISTS:
+	case CONNMAN_LIB_ERR_ALREADY_CONNECTED:
 		return CONNECTION_ERROR_ALREADY_EXISTS;
-	case NET_ERR_CONNECTION_DHCP_FAILED:
-		return CONNECTION_ERROR_DHCP_FAILED;
-	case NET_ERR_CONNECTION_INVALID_KEY:
-		return CONNECTION_ERROR_INVALID_KEY;
-	case NET_ERR_IN_PROGRESS:
+	case CONNMAN_LIB_ERR_IN_PROGRESS:
 		return CONNECTION_ERROR_NOW_IN_PROGRESS;
-	case NET_ERR_OPERATION_ABORTED:
+	case CONNMAN_LIB_ERR_OPERATION_ABORTED:
 		return CONNECTION_ERROR_OPERATION_ABORTED;
-	case NET_ERR_TIME_OUT:
+	case CONNMAN_LIB_ERR_OPERATION_TIMEOUT:
+	case CONNMAN_LIB_ERR_TIMEOUT:
 		return CONNECTION_ERROR_NO_REPLY;
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 }
 
+/*
 static const char *__libnet_convert_cp_error_type_to_string(connection_error_e err_type)
 {
 	switch (err_type) {
@@ -141,7 +139,6 @@ static void __libnet_set_opened_cb(connection_opened_cb user_cb, void *user_data
 	}
 }
 
-/*
 static void __libnet_opened_cb(connection_error_e result)
 {
 	if (libnet.opened_cb)
@@ -150,7 +147,6 @@ static void __libnet_opened_cb(connection_error_e result)
 	libnet.opened_cb = NULL;
 	libnet.opened_user_data = NULL;
 }
-*/
 
 static void __libnet_set_closed_cb(connection_closed_cb user_cb, void *user_data)
 {
@@ -209,6 +205,14 @@ static void __libnet_state_changed_cb(char *profile_name, connection_profile_sta
 		cb_info->callback(state, cb_info->user_data);
 }
 */
+
+static void __libnet_opened_connected_cb(enum connman_lib_err result,
+							void *user_data)
+{
+	CONNECTION_LOG(CONNECTION_INFO, "callback: %d\n", result);
+
+	__libnet_opened_cb(__libnet_convert_to_cp_error_type(result));
+}
 
 static void __libnet_clear_profile_list(struct _profile_list_s *profile_list)
 {
@@ -665,12 +669,15 @@ int _connection_libnet_open_profile(connection_profile_h profile, connection_ope
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	TODO:
-	if (net_open_connection_with_profile(profile_info->profile_name) != NET_ERR_NONE)
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	if (connman_service_connect(service,
+					__libnet_opened_connected_cb, NULL) !=
+					CONNMAN_LIB_ERR_NONE)
 		return CONNECTION_ERROR_OPERATION_FAILED;
-	 */
 
 	__libnet_set_opened_cb(callback, user_data);
 
