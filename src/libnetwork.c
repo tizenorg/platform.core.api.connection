@@ -292,6 +292,81 @@ static int __libnet_get_active_net_info(net_profile_info_t *active_profile_info)
 	return CONNECTION_ERROR_NO_CONNECTION;
 }
 
+static int __libnet_extract_all_services(int *prof_count,
+						net_profile_info_t **prof_ptr)
+{
+	int count = 0;
+	GList *services_list;
+
+	services_list = connman_get_services();
+	if (services_list == NULL)
+		return CONNECTION_ERROR_NO_CONNECTION;
+
+	while (services_list) {
+		net_profile_info_t prof_info;
+		struct connman_service *service =
+				(struct connman_service *)(services_list->data);
+		net_device_t local_device_type =
+					__libnet_service_type_string2type(
+					connman_service_get_type(service));
+		if (local_device_type == NET_DEVICE_UNKNOWN) {
+			services_list = g_list_next(services_list);
+			continue;
+		}
+
+		memset(&prof_info, 0, sizeof(net_profile_info_t));
+		prof_info.profile_type = local_device_type;
+		g_strlcpy(prof_info.profile_name,
+					connman_service_get_path(service),
+					NET_PROFILE_NAME_LEN_MAX);
+		prof_info.profile_state = __libnet_service_state_string2type(
+					connman_service_get_state(service));
+
+		*prof_ptr = (net_profile_info_t *)g_realloc(*prof_ptr,
+				(count + 1) * sizeof(net_profile_info_t));
+		if (*prof_ptr == NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR,
+						"Failed to allocate memory\n");
+			*prof_count = 0;
+			return CONNECTION_ERROR_OPERATION_FAILED;
+		}
+
+		memcpy(*prof_ptr + count, &prof_info,
+						sizeof(net_profile_info_t));
+		count++;
+
+		services_list = g_list_next(services_list);
+	}
+
+	*prof_count = count;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+static int __libnet_get_profile_list(net_device_t device_type,
+				net_profile_info_t **profile_list, int *count)
+{
+	int rv = CONNECTION_ERROR_NONE;
+	int profile_count = 0;
+	net_profile_info_t *profile_info = NULL;
+
+	if (count == NULL || (device_type != NET_DEVICE_CELLULAR &&
+					device_type != NET_DEVICE_WIFI &&
+					device_type != NET_DEVICE_ETHERNET &&
+					device_type != NET_DEVICE_BLUETOOTH &&
+					device_type != NET_DEVICE_MAX))
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	rv = __libnet_extract_all_services(&profile_count, &profile_info);
+	if (rv != CONNECTION_ERROR_NONE) {
+		return rv;
+	} else {
+		*count = profile_count;
+		*profile_list = profile_info;
+	}
+
+	return CONNECTION_ERROR_NONE;
+}
 
 int __libnet_get_connected_count(struct _profile_list_s *profile_list)
 {
@@ -309,7 +384,6 @@ int __libnet_get_connected_count(struct _profile_list_s *profile_list)
 
 void __libnet_copy_connected_profile(net_profile_info_t **dest, struct _profile_list_s *source)
 {
-	/*
 	int i = 0;
 
 	for (;i < source->count;i++) {
@@ -319,7 +393,6 @@ void __libnet_copy_connected_profile(net_profile_info_t **dest, struct _profile_
 			(*dest)++;
 		}
 	}
-	 */
 }
 
 bool _connection_libnet_init(void)
@@ -469,34 +542,35 @@ bool _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 	return true;
 }
 
-int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, connection_profile_iterator_h* profile_iter_h)
+int _connection_libnet_get_profile_iterator(connection_iterator_type_e type,
+				connection_profile_iterator_h *profile_iter_h)
 {
 	int count = 0;
-	/*int rv;*/
+	int rv = CONNECTION_ERROR_NONE;
 	net_profile_info_t *profiles = NULL;
 
 	struct _profile_list_s all_profiles = {0, 0, NULL};
 
 	__libnet_clear_profile_list(&profile_iterator);
-	/*
-	TODO:
-	rv = net_get_profile_list(NET_DEVICE_MAX, &all_profiles.profiles, &all_profiles.count);
 
-	if (rv != NET_ERR_NONE) {
-		if (rv == NET_ERR_NO_SERVICE) {
+	rv = __libnet_get_profile_list(NET_DEVICE_MAX, &all_profiles.profiles,
+							&all_profiles.count);
+
+	if (rv != CONNECTION_ERROR_NONE) {
+		if (rv == CONNECTION_ERROR_NO_CONNECTION) {
 			*profile_iter_h = &profile_iterator;
 			return CONNECTION_ERROR_NONE;
 		} else
 			return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-	 */
 
 	*profile_iter_h = &profile_iterator;
 
 	switch (type) {
 	case CONNECTION_ITERATOR_TYPE_REGISTERED:
 		count = all_profiles.count;
-		CONNECTION_LOG(CONNECTION_INFO, "Total profile count : %d\n", count);
+		CONNECTION_LOG(CONNECTION_INFO, "Total profile count : %d\n",
+									count);
 
 		if (count == 0)
 			return CONNECTION_ERROR_NONE;
@@ -506,7 +580,8 @@ int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, con
 		break;
 	case CONNECTION_ITERATOR_TYPE_CONNECTED:
 		count = __libnet_get_connected_count(&all_profiles);
-		CONNECTION_LOG(CONNECTION_INFO, "Total connected profile count : %d\n", count);
+		CONNECTION_LOG(CONNECTION_INFO,
+				"Total connected profile count : %d\n", count);
 
 		if (count == 0)
 			return CONNECTION_ERROR_NONE;
