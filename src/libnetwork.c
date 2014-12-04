@@ -21,7 +21,6 @@
 #include <winet-wifi.h>
 #include <connman-lib.h>
 #include <connman-technology.h>
-#include <connman-service.h>
 #include "net_connection_private.h"
 
 static GSList *prof_handle_list = NULL;
@@ -806,3 +805,12 @@ int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, uns
 		return CONNECTION_ERROR_NONE;
 }
 
+struct connman_service *_connection_libnet_get_service_h(
+						connection_profile_h profile)
+{
+	struct connman_service *service =
+		connman_get_service_with_path(
+				((net_profile_info_t *) profile)->profile_name);
+
+	return service;
+}

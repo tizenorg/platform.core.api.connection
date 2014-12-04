@@ -19,6 +19,7 @@
 
 #include <dlog.h>
 #include <connman-lib-common.h>
+#include <connman-service.h>
 #include "net_cm_intf.h"
 #include "net_connection.h"
 
@@ -92,6 +93,9 @@ connection_cellular_service_type_e _profile_convert_to_connection_cellular_servi
 connection_profile_state_e _profile_convert_to_cp_state(net_state_type_t state);
 net_service_type_t _connection_profile_convert_to_libnet_cellular_service_type(connection_cellular_service_type_e svc_type);
 net_state_type_t _connection_profile_convert_to_net_state(connection_profile_state_e state);
+
+struct connman_service *_connection_libnet_get_service_h(
+						connection_profile_h profile);
 
 void _connection_inter_mutex_lock(void);
 void _connection_inter_mutex_unlock(void);
