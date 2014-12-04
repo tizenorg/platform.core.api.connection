@@ -284,19 +284,23 @@ EXPORT_API int connection_profile_get_name(connection_profile_h profile, char** 
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
 	net_profile_info_t *profile_info = profile;
 
 	switch (profile_info->profile_type) {
-	case NET_DEVICE_CELLULAR:
-		*profile_name = g_strdup(profile_info->ProfileInfo.Pdp.Keyword);
-		break;
+	case NET_DEVICE_CELLULAR: /*TODO */
 	case NET_DEVICE_WIFI:
-		*profile_name = g_strdup(profile_info->ProfileInfo.Wlan.essid);
+		*profile_name = g_strdup(connman_service_get_name(service));
 		break;
-	case NET_DEVICE_ETHERNET:
-		*profile_name = g_strdup(profile_info->ProfileInfo.Ethernet.net_info.DevName);
-		break;
+	case NET_DEVICE_ETHERNET: {
+		const struct service_ethernet *ethernet =
+					connman_service_get_ethernet(service);
+		*profile_name = g_strdup(ethernet->interface);
+	} break;
 	case NET_DEVICE_BLUETOOTH: {
 		char *bt_name = strrchr(profile_info->profile_name, '/');
 		if (bt_name == NULL)
@@ -308,7 +312,6 @@ EXPORT_API int connection_profile_get_name(connection_profile_h profile, char** 
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
-	 */
 
 	if (*profile_name == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
