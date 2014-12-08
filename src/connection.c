@@ -26,16 +26,16 @@ static void __connection_cb_state_change_cb(keynode_t *node, void *user_data);
 static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data);
 static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data);
 
-static int __connection_convert_net_state(int status)
+static int __connection_convert_net_type(net_device_t net_type)
 {
-	switch (status) {
-	case VCONFKEY_NETWORK_CELLULAR:
+	switch (net_type) {
+	case NET_DEVICE_CELLULAR:
 		return CONNECTION_TYPE_CELLULAR;
-	case VCONFKEY_NETWORK_WIFI:
+	case NET_DEVICE_WIFI:
 		return CONNECTION_TYPE_WIFI;
-	case VCONFKEY_NETWORK_ETHERNET:
+	case NET_DEVICE_ETHERNET:
 		return CONNECTION_TYPE_ETHERNET;
-	case VCONFKEY_NETWORK_BLUETOOTH:
+	case NET_DEVICE_BLUETOOTH:
 		return CONNECTION_TYPE_BT;
 	default:
 		return CONNECTION_TYPE_DISCONNECTED;
@@ -180,7 +180,7 @@ static void __connection_cb_state_change_cb(keynode_t *node, void *user_data)
 		connection_handle_s *local_handle = (connection_handle_s *)list->data;
 		if (local_handle->type_changed_callback)
 			local_handle->type_changed_callback(
-					__connection_convert_net_state(state),
+					__connection_convert_net_type(state),
 					local_handle->state_changed_user_data);
 	}
 }
@@ -302,21 +302,21 @@ EXPORT_API int connection_destroy(connection_h connection)
 
 EXPORT_API int connection_get_type(connection_h connection, connection_type_e* type)
 {
-	int status = 0;
+	net_device_t device_type;
 
 	if (type == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	if (vconf_get_int(VCONFKEY_NETWORK_STATUS, &status)) {
-		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_int Failed = %d\n", status);
-		return CONNECTION_ERROR_OPERATION_FAILED;
-	}
+	if (_connection_libnet_get_default_device_type(&device_type) ==
+						CONNECTION_ERROR_NO_CONNECTION)
+		*type = CONNECTION_TYPE_DISCONNECTED;
+	else
+		*type = __connection_convert_net_type(device_type);
 
-	CONNECTION_LOG(CONNECTION_INFO, "Connected Network = %d\n", status);
-
-	*type = __connection_convert_net_state(status);
+	CONNECTION_LOG(CONNECTION_INFO, "Connected Network = %d\n",
+								device_type);
 
 	return CONNECTION_ERROR_NONE;
 }
