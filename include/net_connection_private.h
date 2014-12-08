@@ -98,6 +98,7 @@ struct connman_service *_connection_libnet_get_service_h(
 						connection_profile_h profile);
 int _connection_libnet_get_default_device_type(net_device_t *net_type);
 int _connection_libnet_get_default_ip_address(char **ip_address);
+int _connection_libnet_get_default_proxy(char **proxy_address);
 
 void _connection_inter_mutex_lock(void);
 void _connection_inter_mutex_unlock(void);
