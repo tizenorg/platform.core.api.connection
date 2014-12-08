@@ -362,7 +362,9 @@ EXPORT_API int connection_get_proxy(connection_h connection,
 
 	switch (address_family) {
 	case CONNECTION_ADDRESS_FAMILY_IPV4:
-		*proxy = vconf_get_str(VCONFKEY_NETWORK_PROXY);
+		if (_connection_libnet_get_default_proxy(proxy) !=
+							CONNECTION_ERROR_NONE)
+			return CONNECTION_ERROR_OPERATION_FAILED;
 		break;
 	case CONNECTION_ADDRESS_FAMILY_IPV6:
 		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
@@ -374,7 +376,7 @@ EXPORT_API int connection_get_proxy(connection_h connection,
 	}
 
 	if (*proxy == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Get Proxy Failed\n");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
