@@ -378,6 +378,31 @@ static int __libnet_get_profile_list(net_device_t device_type,
 	return CONNECTION_ERROR_NONE;
 }
 
+static int __libnet_get_default_service(
+				struct connman_service **default_service)
+{
+	GList *services_list;
+	struct connman_service *service;
+	net_state_type_t profile_state;
+
+	services_list = connman_get_services();
+	if (services_list == NULL)
+		return CONNECTION_ERROR_NO_CONNECTION;
+
+	service = (struct connman_service *)services_list->data;
+	profile_state = __libnet_service_state_string2type(
+					connman_service_get_state(service));
+
+	if ((profile_state == NET_STATE_TYPE_READY ||
+				profile_state == NET_STATE_TYPE_ONLINE)) {
+		*default_service = service;
+
+		return CONNECTION_ERROR_NONE;
+	}
+
+	return CONNECTION_ERROR_NO_CONNECTION;
+}
+
 int __libnet_get_connected_count(struct _profile_list_s *profile_list)
 {
 	int count = 0;
@@ -905,4 +930,19 @@ struct connman_service *_connection_libnet_get_service_h(
 				((net_profile_info_t *) profile)->profile_name);
 
 	return service;
+}
+
+int _connection_libnet_get_default_device_type(net_device_t *device_type)
+{
+	struct connman_service *default_service;
+	int rv;
+
+	rv = __libnet_get_default_service(&default_service);
+	if (rv == CONNECTION_ERROR_NO_CONNECTION)
+		return CONNECTION_ERROR_NO_CONNECTION;
+
+	*device_type = __libnet_service_type_string2type(
+				connman_service_get_type(default_service));
+
+	return CONNECTION_ERROR_NONE;
 }
