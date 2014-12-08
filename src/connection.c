@@ -331,7 +331,9 @@ EXPORT_API int connection_get_ip_address(connection_h connection,
 
 	switch (address_family) {
 	case CONNECTION_ADDRESS_FAMILY_IPV4:
-		*ip_address = vconf_get_str(VCONFKEY_NETWORK_IP);
+		if (_connection_libnet_get_default_ip_address(ip_address) !=
+							CONNECTION_ERROR_NONE)
+			return CONNECTION_ERROR_OPERATION_FAILED;
 		break;
 	case CONNECTION_ADDRESS_FAMILY_IPV6:
 		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
@@ -343,7 +345,7 @@ EXPORT_API int connection_get_ip_address(connection_h connection,
 	}
 
 	if (*ip_address == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Get IP Address Failed\n");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 

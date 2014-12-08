@@ -97,6 +97,7 @@ net_state_type_t _connection_profile_convert_to_net_state(connection_profile_sta
 struct connman_service *_connection_libnet_get_service_h(
 						connection_profile_h profile);
 int _connection_libnet_get_default_device_type(net_device_t *net_type);
+int _connection_libnet_get_default_ip_address(char **ip_address);
 
 void _connection_inter_mutex_lock(void);
 void _connection_inter_mutex_unlock(void);

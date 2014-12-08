@@ -946,3 +946,24 @@ int _connection_libnet_get_default_device_type(net_device_t *device_type)
 
 	return CONNECTION_ERROR_NONE;
 }
+
+int _connection_libnet_get_default_ip_address(char **ip_address)
+{
+	int rv;
+	struct connman_service *default_service;
+	const struct service_ipv4 *ipv4;
+
+	rv = __libnet_get_default_service(&default_service);
+	if (rv == CONNECTION_ERROR_NO_CONNECTION)
+		return CONNECTION_ERROR_NO_CONNECTION;
+
+	ipv4 = connman_service_get_ipv4_info(default_service);
+	if (ipv4 == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	*ip_address = g_strdup(ipv4->address);
+	if(*ip_address == NULL)
+		return CONNECTION_ERROR_OUT_OF_MEMORY;
+
+	return CONNECTION_ERROR_NONE;
+}
