@@ -185,11 +185,14 @@ static bool test_get_user_selected_profile(connection_profile_h *profile, bool s
 
 		if (profile_type == CONNECTION_PROFILE_TYPE_WIFI) {
 			char *essid;
-			connection_profile_get_wifi_essid(profile_h, &essid);
-			printf("%d. state:[%s], profile name:%s, essid:%s\n",
-				profile_count, test_print_state(profile_state),
-				profile_name, (essid)? essid : "");
-			g_free(essid);
+			if (connection_profile_get_wifi_essid(profile_h, &essid) != CONNECTION_ERROR_NONE)
+				printf("Fail to get essid\n");
+			else {
+				printf("%d. state:[%s], profile name:%s, essid:%s\n",
+					profile_count, test_print_state(profile_state),
+					profile_name, (essid) ? essid : "");
+				g_free(essid);
+			}
 
 			profile_list[profile_count] = profile_h;
 			profile_count++;

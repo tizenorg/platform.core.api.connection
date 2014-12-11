@@ -903,16 +903,19 @@ EXPORT_API int connection_profile_get_wifi_essid(connection_profile_h profile, c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	*essid = g_strdup(profile_info->ProfileInfo.Wlan.essid);
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	*essid = g_strdup(connman_service_get_name(service));
 	if (*essid == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
