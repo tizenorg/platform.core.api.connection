@@ -68,18 +68,15 @@ static void __profile_init_cellular_profile(net_profile_info_t *profile_info, co
 	profile_info->ProfileInfo.Pdp.net_info.ProxyMethod = NET_PROXY_TYPE_DIRECT;
 	g_strlcpy(profile_info->ProfileInfo.Pdp.Keyword, keyword, NET_PDP_APN_LEN_MAX);
 }
+*/
 
 static void __profile_init_wifi_profile(net_profile_info_t *profile_info)
 {
 	profile_info->profile_type = NET_DEVICE_WIFI;
 	profile_info->profile_state = NET_STATE_TYPE_IDLE;
-	profile_info->ProfileInfo.Wlan.net_info.IpConfigType = NET_IP_CONFIG_TYPE_OFF;
-	profile_info->ProfileInfo.Wlan.net_info.ProxyMethod = NET_PROXY_TYPE_DIRECT;
-	profile_info->ProfileInfo.Wlan.wlan_mode = NETPM_WLAN_CONNMODE_AUTO;
-	profile_info->ProfileInfo.Wlan.security_info.sec_mode = WLAN_SEC_MODE_NONE;
-	profile_info->ProfileInfo.Wlan.security_info.enc_mode = WLAN_ENC_MODE_NONE;
 }
 
+/*
 static const char* __profile_get_ethernet_proxy(void)
 {
 	char *proxy;
@@ -194,19 +191,13 @@ EXPORT_API int connection_profile_create(connection_profile_type_e type, const c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
 	net_profile_info_t *profile_info = g_try_malloc0(sizeof(net_profile_info_t));
 	if (profile_info == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 
 	switch (type) {
 	case CONNECTION_PROFILE_TYPE_CELLULAR:
-		if (keyword == NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
-			g_free(profile_info);
-			return CONNECTION_ERROR_INVALID_PARAMETER;
-		}
-		__profile_init_cellular_profile(profile_info, keyword);
+		/*TODO:*/
 		break;
 	case CONNECTION_PROFILE_TYPE_WIFI:
 		__profile_init_wifi_profile(profile_info);
@@ -217,7 +208,6 @@ EXPORT_API int connection_profile_create(connection_profile_type_e type, const c
 
 	*profile = (connection_profile_h)profile_info;
 	_connection_libnet_add_to_profile_list(*profile);
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -241,14 +231,12 @@ EXPORT_API int connection_profile_clone(connection_profile_h* cloned_profile, co
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
 	*cloned_profile = g_try_malloc0(sizeof(net_profile_info_t));
 	if (*cloned_profile == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 
 	memcpy(*cloned_profile, origin_profile, sizeof(net_profile_info_t));
 	_connection_libnet_add_to_profile_list(*cloned_profile);
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
