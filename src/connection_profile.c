@@ -241,14 +241,12 @@ EXPORT_API int connection_profile_clone(connection_profile_h* cloned_profile, co
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
 	*cloned_profile = g_try_malloc0(sizeof(net_profile_info_t));
 	if (*cloned_profile == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 
 	memcpy(*cloned_profile, origin_profile, sizeof(net_profile_info_t));
 	_connection_libnet_add_to_profile_list(*cloned_profile);
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
