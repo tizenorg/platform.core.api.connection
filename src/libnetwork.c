@@ -20,6 +20,7 @@
 #include <vconf/vconf.h>
 #include <winet-wifi.h>
 #include <connman-lib.h>
+#include <connman-manager.h>
 #include <connman-technology.h>
 #include "net_connection_private.h"
 
@@ -182,8 +183,9 @@ static void __libnet_default_cb(connection_error_e result)
 	libnet.set_default_cb = NULL;
 	libnet.set_default_user_data = NULL;
 }
-
-static void __libnet_state_changed_cb(char *profile_name, connection_profile_state_e state)
+*/
+static void __libnet_state_changed_cb(const char *profile_name,
+					connection_profile_state_e state)
 {
 	if (profile_name == NULL)
 		return;
@@ -202,7 +204,6 @@ static void __libnet_state_changed_cb(char *profile_name, connection_profile_sta
 	if (state >= 0 && cb_info->callback)
 		cb_info->callback(state, cb_info->user_data);
 }
-*/
 
 static void __libnet_opened_connected_cb(enum connman_lib_err result,
 							void *user_data)
@@ -416,6 +417,50 @@ static int __libnet_get_default_service(
 	}
 
 	return CONNECTION_ERROR_NO_CONNECTION;
+}
+
+static void __libnet_service_state_changed_cb(struct connman_service *service,
+								void *user_data)
+{
+	net_state_type_t net_state;
+	connection_profile_state_e connection_state;
+
+	net_state = __libnet_service_state_string2type(
+					connman_service_get_state(service));
+	connection_state = _profile_convert_to_cp_state(net_state);
+
+	__libnet_state_changed_cb(connman_service_get_path(service),
+							connection_state);
+}
+
+static void __libnet_services_changed_callback(struct connman_manager *manager,
+						GList *added_service_list,
+						GList *all_services_list,
+						void *user_data)
+{
+	GList *iter;
+
+	CONNECTION_LOG(CONNECTION_INFO, "service changed");
+
+	if (added_service_list == NULL)
+		return;
+
+	if (g_hash_table_size(profile_cb_table) == 0)
+		return;
+
+	for (iter = added_service_list; iter != NULL; iter = iter->next) {
+		struct _profile_cb_s *cb_info;
+		struct connman_service *service = iter->data;
+
+		cb_info = g_hash_table_lookup(profile_cb_table,
+					connman_service_get_path(service));
+		if (cb_info != NULL) {
+			connman_service_set_property_changed_cb(service,
+					SERVICE_PROP_STATE,
+					__libnet_service_state_changed_cb,
+					NULL);
+		}
+	}
 }
 
 int __libnet_get_connected_count(struct _profile_list_s *profile_list)
@@ -893,9 +938,13 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 		connection_profile_state_changed_cb callback, void *user_data)
 {
 	net_profile_info_t *profile_info = profile;
-	char *profile_name = g_strdup(profile_info->profile_name);
+	char *profile_name;
+	struct _profile_cb_s *profile_cb_info;
+	struct connman_service *service;
 
-	struct _profile_cb_s *profile_cb_info = g_try_malloc0(sizeof(struct _profile_cb_s));
+	profile_name = g_strdup(profile_info->profile_name);
+
+	profile_cb_info = g_try_malloc0(sizeof(struct _profile_cb_s));
 	if (profile_cb_info == NULL) {
 		g_free(profile_name);
 		return false;
@@ -903,6 +952,18 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 
 	profile_cb_info->callback = callback;
 	profile_cb_info->user_data = user_data;
+
+	service = _connection_libnet_get_service_h(profile);
+	if (service != NULL) {
+		connman_service_set_property_changed_cb(service,
+					SERVICE_PROP_STATE,
+					__libnet_service_state_changed_cb,
+					NULL);
+	}
+
+	if (g_hash_table_size(profile_cb_table) == 0)
+		connman_set_services_changed_cb(
+				__libnet_services_changed_callback, NULL);
 
 	g_hash_table_insert(profile_cb_table, profile_name, profile_cb_info);
 
@@ -912,6 +973,16 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 void _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile)
 {
 	net_profile_info_t *profile_info = profile;
+
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service != NULL)
+		connman_service_unset_property_changed_cb(service,
+							SERVICE_PROP_STATE);
+
+	if (g_hash_table_size(profile_cb_table) == 1)
+		connman_unset_services_changed_cb();
+
 	g_hash_table_remove(profile_cb_table, profile_info->profile_name);
 }
 
