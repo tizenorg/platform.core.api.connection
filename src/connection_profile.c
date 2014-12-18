@@ -326,7 +326,6 @@ EXPORT_API int connection_profile_get_type(connection_profile_h profile, connect
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
 	net_profile_info_t *profile_info = profile;
 
 	switch (profile_info->profile_type) {
@@ -346,7 +345,6 @@ EXPORT_API int connection_profile_get_type(connection_profile_h profile, connect
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid profile type\n");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
