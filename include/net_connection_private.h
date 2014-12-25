@@ -100,6 +100,17 @@ int _connection_libnet_get_default_device_type(net_device_t *net_type);
 int _connection_libnet_get_default_ip_address(char **ip_address);
 int _connection_libnet_get_default_proxy(char **proxy_address);
 
+void _connection_libnet_set_type_changed_cb();
+void _connection_libnet_unset_type_changed_cb();
+void _connection_libnet_set_ip_changed_cb();
+void _connection_libnet_unset_ip_changed_cb();
+void _connection_libnet_set_proxy_changed_cb();
+void _connection_libnet_unset_proxy_changed_cb();
+
+void _connection_cb_type_change_cb(net_device_t device_type, void *user_data);
+void _connection_cb_ip_change_cb(char *ip_addr, void *user_data);
+void _connection_cb_proxy_change_cb(char *proxy, void *user_data);
+
 void _connection_inter_mutex_lock(void);
 void _connection_inter_mutex_unlock(void);
 

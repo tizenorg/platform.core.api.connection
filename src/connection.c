@@ -22,10 +22,6 @@
 
 static GSList *conn_handle_list = NULL;
 
-static void __connection_cb_state_change_cb(keynode_t *node, void *user_data);
-static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data);
-static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data);
-
 static int __connection_convert_net_type(net_device_t net_type)
 {
 	switch (net_type) {
@@ -104,17 +100,13 @@ static int __connection_set_type_changed_callback(connection_h connection,
 
 	if (callback) {
 		if (__connection_get_type_changed_callback_count() == 0)
-			if (vconf_notify_key_changed(VCONFKEY_NETWORK_STATUS ,
-					__connection_cb_state_change_cb, NULL))
-				return CONNECTION_ERROR_OPERATION_FAILED;
+			_connection_libnet_set_type_changed_cb();
 
 		local_handle->state_changed_user_data = user_data;
 	} else {
 		if (local_handle->type_changed_callback &&
 		    __connection_get_type_changed_callback_count() == 1)
-			if (vconf_ignore_key_changed(VCONFKEY_NETWORK_STATUS,
-					__connection_cb_state_change_cb))
-				return CONNECTION_ERROR_OPERATION_FAILED;
+			_connection_libnet_unset_type_changed_cb();
 	}
 
 	local_handle->type_changed_callback = callback;
@@ -128,17 +120,13 @@ static int __connection_set_ip_changed_callback(connection_h connection,
 
 	if (callback) {
 		if (__connection_get_ip_changed_callback_count() == 0)
-			if (vconf_notify_key_changed(VCONFKEY_NETWORK_IP,
-					__connection_cb_ip_change_cb, NULL))
-				return CONNECTION_ERROR_OPERATION_FAILED;
+			_connection_libnet_set_ip_changed_cb();
 
 		local_handle->ip_changed_user_data = user_data;
 	} else {
 		if (local_handle->ip_changed_callback &&
 		    __connection_get_ip_changed_callback_count() == 1)
-			if (vconf_ignore_key_changed(VCONFKEY_NETWORK_IP,
-					__connection_cb_ip_change_cb))
-				return CONNECTION_ERROR_OPERATION_FAILED;
+			_connection_libnet_unset_ip_changed_cb();
 	}
 
 	local_handle->ip_changed_callback = callback;
@@ -152,45 +140,43 @@ static int __connection_set_proxy_changed_callback(connection_h connection,
 
 	if (callback) {
 		if (__connection_get_proxy_changed_callback_count() == 0)
-			if (vconf_notify_key_changed(VCONFKEY_NETWORK_PROXY,
-					__connection_cb_proxy_change_cb, NULL))
-				return CONNECTION_ERROR_OPERATION_FAILED;
+			_connection_libnet_set_proxy_changed_cb();
 
 		local_handle->proxy_changed_user_data = user_data;
 	} else {
 		if (local_handle->proxy_changed_callback &&
 		    __connection_get_proxy_changed_callback_count() == 1)
-			if (vconf_ignore_key_changed(VCONFKEY_NETWORK_PROXY,
-					__connection_cb_proxy_change_cb))
-				return CONNECTION_ERROR_OPERATION_FAILED;
+			_connection_libnet_unset_proxy_changed_cb();
 	}
 
 	local_handle->proxy_changed_callback = callback;
 	return CONNECTION_ERROR_NONE;
 }
 
-static void __connection_cb_state_change_cb(keynode_t *node, void *user_data)
+void _connection_cb_type_change_cb(net_device_t device_type, void *user_data)
 {
 	CONNECTION_LOG(CONNECTION_INFO, "Net Status Changed Indication\n");
 
 	GSList *list;
-	int state = vconf_keynode_get_int(node);
 
 	for (list = conn_handle_list; list; list = list->next) {
 		connection_handle_s *local_handle = (connection_handle_s *)list->data;
 		if (local_handle->type_changed_callback)
 			local_handle->type_changed_callback(
-					__connection_convert_net_type(state),
+					__connection_convert_net_type(
+								device_type),
 					local_handle->state_changed_user_data);
 	}
 }
 
-static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data)
+void _connection_cb_ip_change_cb(char *ip_addr, void *user_data)
 {
 	CONNECTION_LOG(CONNECTION_INFO, "Net IP Changed Indication\n");
 
+	if (ip_addr == NULL)
+		return;
+
 	GSList *list;
-	char *ip_addr = vconf_keynode_get_str(node);
 
 	for (list = conn_handle_list; list; list = list->next) {
 		connection_handle_s *local_handle = (connection_handle_s *)list->data;
@@ -201,12 +187,14 @@ static void __connection_cb_ip_change_cb(keynode_t *node, void *user_data)
 	}
 }
 
-static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data)
+void _connection_cb_proxy_change_cb(char *proxy, void *user_data)
 {
 	CONNECTION_LOG(CONNECTION_INFO, "Net IP Changed Indication\n");
 
+	if (proxy == NULL)
+		return;
+
 	GSList *list;
-	char *proxy = vconf_keynode_get_str(node);
 
 	for (list = conn_handle_list; list; list = list->next) {
 		connection_handle_s *local_handle = (connection_handle_s *)list->data;
