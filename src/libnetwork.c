@@ -26,6 +26,7 @@
 
 static GSList *prof_handle_list = NULL;
 static GHashTable *profile_cb_table = NULL;
+static GHashTable *services_changed_cb_table;
 
 struct _profile_cb_s {
 	connection_profile_state_changed_cb callback;
@@ -48,6 +49,19 @@ struct _libnet_s {
 	void *set_default_user_data;
 	bool registered;
 };
+
+struct _last_default_service_property_s {
+	net_device_t device_type;
+	char *service_path;
+	char *ip_address;
+	char *proxy_address;
+};
+
+static struct _last_default_service_property_s last_default_service_property = {
+							NET_DEVICE_UNKNOWN,
+							NULL,
+							NULL,
+							NULL};
 
 static struct _profile_list_s profile_iterator = {0, 0, NULL};
 static struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
@@ -394,16 +408,133 @@ static int __libnet_get_profile_list(net_device_t device_type,
 	return CONNECTION_ERROR_NONE;
 }
 
-static int __libnet_get_default_service(
+static int __libnet_get_ipv4_ip_address(struct connman_service *service,
+							char **ip_address)
+{
+	const struct service_ipv4 *ipv4;
+
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	ipv4 = connman_service_get_ipv4_info(service);
+	if (ipv4 == NULL || ipv4->address == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	*ip_address = g_strdup(ipv4->address);
+	if (*ip_address == NULL)
+		return CONNECTION_ERROR_OUT_OF_MEMORY;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+static int __libnet_get_proxy_address(struct connman_service *service,
+							char **proxy_address)
+{
+	const struct service_proxy *proxy;
+	net_proxy_type_t proxy_type;
+
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	proxy = connman_service_get_proxy_info(service);
+	if (proxy == NULL || proxy->method == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	proxy_type = __libnet_proxy_type_string2type(proxy->method);
+
+	if (proxy_type == NET_PROXY_TYPE_AUTO && proxy->url != NULL)
+		*proxy_address = g_strdup(proxy->url);
+	else if (proxy_type == NET_PROXY_TYPE_MANUAL && proxy->servers != NULL)
+		*proxy_address = g_strdup(proxy->servers[0]);
+	else
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	if (*proxy_address == NULL)
+		return CONNECTION_ERROR_OUT_OF_MEMORY;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+static void __libnet_update_network_type(net_device_t device_type)
+{
+	if (last_default_service_property.device_type == device_type)
+		return;
+
+	last_default_service_property.device_type = device_type;
+
+	_connection_cb_type_change_cb(device_type, NULL);
+}
+
+static void __libnet_update_network_ipv4(struct connman_service *service,
+								void *user_data)
+{
+	char *ipv4_addr;
+
+	if (service == NULL) /*Disconnected the network*/
+		ipv4_addr = g_strdup("");
+	else {
+		if (__libnet_get_ipv4_ip_address(service, &ipv4_addr) !=
+							CONNECTION_ERROR_NONE)
+			return;
+	}
+
+	if (!g_strcmp0(last_default_service_property.ip_address, ipv4_addr)) {
+		g_free(ipv4_addr);
+		return;
+	}
+
+	if (ipv4_addr) {
+		g_free(last_default_service_property.ip_address);
+		last_default_service_property.ip_address = g_strdup(ipv4_addr);
+	} else if (g_strcmp0(last_default_service_property.ip_address, "")) {
+		g_free(last_default_service_property.ip_address);
+		last_default_service_property.ip_address = g_strdup("");
+	}
+
+	_connection_cb_ip_change_cb(ipv4_addr, NULL);
+
+	g_free(ipv4_addr);
+}
+
+static void __libnet_update_network_proxy(struct connman_service *service,
+								void *user_data)
+{
+	char *proxy_addr;
+
+	if (service == NULL) /*Disconnected the network*/
+		proxy_addr = g_strdup("");
+	else {
+		if (__libnet_get_proxy_address(service, &proxy_addr) !=
+							CONNECTION_ERROR_NONE)
+			return;
+	}
+
+	if (!g_strcmp0(last_default_service_property.proxy_address,
+								proxy_addr)) {
+		g_free(proxy_addr);
+		return;
+	}
+
+	if (proxy_addr) {
+		g_free(last_default_service_property.proxy_address);
+		last_default_service_property.proxy_address =
+							g_strdup(proxy_addr);
+	} else if (g_strcmp0(last_default_service_property.proxy_address, "")) {
+		g_free(last_default_service_property.proxy_address);
+		last_default_service_property.proxy_address = g_strdup("");
+	}
+
+	_connection_cb_proxy_change_cb(proxy_addr, NULL);
+
+	g_free(proxy_addr);
+}
+
+
+static int __libnet_get_default_service(GList *services_list,
 				struct connman_service **default_service)
 {
-	GList *services_list;
 	struct connman_service *service;
 	net_state_type_t profile_state;
-
-	services_list = connman_get_services();
-	if (services_list == NULL)
-		return CONNECTION_ERROR_NO_CONNECTION;
 
 	service = (struct connman_service *)services_list->data;
 	profile_state = __libnet_service_state_string2type(
@@ -417,6 +548,68 @@ static int __libnet_get_default_service(
 	}
 
 	return CONNECTION_ERROR_NO_CONNECTION;
+}
+
+static void __libnet_check_default_service_changed(GList *services_list)
+{
+	const gchar *service_path = NULL;
+	struct connman_service *default_service = NULL;
+	struct connman_service *last_default_service = NULL;
+	net_device_t device_type = NET_DEVICE_UNKNOWN;
+
+	if (services_list == NULL)
+		return;
+
+	last_default_service = connman_get_service_with_path(
+				last_default_service_property.service_path);
+
+	__libnet_get_default_service(services_list, &default_service);
+	if (default_service) {
+		device_type = __libnet_service_type_string2type(
+				connman_service_get_type(default_service));
+		service_path = connman_service_get_path(default_service);
+	}
+
+	if (!g_strcmp0(last_default_service_property.service_path,
+								service_path))
+		return;
+
+	/*
+	 * Update type/ipv4/proxy, if changed, it will revoke
+	 * a valid callback function
+	 */
+	__libnet_update_network_type(device_type);
+	__libnet_update_network_ipv4(default_service, NULL);
+	__libnet_update_network_proxy(default_service, NULL);
+
+	if (last_default_service) {
+		/*
+		 * Unregister to monitor the signal 'IPv4' and 'Proxy'
+		 * of the default service
+		 */
+		connman_service_unset_property_changed_cb(last_default_service,
+							SERVICE_PROP_IPV4);
+		connman_service_unset_property_changed_cb(last_default_service,
+							SERVICE_PROP_PROXY);
+	}
+
+	if (default_service) {
+		/*
+		 * Register to monitor the signal 'IPv4' and 'Proxy'
+		 * of the default service
+		 */
+		connman_service_set_property_changed_cb(default_service,
+						SERVICE_PROP_IPV4,
+						__libnet_update_network_ipv4,
+						NULL);
+		connman_service_set_property_changed_cb(default_service,
+						SERVICE_PROP_PROXY,
+						__libnet_update_network_proxy,
+						NULL);
+	}
+
+	g_free(last_default_service_property.service_path);
+	last_default_service_property.service_path = g_strdup(service_path);
 }
 
 static void __libnet_service_state_changed_cb(struct connman_service *service,
@@ -433,14 +626,13 @@ static void __libnet_service_state_changed_cb(struct connman_service *service,
 							connection_state);
 }
 
-static void __libnet_services_changed_callback(struct connman_manager *manager,
+static void __libnet_set_services_state_changed_cb(
+						struct connman_manager *manager,
 						GList *added_service_list,
 						GList *all_services_list,
 						void *user_data)
 {
 	GList *iter;
-
-	CONNECTION_LOG(CONNECTION_INFO, "service changed");
 
 	if (added_service_list == NULL)
 		return;
@@ -461,6 +653,44 @@ static void __libnet_services_changed_callback(struct connman_manager *manager,
 					NULL);
 		}
 	}
+}
+
+static void __libnet_set_default_service_changed_cb(
+						struct connman_manager *manager,
+						GList *added_service_list,
+						GList *all_services_list,
+						void *user_data)
+{
+	__libnet_check_default_service_changed(all_services_list);
+}
+
+static void __libnet_services_changed_callback(struct connman_manager *manager,
+						GList *added_service_list,
+						GList *all_services_list,
+						void *user_data)
+{
+	CONNECTION_LOG(CONNECTION_INFO, "service changed");
+
+	/*
+	 * Execute all callback functions
+	 */
+	GHashTableIter iter;
+	gpointer value;
+
+	g_hash_table_iter_init(&iter, services_changed_cb_table);
+	while (g_hash_table_iter_next(&iter, NULL, &value)) {
+		connman_services_changed_cb cb = value;
+		if (cb)
+			cb(manager, added_service_list, all_services_list,
+								user_data);
+	}
+}
+
+static void __libnet_connman_manager_property_changed_cb(
+						struct connman_manager *manager,
+						void *user_data)
+{
+	__libnet_check_default_service_changed(connman_get_services());
 }
 
 int __libnet_get_connected_count(struct _profile_list_s *profile_list)
@@ -501,6 +731,13 @@ bool _connection_libnet_init(void)
 
 		libnet.registered = true;
 
+		if (services_changed_cb_table == NULL)
+			services_changed_cb_table = g_hash_table_new_full(
+								g_direct_hash,
+								g_direct_equal,
+								NULL,
+								NULL);
+
 		if (profile_cb_table == NULL)
 			profile_cb_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 	}
@@ -515,6 +752,11 @@ bool _connection_libnet_deinit(void)
 
 		libnet.registered = false;
 
+		if (services_changed_cb_table) {
+			g_hash_table_destroy(services_changed_cb_table);
+			services_changed_cb_table = NULL;
+		}
+
 		if (profile_cb_table) {
 			g_hash_table_destroy(profile_cb_table);
 			profile_cb_table = NULL;
@@ -526,6 +768,17 @@ bool _connection_libnet_deinit(void)
 			g_slist_free_full(prof_handle_list, g_free);
 			prof_handle_list = NULL;
 		}
+
+		last_default_service_property.device_type = NET_DEVICE_UNKNOWN;
+
+		g_free(last_default_service_property.service_path);
+		last_default_service_property.service_path = NULL;
+
+		g_free(last_default_service_property.ip_address);
+		last_default_service_property.ip_address = NULL;
+
+		g_free(last_default_service_property.proxy_address);
+		last_default_service_property.proxy_address = NULL;
 	}
 
 	return true;
@@ -961,9 +1214,14 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 					NULL);
 	}
 
-	if (g_hash_table_size(profile_cb_table) == 0)
+	if (g_hash_table_size(services_changed_cb_table) == 0)
 		connman_set_services_changed_cb(
 				__libnet_services_changed_callback, NULL);
+
+	if (g_hash_table_size(profile_cb_table) == 0)
+		g_hash_table_insert(services_changed_cb_table,
+			GINT_TO_POINTER(SERVICE_PROP_STATE),
+			(gpointer)__libnet_set_services_state_changed_cb);
 
 	g_hash_table_insert(profile_cb_table, profile_name, profile_cb_info);
 
@@ -980,8 +1238,12 @@ void _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile
 		connman_service_unset_property_changed_cb(service,
 							SERVICE_PROP_STATE);
 
-	if (g_hash_table_size(profile_cb_table) == 1)
+	if (g_hash_table_size(services_changed_cb_table) == 1)
 		connman_unset_services_changed_cb();
+
+	if (g_hash_table_size(profile_cb_table) == 1)
+		g_hash_table_remove(services_changed_cb_table,
+					GINT_TO_POINTER(SERVICE_PROP_STATE));
 
 	g_hash_table_remove(profile_cb_table, profile_info->profile_name);
 }
@@ -1021,9 +1283,14 @@ struct connman_service *_connection_libnet_get_service_h(
 int _connection_libnet_get_default_device_type(net_device_t *device_type)
 {
 	int rv;
+	GList *services_list;
 	struct connman_service *default_service;
 
-	rv = __libnet_get_default_service(&default_service);
+	services_list = connman_get_services();
+	if (services_list == NULL)
+		return CONNECTION_ERROR_NO_CONNECTION;
+
+	rv = __libnet_get_default_service(services_list, &default_service);
 	if (rv == CONNECTION_ERROR_NO_CONNECTION)
 		return CONNECTION_ERROR_NO_CONNECTION;
 
@@ -1036,50 +1303,131 @@ int _connection_libnet_get_default_device_type(net_device_t *device_type)
 int _connection_libnet_get_default_ip_address(char **ip_address)
 {
 	int rv;
+	GList *services_list;
 	struct connman_service *default_service;
-	const struct service_ipv4 *ipv4;
 
-	rv = __libnet_get_default_service(&default_service);
+	services_list = connman_get_services();
+	if (services_list == NULL)
+		return CONNECTION_ERROR_NO_CONNECTION;
+
+	rv = __libnet_get_default_service(services_list, &default_service);
 	if (rv == CONNECTION_ERROR_NO_CONNECTION)
 		return CONNECTION_ERROR_NO_CONNECTION;
 
-	ipv4 = connman_service_get_ipv4_info(default_service);
-	if (ipv4 == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
-	*ip_address = g_strdup(ipv4->address);
-	if(*ip_address == NULL)
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
-
-	return CONNECTION_ERROR_NONE;
+	return __libnet_get_ipv4_ip_address(default_service, ip_address);
 }
 
 int _connection_libnet_get_default_proxy(char **proxy_address)
 {
 	int rv;
+	GList *services_list;
 	struct connman_service *default_service;
-	const struct service_proxy *proxy;
-	net_proxy_type_t proxy_type;
 
-	rv = __libnet_get_default_service(&default_service);
+	services_list = connman_get_services();
+	if (services_list == NULL)
+		return CONNECTION_ERROR_NO_CONNECTION;
+
+	rv = __libnet_get_default_service(services_list, &default_service);
 	if (rv == CONNECTION_ERROR_NO_CONNECTION)
 		return CONNECTION_ERROR_NO_CONNECTION;
 
-	proxy = connman_service_get_proxy_info(default_service);
-	if (proxy->method == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	return __libnet_get_proxy_address(default_service, proxy_address);
+}
 
-	proxy_type = __libnet_proxy_type_string2type(proxy->method);
+void _connection_libnet_set_type_changed_cb()
+{
+	last_default_service_property.device_type = NET_DEVICE_UNKNOWN;
+	_connection_libnet_get_default_device_type(
+				&last_default_service_property.device_type);
 
-	if (proxy_type == NET_PROXY_TYPE_AUTO && proxy->url != NULL)
-		*proxy_address = g_strdup(proxy->url);
-	else if (proxy_type == NET_PROXY_TYPE_MANUAL && proxy->servers != NULL)
-		*proxy_address = g_strdup(proxy->servers[0]);
-	else
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	if (g_hash_table_size(services_changed_cb_table) == 0)
+		connman_set_services_changed_cb(
+				__libnet_services_changed_callback, NULL);
 
-	if (*proxy_address == NULL)
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
+	/*
+	 * Service has not the changed signal for the property 'Type',
+	 * so uses the changed signal 'ServicesChanged' and 'State'
+	 * of connman_manager
+	 */
+	g_hash_table_insert(services_changed_cb_table,
+			GINT_TO_POINTER(SERVICE_PROP_TYPE),
+			(gpointer)__libnet_set_default_service_changed_cb);
 
-	return CONNECTION_ERROR_NONE;
+	connman_set_manager_property_changed_cb(
+				__libnet_connman_manager_property_changed_cb,
+				MANAGER_PROP_STATE,
+				NULL);
+}
+
+void _connection_libnet_unset_type_changed_cb()
+{
+	if (g_hash_table_size(services_changed_cb_table) == 1)
+		connman_unset_services_changed_cb();
+
+	g_hash_table_remove(services_changed_cb_table,
+					GINT_TO_POINTER(SERVICE_PROP_TYPE));
+
+	connman_unset_manager_property_changed_cb(MANAGER_PROP_STATE);
+}
+
+void _connection_libnet_set_ip_changed_cb()
+{
+	g_free(last_default_service_property.ip_address);
+	last_default_service_property.ip_address = NULL;
+	_connection_libnet_get_default_ip_address(
+				&last_default_service_property.ip_address);
+
+	if (g_hash_table_size(services_changed_cb_table) == 0)
+		connman_set_services_changed_cb(
+				__libnet_services_changed_callback, NULL);
+
+	/*
+	 * Only supported IPV4
+	 */
+	g_hash_table_insert(services_changed_cb_table,
+			GINT_TO_POINTER(SERVICE_PROP_IPV4),
+			(gpointer)__libnet_set_default_service_changed_cb);
+}
+
+void _connection_libnet_unset_ip_changed_cb()
+{
+	if (g_hash_table_size(services_changed_cb_table) == 1)
+		connman_unset_services_changed_cb();
+
+	/*
+	 * Only supported IPV4
+	 */
+	g_hash_table_remove(services_changed_cb_table,
+					GINT_TO_POINTER(SERVICE_PROP_IPV4));
+
+	g_free(last_default_service_property.ip_address);
+	last_default_service_property.ip_address = NULL;
+}
+
+void _connection_libnet_set_proxy_changed_cb()
+{
+	g_free(last_default_service_property.proxy_address);
+	last_default_service_property.proxy_address = NULL;
+	_connection_libnet_get_default_proxy(
+				&last_default_service_property.proxy_address);
+
+	if (g_hash_table_size(services_changed_cb_table) == 0)
+		connman_set_services_changed_cb(
+				__libnet_services_changed_callback, NULL);
+
+	g_hash_table_insert(services_changed_cb_table,
+			GINT_TO_POINTER(SERVICE_PROP_PROXY),
+			(gpointer)__libnet_set_default_service_changed_cb);
+}
+
+void _connection_libnet_unset_proxy_changed_cb()
+{
+	if (g_hash_table_size(services_changed_cb_table) == 1)
+		connman_unset_services_changed_cb();
+
+	g_hash_table_remove(services_changed_cb_table,
+					GINT_TO_POINTER(SERVICE_PROP_PROXY));
+
+	g_free(last_default_service_property.proxy_address);
+	last_default_service_property.proxy_address = NULL;
 }
