@@ -258,7 +258,6 @@ EXPORT_API int connection_profile_get_id(connection_profile_h profile, char** pr
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
 	net_profile_info_t *profile_info = profile;
 
 	char *prof_id = strrchr(profile_info->profile_name, '/');
@@ -270,7 +269,6 @@ EXPORT_API int connection_profile_get_id(connection_profile_h profile, char** pr
 
 	if (*profile_id == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
