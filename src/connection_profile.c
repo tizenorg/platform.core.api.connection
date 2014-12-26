@@ -352,16 +352,19 @@ EXPORT_API int connection_profile_get_network_interface_name(connection_profile_
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	*interface_name = g_strdup(net_info->DevName);
+	const struct service_ethernet *ethernet =
+				connman_service_get_ethernet(service);
+	if (ethernet == NULL || ethernet->interface == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	*interface_name = g_strdup(ethernet->interface);
 	if (*interface_name == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
