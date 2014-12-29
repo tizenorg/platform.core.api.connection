@@ -377,15 +377,15 @@ EXPORT_API int connection_profile_refresh(connection_profile_h profile)
 	}
 
 	net_profile_info_t profile_info_local;
-	/*
+
 	net_profile_info_t *profile_info = profile;
 
-	TODO:
-	if (net_get_profile_info(profile_info->profile_name, &profile_info_local) != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Error!!! net_get_profile_info() failed\n");
+	if (_connection_libnet_get_profile_info(profile_info->profile_name,
+				&profile_info_local) != CONNECTION_ERROR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR,
+				"Error!!! net_get_profile_info() failed\n");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-	 */
 
 	memcpy(profile, &profile_info_local, sizeof(net_profile_info_t));
 

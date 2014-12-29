@@ -1270,6 +1270,32 @@ int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, uns
 		return CONNECTION_ERROR_NONE;
 }
 
+int _connection_libnet_get_profile_info(const char *profile_name,
+					net_profile_info_t *profile_info)
+{
+	struct connman_service *service;
+
+	if (profile_name == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	service = connman_get_service_with_path(profile_name);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	connman_service_sync_properties(service);
+
+	memset(profile_info, 0, sizeof(net_profile_info_t));
+
+	profile_info->profile_type = __libnet_service_type_string2type(
+					connman_service_get_type(service));
+	g_strlcpy(profile_info->profile_name, connman_service_get_path(service),
+					NET_PROFILE_NAME_LEN_MAX);
+	profile_info->profile_state = __libnet_service_state_string2type(
+					connman_service_get_state(service));
+
+	return CONNECTION_ERROR_NONE;
+}
+
 struct connman_service *_connection_libnet_get_service_h(
 						connection_profile_h profile)
 {

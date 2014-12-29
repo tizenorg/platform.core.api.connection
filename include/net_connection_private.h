@@ -94,6 +94,8 @@ connection_profile_state_e _profile_convert_to_cp_state(net_state_type_t state);
 net_service_type_t _connection_profile_convert_to_libnet_cellular_service_type(connection_cellular_service_type_e svc_type);
 net_state_type_t _connection_profile_convert_to_net_state(connection_profile_state_e state);
 
+int _connection_libnet_get_profile_info(const char *profile_name,
+					net_profile_info_t *profile_info);
 struct connman_service *_connection_libnet_get_service_h(
 						connection_profile_h profile);
 int _connection_libnet_get_default_device_type(net_device_t *net_type);
