@@ -184,6 +184,20 @@ net_state_type_t _connection_profile_convert_to_net_state(connection_profile_sta
 	return libnet_state;
 }
 
+net_ip_config_type_t _connection_profile_convert_to_ip_config_type(
+							const char *config)
+{
+	if (g_strcmp0(config, "manual") == 0)
+		return NET_IP_CONFIG_TYPE_STATIC;
+	else if (g_strcmp0(config, "dhcp") == 0)
+		return NET_IP_CONFIG_TYPE_AUTO_IP;
+	else if (g_strcmp0(config, "fixed") == 0)
+		return NET_IP_CONFIG_TYPE_FIXED;
+	else if (g_strcmp0(config, "off") == 0)
+		return NET_IP_CONFIG_TYPE_OFF;
+	else
+		return NET_IP_CONFIG_TYPE_DYNAMIC;
+}
 
 /* Connection profile ********************************************************/
 EXPORT_API int connection_profile_create(connection_profile_type_e type, const char* keyword, connection_profile_h* profile)
@@ -421,13 +435,18 @@ EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profil
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
+	const struct service_ipv4 *ipv4_config;
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	ipv4_config = connman_service_get_ipv4_config(service);
+	if (ipv4_config == NULL || ipv4_config->method == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	switch (net_info->IpConfigType) {
+	switch (_connection_profile_convert_to_ip_config_type(
+							ipv4_config->method)) {
 	case NET_IP_CONFIG_TYPE_STATIC:
 		*type = CONNECTION_IP_CONFIG_TYPE_STATIC;
 		break;
@@ -446,7 +465,6 @@ EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profil
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
