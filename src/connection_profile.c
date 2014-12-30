@@ -480,19 +480,22 @@ EXPORT_API int connection_profile_get_ip_address(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	*ip_address = __profile_convert_ip_to_string(&net_info->IpAddr);
+	const struct service_ipv4 *ipv4;
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	ipv4 = connman_service_get_ipv4_info(service);
+	if (ipv4 == NULL || ipv4->address == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	*ip_address = g_strdup(ipv4->address);
 	if (*ip_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
