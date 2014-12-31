@@ -575,19 +575,36 @@ EXPORT_API int connection_profile_get_dns_address(connection_profile_h profile, 
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr[order-1]);
-	if (*dns_address == NULL)
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
-	 */
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	bool is_get_dns = false;
+	int count = 0;
+	char **nameservers = connman_service_get_nameservers(service);
+	if (nameservers == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	while (*nameservers) {
+		if (count == (order - 1)) {
+			*dns_address = g_strdup(*nameservers);
+			if (*dns_address == NULL)
+				return CONNECTION_ERROR_OUT_OF_MEMORY;
+
+			is_get_dns = true;
+			break;
+		}
+
+		nameservers++;
+		count++;
+	}
+
+	if (!is_get_dns)
+		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
 }
