@@ -95,6 +95,24 @@ static const char* __profile_get_ethernet_proxy(void)
 }
 */
 
+static char *__profile_convert_to_ip_config_str(
+					net_ip_config_type_t ip_config_type)
+{
+	switch (ip_config_type) {
+	case NET_IP_CONFIG_TYPE_STATIC:
+		return "manual";
+	case NET_IP_CONFIG_TYPE_DYNAMIC:
+	case NET_IP_CONFIG_TYPE_AUTO_IP:
+		return "dhcp";
+	case NET_IP_CONFIG_TYPE_FIXED:
+		return "fixed";
+	case NET_IP_CONFIG_TYPE_OFF:
+		return "off";
+	}
+
+	return NULL;
+}
+
 connection_cellular_service_type_e _profile_convert_to_connection_cellular_service_type(net_service_type_t svc_type)
 {
 	switch (svc_type) {
@@ -699,38 +717,43 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
+	net_ip_config_type_t ip_config_type;
+	struct service_ipv4 ipv4_config;
+
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
 	switch (type) {
 	case CONNECTION_IP_CONFIG_TYPE_STATIC:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_STATIC;
-		net_info->IpAddr.Data.Ipv4.s_addr = 0;
-		net_info->SubnetMask.Data.Ipv4.s_addr = 0;
-		net_info->GatewayAddr.Data.Ipv4.s_addr = 0;
+		ip_config_type = NET_IP_CONFIG_TYPE_STATIC;
 		break;
 	case CONNECTION_IP_CONFIG_TYPE_DYNAMIC:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_DYNAMIC;
+		ip_config_type = NET_IP_CONFIG_TYPE_DYNAMIC;
 		break;
 	case CONNECTION_IP_CONFIG_TYPE_AUTO:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_AUTO_IP;
+		ip_config_type = NET_IP_CONFIG_TYPE_AUTO_IP;
 		break;
 	case CONNECTION_IP_CONFIG_TYPE_FIXED:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_FIXED;
+		ip_config_type = NET_IP_CONFIG_TYPE_FIXED;
 		break;
 	case CONNECTION_IP_CONFIG_TYPE_NONE:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_OFF;
+		ip_config_type = NET_IP_CONFIG_TYPE_OFF;
 		break;
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
-	 */
+
+	memset(&ipv4_config, 0, sizeof(struct service_ipv4));
+	ipv4_config.method = __profile_convert_to_ip_config_str(ip_config_type);
+
+	if (connman_service_set_ipv4_config(service, &ipv4_config) !=
+							CONNMAN_LIB_ERR_NONE)
+		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -745,20 +768,26 @@ EXPORT_API int connection_profile_set_ip_address(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	if (ip_address == NULL)
-		net_info->IpAddr.Data.Ipv4.s_addr = 0;
-	else if (inet_aton(ip_address, &(net_info->IpAddr.Data.Ipv4)) == 0)
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
-	 */
+
+	struct service_ipv4 ipv4_config;
+	memset(&ipv4_config, 0, sizeof(struct service_ipv4));
+	ipv4_config.method = "manual";
+	ipv4_config.address = g_strdup(ip_address);
+
+	if (connman_service_set_ipv4_config(service, &ipv4_config) !=
+							CONNMAN_LIB_ERR_NONE) {
+		g_free(ipv4_config.address);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	g_free(ipv4_config.address);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -773,20 +802,26 @@ EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	if (subnet_mask == NULL)
-		net_info->SubnetMask.Data.Ipv4.s_addr = 0;
-	else if (inet_aton(subnet_mask, &(net_info->SubnetMask.Data.Ipv4)) == 0)
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
-	 */
+
+	struct service_ipv4 ipv4_config;
+	memset(&ipv4_config, 0, sizeof(struct service_ipv4));
+	ipv4_config.method = "manual";
+	ipv4_config.netmask = g_strdup(subnet_mask);
+
+	if (connman_service_set_ipv4_config(service, &ipv4_config) !=
+							CONNMAN_LIB_ERR_NONE) {
+		g_free(ipv4_config.netmask);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	g_free(ipv4_config.netmask);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -801,20 +836,26 @@ EXPORT_API int connection_profile_set_gateway_address(connection_profile_h profi
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	if (gateway_address == NULL)
-		net_info->GatewayAddr.Data.Ipv4.s_addr = 0;
-	else if (inet_aton(gateway_address, &(net_info->GatewayAddr.Data.Ipv4)) == 0)
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
-	 */
+
+	struct service_ipv4 ipv4_config;
+	memset(&ipv4_config, 0, sizeof(struct service_ipv4));
+	ipv4_config.method = "manual";
+	ipv4_config.gateway = g_strdup(gateway_address);
+
+	if (connman_service_set_ipv4_config(service, &ipv4_config) !=
+							CONNMAN_LIB_ERR_NONE) {
+		g_free(ipv4_config.gateway);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	g_free(ipv4_config.gateway);
 
 	return CONNECTION_ERROR_NONE;
 }
