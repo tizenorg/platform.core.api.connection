@@ -94,6 +94,20 @@ static const char* __profile_get_ethernet_proxy(void)
 	return proxy;
 }
 */
+static net_ip_config_type_t __profile_convert_to_ip_config_type(
+							const char *config)
+{
+	if (g_strcmp0(config, "manual") == 0)
+		return NET_IP_CONFIG_TYPE_STATIC;
+	else if (g_strcmp0(config, "dhcp") == 0)
+		return NET_IP_CONFIG_TYPE_AUTO_IP;
+	else if (g_strcmp0(config, "fixed") == 0)
+		return NET_IP_CONFIG_TYPE_FIXED;
+	else if (g_strcmp0(config, "off") == 0)
+		return NET_IP_CONFIG_TYPE_OFF;
+	else
+		return NET_IP_CONFIG_TYPE_DYNAMIC;
+}
 
 static char *__profile_convert_to_ip_config_str(
 					net_ip_config_type_t ip_config_type)
@@ -200,21 +214,6 @@ net_state_type_t _connection_profile_convert_to_net_state(connection_profile_sta
 	}
 
 	return libnet_state;
-}
-
-net_ip_config_type_t _connection_profile_convert_to_ip_config_type(
-							const char *config)
-{
-	if (g_strcmp0(config, "manual") == 0)
-		return NET_IP_CONFIG_TYPE_STATIC;
-	else if (g_strcmp0(config, "dhcp") == 0)
-		return NET_IP_CONFIG_TYPE_AUTO_IP;
-	else if (g_strcmp0(config, "fixed") == 0)
-		return NET_IP_CONFIG_TYPE_FIXED;
-	else if (g_strcmp0(config, "off") == 0)
-		return NET_IP_CONFIG_TYPE_OFF;
-	else
-		return NET_IP_CONFIG_TYPE_DYNAMIC;
 }
 
 /* Connection profile ********************************************************/
@@ -463,8 +462,7 @@ EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profil
 	if (ipv4_config == NULL || ipv4_config->method == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	switch (_connection_profile_convert_to_ip_config_type(
-							ipv4_config->method)) {
+	switch (__profile_convert_to_ip_config_type(ipv4_config->method)) {
 	case NET_IP_CONFIG_TYPE_STATIC:
 		*type = CONNECTION_IP_CONFIG_TYPE_STATIC;
 		break;
