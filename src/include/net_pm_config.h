@@ -209,6 +209,9 @@ typedef enum {
  * Net IP configuration Type
  */
 typedef enum {
+	/** Unknown type */
+	NET_IP_CONFIG_TYPE_UNKNOWN = 0x00,
+
 	/** Manual IP configuration */
 	NET_IP_CONFIG_TYPE_STATIC = 0x01,
 
