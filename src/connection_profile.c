@@ -95,6 +95,52 @@ static const char* __profile_get_ethernet_proxy(void)
 }
 */
 
+static void __profile_convert_wifi_security_to_string(
+					wlan_security_info_t *security_info,
+					char **security)
+{
+	while (*security) {
+		if (g_strcmp0(*security, "none") == 0)
+			security_info->sec_mode = WLAN_SEC_MODE_NONE;
+		else if (g_strcmp0(*security, "wep") == 0)
+			security_info->sec_mode = WLAN_SEC_MODE_WEP;
+		else if (g_strcmp0(*security, "psk") == 0)
+			security_info->sec_mode = WLAN_SEC_MODE_WPA_PSK;
+		else if (g_strcmp0(*security, "ieee8021x") == 0)
+			security_info->sec_mode = WLAN_SEC_MODE_IEEE8021X;
+		else if (g_strcmp0(*security, "wpa") == 0)
+			security_info->sec_mode = WLAN_SEC_MODE_WPA_PSK;
+		else if (g_strcmp0(*security, "rsn") == 0)
+			security_info->sec_mode = WLAN_SEC_MODE_WPA2_PSK;
+		else if (g_strcmp0(*security, "wps") == 0)
+			security_info->wps_support = true;
+		else
+			security_info->sec_mode = WLAN_SEC_MODE_UNKNOWN;
+
+		security++;
+	}
+}
+
+static wlan_encryption_mode_type_t __profile_get_wifi_encryption_type(
+						const char *encryption_mode)
+{
+	if (encryption_mode == NULL)
+		return WLAN_ENC_MODE_UNKNOWN;
+
+	if (!g_strcmp0(encryption_mode, "none"))
+		return WLAN_ENC_MODE_NONE;
+	else if (!g_strcmp0(encryption_mode, "wep"))
+		return WLAN_ENC_MODE_WEP;
+	else if (!g_strcmp0(encryption_mode, "tkip"))
+		return WLAN_ENC_MODE_TKIP;
+	else if (!g_strcmp0(encryption_mode, "aes"))
+		return WLAN_ENC_MODE_AES;
+	else if (!g_strcmp0(encryption_mode, "mixed"))
+		return WLAN_ENC_MODE_TKIP_AES_MIXED;
+	else
+		return WLAN_ENC_MODE_UNKNOWN;
+}
+
 connection_cellular_service_type_e _profile_convert_to_connection_cellular_service_type(net_service_type_t svc_type)
 {
 	switch (svc_type) {
@@ -946,17 +992,22 @@ EXPORT_API int connection_profile_get_wifi_essid(connection_profile_h profile, c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
+	const char *service_essid;
+	struct connman_service *service;
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	struct connman_service *service =
-				_connection_libnet_get_service_h(profile);
+	service = _connection_libnet_get_service_h(profile);
 	if (service == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	*essid = g_strdup(connman_service_get_name(service));
+	service_essid = connman_service_get_name(service);
+	if (service_essid == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	*essid = g_strdup(service_essid);
 	if (*essid == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 
@@ -970,16 +1021,24 @@ EXPORT_API int connection_profile_get_wifi_bssid(connection_profile_h profile, c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
+	const char *service_bssid;
+	struct connman_service *service;
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	*bssid = g_strdup(profile_info->ProfileInfo.Wlan.bssid);
+	service = _connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	service_bssid = connman_service_get_bssid(service);
+	if (service_bssid == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	*bssid = g_strdup(service_bssid);
 	if (*bssid == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -991,14 +1050,17 @@ EXPORT_API int connection_profile_get_wifi_rssi(connection_profile_h profile, in
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
+	struct connman_service *service;
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	*rssi = (int)profile_info->ProfileInfo.Wlan.Strength;
-	*/
+	service = _connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	*rssi = (int)connman_service_get_strength(service);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1010,14 +1072,17 @@ EXPORT_API int connection_profile_get_wifi_frequency(connection_profile_h profil
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
+	struct connman_service *service;
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	*frequency = (int)profile_info->ProfileInfo.Wlan.frequency;
-	*/
+	service = _connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	*frequency = (int)connman_service_get_frequency(service);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1029,14 +1094,17 @@ EXPORT_API int connection_profile_get_wifi_max_speed(connection_profile_h profil
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
+	struct connman_service *service;
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	*max_speed = (int)profile_info->ProfileInfo.Wlan.max_rate;
-	*/
+	service = _connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	*max_speed = (int)connman_service_get_max_rate(service);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1048,13 +1116,26 @@ EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h pr
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
+	wlan_security_info_t sec_info;
+	char **security;
+	struct connman_service *service;
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	switch (profile_info->ProfileInfo.Wlan.security_info.sec_mode) {
+	service = _connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	security = connman_service_get_security(service);
+	if (security == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	memset(&sec_info, 0, sizeof(wlan_security_info_t));
+	__profile_convert_wifi_security_to_string(&sec_info, security);
+
+	switch (sec_info.sec_mode) {
 	case WLAN_SEC_MODE_NONE:
 		*type = CONNECTION_WIFI_SECURITY_TYPE_NONE;
 		break;
@@ -1073,7 +1154,6 @@ EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h pr
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1085,13 +1165,22 @@ EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h 
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
+	const char *encryption_mode;
+	struct connman_service *service;
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	switch (profile_info->ProfileInfo.Wlan.security_info.enc_mode) {
+	service = _connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	encryption_mode = connman_service_get_encryption_mode(service);
+	if (encryption_mode == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	switch (__profile_get_wifi_encryption_type(encryption_mode)) {
 	case WLAN_ENC_MODE_NONE:
 		*type = CONNECTION_WIFI_ENCRYPTION_TYPE_NONE;
 		break;
@@ -1110,7 +1199,6 @@ EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h 
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1122,18 +1210,31 @@ EXPORT_API int connection_profile_is_wifi_passphrase_required(connection_profile
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
+	wlan_security_info_t sec_info;
+	char **security;
+	struct connman_service *service;
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	if (profile_info->favourite) {
+	service = _connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	if (connman_service_get_user_favorite(service)) {
 		*required = false;
 		return CONNECTION_ERROR_NONE;
 	}
 
-	switch (profile_info->ProfileInfo.Wlan.security_info.sec_mode) {
+	security = connman_service_get_security(service);
+	if (security == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	memset(&sec_info, 0, sizeof(wlan_security_info_t));
+	__profile_convert_wifi_security_to_string(&sec_info, security);
+
+	switch (sec_info.sec_mode) {
 	case WLAN_SEC_MODE_NONE:
 		*required = false;
 		break;
@@ -1146,7 +1247,6 @@ EXPORT_API int connection_profile_is_wifi_passphrase_required(connection_profile
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1178,17 +1278,31 @@ EXPORT_API int connection_profile_is_wifi_wps_supported(connection_profile_h pro
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
+	char **security;
+	struct connman_service *service;
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	if (profile_info->ProfileInfo.Wlan.security_info.wps_support)
-		*supported = true;
-	else
-		*supported = false;
-	*/
+	service = _connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	security = connman_service_get_security(service);
+	if (security == NULL)
+		return CONNECTION_ERROR_INVALID_OPERATION;
+
+	while (*security) {
+		if (g_strcmp0(*security, "wps") == 0) {
+			*supported = true;
+			return CONNECTION_ERROR_NONE;
+		}
+
+		security++;
+	}
+
+	*supported = false;
 
 	return CONNECTION_ERROR_NONE;
 }

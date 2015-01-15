@@ -143,6 +143,8 @@ typedef enum {
  * For now all EAP security mechanisms are provided only in infrastructure mode
  */
 typedef enum {
+	/** Not defined */
+	WLAN_SEC_MODE_UNKNOWN = 0x00,
 	/** Security disabled */
 	WLAN_SEC_MODE_NONE = 0x01,
 	/** WEP */
