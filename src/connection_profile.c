@@ -877,23 +877,71 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	if (dns_address == NULL)
-		net_info->DnsAddr[order-1].Data.Ipv4.s_addr = 0;
-	else if (inet_aton(dns_address, &(net_info->DnsAddr[order-1].Data.Ipv4)) == 0)
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	if (net_info->DnsCount < order)
-		net_info->DnsCount = order;
-	 */
+	int count = 0;
+	char **new_nameservers;
+	char **old_nameservers;
+
+	new_nameservers = g_try_new0(char *, NET_DNS_ADDR_MAX + 1);
+	if (new_nameservers == NULL)
+		return CONNECTION_ERROR_OUT_OF_MEMORY;
+
+	old_nameservers = connman_service_get_nameservers_config(service);
+
+	for (count = 0; count < NET_DNS_ADDR_MAX; count++) {
+
+		if (count == (order - 1)) {
+			if (dns_address) {
+				new_nameservers[count] = g_strdup(dns_address);
+				if (new_nameservers[count] == NULL) {
+					g_strfreev(new_nameservers);
+					return CONNECTION_ERROR_OUT_OF_MEMORY;
+				}
+
+			} else
+				new_nameservers[count] = g_strdup("");
+				if (new_nameservers[count] == NULL) {
+					g_strfreev(new_nameservers);
+					return CONNECTION_ERROR_OUT_OF_MEMORY;
+				}
+
+			if (*old_nameservers)
+				old_nameservers++;
+
+			continue;
+		}
+
+		if (*old_nameservers) {
+			new_nameservers[count] = g_strdup(*old_nameservers);
+			if (new_nameservers[count] == NULL) {
+				g_strfreev(new_nameservers);
+				return CONNECTION_ERROR_OUT_OF_MEMORY;
+			}
+
+			old_nameservers++;
+		} else {
+			new_nameservers[count] = g_strdup("");
+			if (new_nameservers[count] == NULL) {
+				g_strfreev(new_nameservers);
+				return CONNECTION_ERROR_OUT_OF_MEMORY;
+			}
+		}
+	}
+
+	if (connman_service_set_nameservers_config(service,
+		(const char **) new_nameservers) != CONNMAN_LIB_ERR_NONE) {
+		g_strfreev(new_nameservers);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	g_strfreev(new_nameservers);
 
 	return CONNECTION_ERROR_NONE;
 }
