@@ -95,6 +95,33 @@ static const char* __profile_get_ethernet_proxy(void)
 }
 */
 
+static void __profile_free_service_ipv4_config(struct service_ipv4 *ipv4_config)
+{
+	g_free(ipv4_config->method);
+	g_free(ipv4_config->address);
+	g_free(ipv4_config->netmask);
+	g_free(ipv4_config->gateway);
+}
+
+static char *__profile_convert_to_ipv4_config_str(
+					net_ip_config_type_t ip_config_type)
+{
+	switch (ip_config_type) {
+	case NET_IP_CONFIG_TYPE_STATIC:
+		return "manual";
+	case NET_IP_CONFIG_TYPE_DYNAMIC:
+		return "dhcp";
+	case NET_IP_CONFIG_TYPE_FIXED:
+		return "fixed";
+	case NET_IP_CONFIG_TYPE_OFF:
+		return "off";
+	default:
+		return NULL;
+	}
+
+	return NULL;
+}
+
 static void __profile_convert_wifi_security_to_string(
 					wlan_security_info_t *security_info,
 					char **security)
@@ -745,38 +772,41 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
+	net_ip_config_type_t ip_config_type;
+	struct service_ipv4 ipv4_config;
+
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
 	switch (type) {
 	case CONNECTION_IP_CONFIG_TYPE_STATIC:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_STATIC;
-		net_info->IpAddr.Data.Ipv4.s_addr = 0;
-		net_info->SubnetMask.Data.Ipv4.s_addr = 0;
-		net_info->GatewayAddr.Data.Ipv4.s_addr = 0;
+		ip_config_type = NET_IP_CONFIG_TYPE_STATIC;
 		break;
 	case CONNECTION_IP_CONFIG_TYPE_DYNAMIC:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_DYNAMIC;
-		break;
-	case CONNECTION_IP_CONFIG_TYPE_AUTO:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_AUTO_IP;
+		ip_config_type = NET_IP_CONFIG_TYPE_DYNAMIC;
 		break;
 	case CONNECTION_IP_CONFIG_TYPE_FIXED:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_FIXED;
+		ip_config_type = NET_IP_CONFIG_TYPE_FIXED;
 		break;
 	case CONNECTION_IP_CONFIG_TYPE_NONE:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_OFF;
+		ip_config_type = NET_IP_CONFIG_TYPE_OFF;
 		break;
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
-	 */
+
+	memset(&ipv4_config, 0, sizeof(struct service_ipv4));
+	ipv4_config.method = __profile_convert_to_ipv4_config_str(
+								ip_config_type);
+
+	if (connman_service_set_ipv4_config(service, &ipv4_config) !=
+							CONNMAN_LIB_ERR_NONE)
+		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -791,20 +821,60 @@ EXPORT_API int connection_profile_set_ip_address(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	if (ip_address == NULL)
-		net_info->IpAddr.Data.Ipv4.s_addr = 0;
-	else if (inet_aton(ip_address, &(net_info->IpAddr.Data.Ipv4)) == 0)
+	const struct service_ipv4 *const_ipv4_config;
+	struct service_ipv4 ipv4_config;
+
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
-	 */
+
+	const_ipv4_config = connman_service_get_ipv4_config(service);
+	if (const_ipv4_config == NULL || const_ipv4_config->method == NULL ||
+			g_strcmp0(const_ipv4_config->method, "manual") != 0)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	memset(&ipv4_config, 0, sizeof(struct service_ipv4));
+
+	ipv4_config.method = g_strdup(const_ipv4_config->method);
+	if (ipv4_config.method == NULL)
+		return CONNECTION_ERROR_OUT_OF_MEMORY;
+
+	if (const_ipv4_config->netmask) {
+		ipv4_config.netmask = g_strdup(const_ipv4_config->netmask);
+		if (ipv4_config.netmask == NULL) {
+			__profile_free_service_ipv4_config(&ipv4_config);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+	}
+
+	if (const_ipv4_config->gateway) {
+		ipv4_config.gateway = g_strdup(const_ipv4_config->gateway);
+		if (ipv4_config.gateway == NULL) {
+			__profile_free_service_ipv4_config(&ipv4_config);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+	}
+
+	if (ip_address) {
+		ipv4_config.address = g_strdup(ip_address);
+		if (ipv4_config.address == NULL) {
+			__profile_free_service_ipv4_config(&ipv4_config);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+	} else
+		ipv4_config.address = NULL;
+
+	if (connman_service_set_ipv4_config(service, &ipv4_config) !=
+							CONNMAN_LIB_ERR_NONE) {
+		__profile_free_service_ipv4_config(&ipv4_config);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	__profile_free_service_ipv4_config(&ipv4_config);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -819,20 +889,60 @@ EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	if (subnet_mask == NULL)
-		net_info->SubnetMask.Data.Ipv4.s_addr = 0;
-	else if (inet_aton(subnet_mask, &(net_info->SubnetMask.Data.Ipv4)) == 0)
+	const struct service_ipv4 *const_ipv4_config;
+	struct service_ipv4 ipv4_config;
+
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
-	 */
+
+	const_ipv4_config = connman_service_get_ipv4_config(service);
+	if (const_ipv4_config == NULL || const_ipv4_config->method == NULL ||
+			g_strcmp0(const_ipv4_config->method, "manual") != 0)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	memset(&ipv4_config, 0, sizeof(struct service_ipv4));
+
+	ipv4_config.method = g_strdup(const_ipv4_config->method);
+	if (ipv4_config.method == NULL)
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+
+	if (const_ipv4_config->address) {
+		ipv4_config.address = g_strdup(const_ipv4_config->address);
+		if (ipv4_config.address == NULL) {
+			__profile_free_service_ipv4_config(&ipv4_config);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+	}
+
+	if (const_ipv4_config->gateway) {
+		ipv4_config.gateway = g_strdup(const_ipv4_config->gateway);
+		if (ipv4_config.gateway == NULL) {
+			__profile_free_service_ipv4_config(&ipv4_config);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+	}
+
+	if (subnet_mask) {
+		ipv4_config.netmask = g_strdup(subnet_mask);
+		if (ipv4_config.netmask == NULL) {
+			__profile_free_service_ipv4_config(&ipv4_config);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+	} else
+		ipv4_config.netmask = NULL;
+
+	if (connman_service_set_ipv4_config(service, &ipv4_config) !=
+							CONNMAN_LIB_ERR_NONE) {
+		__profile_free_service_ipv4_config(&ipv4_config);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	__profile_free_service_ipv4_config(&ipv4_config);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -847,20 +957,60 @@ EXPORT_API int connection_profile_set_gateway_address(connection_profile_h profi
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	if (gateway_address == NULL)
-		net_info->GatewayAddr.Data.Ipv4.s_addr = 0;
-	else if (inet_aton(gateway_address, &(net_info->GatewayAddr.Data.Ipv4)) == 0)
+	const struct service_ipv4 *const_ipv4_config;
+	struct service_ipv4 ipv4_config;
+
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
-	 */
+
+	const_ipv4_config = connman_service_get_ipv4_config(service);
+	if (const_ipv4_config == NULL || const_ipv4_config->method == NULL ||
+			g_strcmp0(const_ipv4_config->method, "manual") != 0)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	memset(&ipv4_config, 0, sizeof(struct service_ipv4));
+
+	ipv4_config.method = g_strdup(const_ipv4_config->method);
+	if (ipv4_config.method == NULL)
+		return CONNECTION_ERROR_OUT_OF_MEMORY;
+
+	if (const_ipv4_config->address) {
+		ipv4_config.address = g_strdup(const_ipv4_config->address);
+		if (ipv4_config.address == NULL) {
+			__profile_free_service_ipv4_config(&ipv4_config);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+	}
+
+	if (const_ipv4_config->netmask) {
+		ipv4_config.netmask = g_strdup(const_ipv4_config->netmask);
+		if (ipv4_config.netmask == NULL) {
+			__profile_free_service_ipv4_config(&ipv4_config);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+	}
+
+	if (gateway_address) {
+		ipv4_config.gateway = g_strdup(gateway_address);
+		if (ipv4_config.gateway == NULL) {
+			__profile_free_service_ipv4_config(&ipv4_config);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+	} else
+		ipv4_config.gateway = NULL;
+
+	if (connman_service_set_ipv4_config(service, &ipv4_config) !=
+							CONNMAN_LIB_ERR_NONE) {
+		__profile_free_service_ipv4_config(&ipv4_config);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	__profile_free_service_ipv4_config(&ipv4_config);
 
 	return CONNECTION_ERROR_NONE;
 }
