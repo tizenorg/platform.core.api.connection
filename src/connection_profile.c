@@ -486,8 +486,13 @@ EXPORT_API int connection_profile_get_state(connection_profile_h profile, connec
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	net_profile_info_t *profile_info = profile;
-	*state = _profile_convert_to_cp_state(profile_info->profile_state);
+	net_state_type_t profile_state;
+
+	if (_connection_libnet_get_net_state_type(profile, &profile_state) !=
+							CONNECTION_ERROR_NONE)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	*state = _profile_convert_to_cp_state(profile_state);
 	if (*state < 0)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 

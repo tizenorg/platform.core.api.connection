@@ -95,6 +95,8 @@ net_service_type_t _connection_profile_convert_to_libnet_cellular_service_type(c
 net_state_type_t _connection_profile_convert_to_net_state(connection_profile_state_e state);
 net_ip_config_type_t _connection_profile_convert_to_ip_config_type(
 							const char *config);
+int _connection_libnet_get_net_state_type(connection_profile_h profile,
+					net_state_type_t *profile_state);
 
 struct connman_service *_connection_libnet_get_service_h(
 						connection_profile_h profile);

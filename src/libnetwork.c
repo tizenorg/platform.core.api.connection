@@ -1431,3 +1431,17 @@ void _connection_libnet_unset_proxy_changed_cb()
 	g_free(last_default_service_property.proxy_address);
 	last_default_service_property.proxy_address = NULL;
 }
+
+int _connection_libnet_get_net_state_type(connection_profile_h profile,
+						net_state_type_t *profile_state)
+{
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	*profile_state = __libnet_service_state_string2type(
+					connman_service_get_state(service));
+
+	return CONNECTION_ERROR_NONE;
+}
