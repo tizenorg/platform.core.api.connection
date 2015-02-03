@@ -417,14 +417,17 @@ EXPORT_API int connection_get_cellular_state(connection_h connection, connection
 
 EXPORT_API int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* state)
 {
+	int rv;
+
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	if (_connection_libnet_get_wifi_state(state) == false) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Fail to get wifi state\n");
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	rv = _connection_libnet_get_wifi_state(state);
+	if (rv != CONNECTION_ERROR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Fail to get Wi-Fi state[%d]", rv);
+		return rv;
 	}
 
 	CONNECTION_LOG(CONNECTION_INFO, "WiFi state = %d\n", *state);
@@ -439,10 +442,7 @@ EXPORT_API int connection_get_ethernet_state(connection_h connection, connection
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	if (_connection_libnet_get_ethernet_state(state) == false)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
-	return CONNECTION_ERROR_NONE;
+	return _connection_libnet_get_ethernet_state(state);
 }
 
 EXPORT_API int connection_get_bt_state(connection_h connection, connection_bt_state_e* state)
@@ -452,10 +452,8 @@ EXPORT_API int connection_get_bt_state(connection_h connection, connection_bt_st
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	if (_connection_libnet_get_bluetooth_state(state) == false)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	return _connection_libnet_get_bluetooth_state(state);
 
-	return CONNECTION_ERROR_NONE;
 }
 
 EXPORT_API int connection_set_type_changed_cb(connection_h connection,
@@ -817,13 +815,15 @@ static int __reset_statistic(connection_type_e connection_type,
 	return CONNECTION_ERROR_NONE;
 }
 
-EXPORT_API int connection_get_statistics(connection_type_e connection_type,
+EXPORT_API int connection_get_statistics(connection_h connection,
+				connection_type_e connection_type,
 				connection_statistics_type_e statistics_type, long long* size)
 {
 	return __get_statistic(connection_type, statistics_type, size);
 }
 
-EXPORT_API int connection_reset_statistics(connection_type_e connection_type,
+EXPORT_API int connection_reset_statistics(connection_h connection,
+				connection_type_e connection_type,
 				connection_statistics_type_e statistics_type)
 {
 	return __reset_statistic(connection_type, statistics_type);

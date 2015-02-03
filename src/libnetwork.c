@@ -107,6 +107,10 @@ static const char *__libnet_convert_cp_error_type_to_string(connection_error_e e
 		return "INVALID_KEY";
 	case CONNECTION_ERROR_NO_REPLY:
 		return "NO_REPLY";
+	case CONNECTION_ERROR_PERMISSION_DENIED:
+		return "PERMISSION_DENIED";
+	case CONNECTION_ERROR_NOT_SUPPORTED:
+		return "NOT_SUPPORTED";
 	}
 
 	return "UNKNOWN";
@@ -404,14 +408,16 @@ bool _connection_libnet_check_profile_cb_validity(connection_profile_h profile)
 }
 
 
-bool _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
+int _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 {
+	int rv;
 	net_wifi_state_t wlan_state;
 	net_profile_name_t profile_name;
 
-	if (net_get_wifi_state(&wlan_state, &profile_name) != NET_ERR_NONE) {
+	rv = net_get_wifi_state(&wlan_state, &profile_name);
+	if (rv != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Error!! net_get_wifi_state() failed.\n");
-		return false;
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	switch (wlan_state) {
@@ -428,20 +434,20 @@ bool _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 		break;
 	default :
 		CONNECTION_LOG(CONNECTION_ERROR, "Error!! Unknown state\n");
-		return false;
+		return CONNECTION_ERROR_INVALID_OPERATION;
 	}
 
-	return true;
+	return CONNECTION_ERROR_NONE;
 }
 
-bool _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
+int _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
 {
 	struct _profile_list_s ethernet_profiles = {0, 0, NULL};
 	net_get_profile_list(NET_DEVICE_ETHERNET, &ethernet_profiles.profiles, &ethernet_profiles.count);
 
 	if (ethernet_profiles.count == 0) {
 		*state = CONNECTION_ETHERNET_STATE_DEACTIVATED;
-		return true;
+		return CONNECTION_ERROR_NONE;
 	}
 
 	switch (ethernet_profiles.profiles->ProfileState) {
@@ -457,15 +463,15 @@ bool _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
 		*state = CONNECTION_ETHERNET_STATE_DISCONNECTED;
 		break;
 	default:
-		return false;
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	__libnet_clear_profile_list(&ethernet_profiles);
 
-	return true;
+	return CONNECTION_ERROR_NONE;
 }
 
-bool _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
+int _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 {
 	int i = 0;
 	struct _profile_list_s bluetooth_profiles = {0, 0, NULL};
@@ -473,7 +479,7 @@ bool _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 
 	if (bluetooth_profiles.count == 0) {
 		*state = CONNECTION_BT_STATE_DEACTIVATED;
-		return true;
+		return CONNECTION_ERROR_NONE;
 	}
 
 	for (; i < bluetooth_profiles.count; i++) {
@@ -491,14 +497,14 @@ bool _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 			break;
 		default:
 			__libnet_clear_profile_list(&bluetooth_profiles);
-			return false;
+			return CONNECTION_ERROR_OPERATION_FAILED;
 		}
 	}
 
 done:
 	__libnet_clear_profile_list(&bluetooth_profiles);
 
-	return true;
+	return CONNECTION_ERROR_NONE;
 }
 
 int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, connection_profile_iterator_h* profile_iter_h)
@@ -545,6 +551,10 @@ int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, con
 		if (profiles == NULL) {
 			__libnet_clear_profile_list(&all_profiles);
 			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		break;
+	case CONNECTION_ITERATOR_TYPE_DEFAULT:
+			/* To do : Not supported yet */
+		break;
 		}
 
 		profile_iterator.profiles = profiles;
@@ -796,10 +806,13 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 	return true;
 }
 
-void _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile)
+bool _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile)
 {
 	net_profile_info_t *profile_info = profile;
-	g_hash_table_remove(profile_cb_table, profile_info->ProfileName);
+	if (g_hash_table_remove(profile_cb_table, profile_info->ProfileName) == TRUE)
+		return true;
+
+	return false;
 }
 
 int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_type_e statistics_type)
