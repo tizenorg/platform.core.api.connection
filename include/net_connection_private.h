@@ -117,6 +117,9 @@ void _connection_cb_proxy_change_cb(char *proxy, void *user_data);
 
 void _connection_inter_mutex_lock(void);
 void _connection_inter_mutex_unlock(void);
+net_proxy_type_t _connection_libnet_proxy_type_string2type(const char *str);
+int _connection_libnet_get_proxy_address(struct connman_service *service,
+							char **proxy_address);
 
 #ifdef __cplusplus
 }

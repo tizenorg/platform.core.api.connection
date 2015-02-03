@@ -245,21 +245,6 @@ static void __libnet_clear_profile_list(struct _profile_list_s *profile_list)
 	profile_list->profiles = NULL;
 }
 
-static net_proxy_type_t __libnet_proxy_type_string2type(const char *str)
-{
-	if (str == NULL)
-		return NET_PROXY_TYPE_UNKNOWN;
-
-	if (g_strcmp0(str, "direct") == 0)
-		return NET_PROXY_TYPE_DIRECT;
-	if (g_strcmp0(str, "manual") == 0)
-		return NET_PROXY_TYPE_MANUAL;
-	if (g_strcmp0(str, "auto") == 0)
-		return NET_PROXY_TYPE_AUTO;
-
-	return NET_PROXY_TYPE_UNKNOWN;
-}
-
 static net_device_t __libnet_service_type_string2type(const char *str)
 {
 	if (str == NULL)
@@ -427,34 +412,6 @@ static int __libnet_get_ipv4_ip_address(struct connman_service *service,
 	return CONNECTION_ERROR_NONE;
 }
 
-static int __libnet_get_proxy_address(struct connman_service *service,
-							char **proxy_address)
-{
-	const struct service_proxy *proxy;
-	net_proxy_type_t proxy_type;
-
-	if (service == NULL)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
-
-	proxy = connman_service_get_proxy_info(service);
-	if (proxy == NULL || proxy->method == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
-	proxy_type = __libnet_proxy_type_string2type(proxy->method);
-
-	if (proxy_type == NET_PROXY_TYPE_AUTO && proxy->url != NULL)
-		*proxy_address = g_strdup(proxy->url);
-	else if (proxy_type == NET_PROXY_TYPE_MANUAL && proxy->servers != NULL)
-		*proxy_address = g_strdup(proxy->servers[0]);
-	else
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
-	if (*proxy_address == NULL)
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
-
-	return CONNECTION_ERROR_NONE;
-}
-
 static void __libnet_update_network_type(net_device_t device_type)
 {
 	if (last_default_service_property.device_type == device_type)
@@ -504,8 +461,8 @@ static void __libnet_update_network_proxy(struct connman_service *service,
 	if (service == NULL) /*Disconnected the network*/
 		proxy_addr = g_strdup("");
 	else {
-		if (__libnet_get_proxy_address(service, &proxy_addr) !=
-							CONNECTION_ERROR_NONE)
+		if (_connection_libnet_get_proxy_address(service, &proxy_addr)
+			!= CONNECTION_ERROR_NONE)
 			return;
 	}
 
@@ -1331,8 +1288,53 @@ int _connection_libnet_get_default_proxy(char **proxy_address)
 	if (rv == CONNECTION_ERROR_NO_CONNECTION)
 		return CONNECTION_ERROR_NO_CONNECTION;
 
-	return __libnet_get_proxy_address(default_service, proxy_address);
+	return _connection_libnet_get_proxy_address(
+		default_service, proxy_address);
 }
+
+net_proxy_type_t _connection_libnet_proxy_type_string2type(const char *str)
+{
+	if (str == NULL)
+		return NET_PROXY_TYPE_UNKNOWN;
+
+	if (g_strcmp0(str, "direct") == 0)
+		return NET_PROXY_TYPE_DIRECT;
+	if (g_strcmp0(str, "manual") == 0)
+		return NET_PROXY_TYPE_MANUAL;
+	if (g_strcmp0(str, "auto") == 0)
+		return NET_PROXY_TYPE_AUTO;
+
+	return NET_PROXY_TYPE_UNKNOWN;
+}
+
+int _connection_libnet_get_proxy_address(struct connman_service *service,
+							char **proxy_address)
+{
+	const struct service_proxy *proxy;
+	net_proxy_type_t proxy_type;
+
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	proxy = connman_service_get_proxy_info(service);
+	if (proxy == NULL || proxy->method == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	proxy_type = _connection_libnet_proxy_type_string2type(proxy->method);
+
+	if (proxy_type == NET_PROXY_TYPE_AUTO && proxy->url != NULL)
+		*proxy_address = g_strdup(proxy->url);
+	else if (proxy_type == NET_PROXY_TYPE_MANUAL && proxy->servers != NULL)
+		*proxy_address = g_strdup(proxy->servers[0]);
+	else
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	if (*proxy_address == NULL)
+		return CONNECTION_ERROR_OUT_OF_MEMORY;
+
+	return CONNECTION_ERROR_NONE;
+}
+
 
 void _connection_libnet_set_type_changed_cb()
 {
