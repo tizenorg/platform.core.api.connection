@@ -24,22 +24,29 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
+ * @file net_connection.h
+ */
+
+/**
  * @addtogroup CAPI_NETWORK_CONNECTION_MANAGER_MODULE
  * @{
  */
 
 /**
- * @brief  The connection handle for all connection functions.
+ * @brief The connection handle.
+ * @since_tizen 2.3
 */
 typedef void* connection_h;
 
 /**
- * @brief  The iterator handle for profiles.
+ * @brief The profiles iterator handle.
+ * @since_tizen 2.3
 */
 typedef void* connection_profile_iterator_h;
 
 /**
- * @brief Enumerations of connection type.
+ * @brief Enumeration for connection type.
+ * @since_tizen 2.3
  */
 typedef enum
 {
@@ -51,7 +58,8 @@ typedef enum
 } connection_type_e;
 
 /**
- * @brief Enumerations of cellular network state.
+ * @brief Enumeration for cellular network state.
+ * @since_tizen 2.3
  */
 typedef enum
 {
@@ -64,7 +72,8 @@ typedef enum
 } connection_cellular_state_e;
 
 /**
- * @brief This enumeration defines the Wi-Fi state.
+ * @brief Enumeration for Wi-Fi state.
+ * @since_tizen 2.3
  */
 typedef enum
 {
@@ -74,17 +83,20 @@ typedef enum
 } connection_wifi_state_e;
 
 /**
- * @brief This enumeration defines the ethernet state.
+ * @internal
+ * @brief Enumeration for ethernet state.
+ * @since_tizen 2.3
  */
 typedef enum
 {
-    CONNECTION_ETHERNET_STATE_DEACTIVATED = 0,  /**< There is no Ethernet profile to open */
-    CONNECTION_ETHERNET_STATE_DISCONNECTED = 1,  /**< Disconnected */
-    CONNECTION_ETHERNET_STATE_CONNECTED = 2,  /**< Connected */
+    CONNECTION_ETHERNET_STATE_DEACTIVATED = 0,  /**< @internal There is no Ethernet profile to open */
+    CONNECTION_ETHERNET_STATE_DISCONNECTED = 1,  /**< @internal Disconnected */
+    CONNECTION_ETHERNET_STATE_CONNECTED = 2,  /**< @internal Connected */
 } connection_ethernet_state_e;
 
 /**
- * @brief This enumeration defines the Bluetooth state.
+ * @brief Enumeration for Bluetooth state.
+ * @since_tizen 2.3
  */
 typedef enum
 {
@@ -94,16 +106,29 @@ typedef enum
 } connection_bt_state_e;
 
 /**
- * @brief This enumeration defines the type of connection iterator.
+ * @brief Enumeration for connection iterator type.
+ * @since_tizen 2.3
  */
 typedef enum
 {
-    CONNECTION_ITERATOR_TYPE_REGISTERED = 0,  /**< The iterator of registered profile  */
-    CONNECTION_ITERATOR_TYPE_CONNECTED = 1,  /**< The iterator of connected profile  */
+    CONNECTION_ITERATOR_TYPE_REGISTERED = 0,  /**< The iterator of the registered profile  */
+    CONNECTION_ITERATOR_TYPE_CONNECTED = 1,  /**< The iterator of the connected profile  */
+	CONNECTION_ITERATOR_TYPE_DEFAULT = 2,  	/**< The iterator of the default profile  */
 } connection_iterator_type_e;
 
 /**
- * @brief Enumerations of connection errors.
+ * @brief Enumeration for reset profile type.
+ * @since_tizen 2.3
+*/
+typedef enum
+{
+    CONNECTION_RESET_DEFAULT_PROFILE = 0,  /**< Initialized with the default profile defined by csc */
+    CONNECTION_RESET_CLEAR_PROFILE = 1,  /**< Remove all profiles */
+} connection_reset_option_e;
+
+/**
+ * @brief Enumeration for connection errors.
+ * @since_tizen 2.3
  */
 typedef enum
 {
@@ -121,6 +146,7 @@ typedef enum
     CONNECTION_ERROR_DHCP_FAILED = TIZEN_ERROR_NETWORK_CLASS|0x0406, /**< DHCP failed  */
     CONNECTION_ERROR_INVALID_KEY = TIZEN_ERROR_NETWORK_CLASS|0x0407, /**< Invalid key  */
     CONNECTION_ERROR_NO_REPLY = TIZEN_ERROR_NETWORK_CLASS|0x0408, /**< No reply */
+
 } connection_error_e;
 
 /**
@@ -133,7 +159,8 @@ typedef enum
 */
 
 /**
- * @brief Enumerations of statistics type.
+ * @brief Enumeration for statistics type.
+ * @since_tizen 2.3
  */
 typedef enum
 {
@@ -155,9 +182,12 @@ typedef enum
 
 /**
  * @brief Creates a handle for managing data connections.
- * @remarks @a handle must be released with connection_destroy().
- * @param[out] connection  The handle of the connection
- * @return 0 on success, otherwise negative error value.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.get
+ * @remarks You must release @a handle using connection_destroy().
+ * @param[out] connection  The connection handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
  * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
@@ -167,8 +197,9 @@ int connection_create(connection_h* connection);
 
 /**
  * @brief Destroys the connection handle.
- * @param[in] connection  The handle of the connection
- * @return 0 on success, otherwise negative error value.
+ * @since_tizen 2.3
+ * @param[in] connection  The connection handle
+ * @return @c 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
  * @see connection_create()
@@ -176,16 +207,18 @@ int connection_create(connection_h* connection);
 int connection_destroy(connection_h connection);
 
 /**
- * @brief Called when the type of connection is changed.
- * @param[in] type  The type of current network connection
+ * @brief Called when the type of a connection is changed.
+ * @since_tizen 2.3
+ * @param[in] type  The type of the current network connection
  * @param[in] user_data The user data passed from the callback registration function
- * @see connection_set_network_type_changed_cb()
- * @see connection_unset_network_type_changed_cb()
+ * @see connection_set_type_changed_cb()
+ * @see connection_unset_type_changed_cb()
  */
 typedef void(*connection_type_changed_cb)(connection_type_e type, void* user_data);
 
 /**
  * @brief Called when the address is changed.
+ * @since_tizen 2.3
  * @param[in] ipv4_address  The IP address for IPv4
  * @param[in] ipv6_address  The IP address for IPv6
  * @param[in] user_data The user data passed from the callback registration function
@@ -197,19 +230,21 @@ typedef void(*connection_type_changed_cb)(connection_type_e type, void* user_dat
 typedef void(*connection_address_changed_cb)(const char* ipv4_address, const char* ipv6_address, void* user_data);
 
 /**
-* @brief Called after connection_set_default_cellular_service_profile_async() is completed.
-* @param[in] result  The result
-* @param[in] user_data The user data passed from connection_open_profile()
-* @pre connection_set_default_cellular_service_profile_async() will invoke this callback function.
-* @see connection_set_default_cellular_service_profile_async()
+ * @brief Called when connection_set_default_cellular_service_profile_async() finishes.
+ * @since_tizen 2.3
+ * @param[in] result  The result
+ * @param[in] user_data The user data passed from connection_open_profile()
+ * @pre connection_set_default_cellular_service_profile_async() will invoke this callback function.
+ * @see connection_set_default_cellular_service_profile_async()
 */
 typedef void(*connection_set_default_cb)(connection_error_e result, void* user_data);
 
 /**
  * @brief Gets the type of the current profile for data connection.
- * @param[in] connection  The handle of the connection
- * @param[out] state  The state of network
- * @return 0 on success, otherwise negative error value.
+ * @since_tizen 2.3
+ * @param[in] connection  The connection handle
+ * @param[out] type  The type of the network
+ * @return @c 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
@@ -218,11 +253,12 @@ int connection_get_type(connection_h connection, connection_type_e* type);
 
 /**
  * @brief Gets the IP address of the current connection.
- * @remarks @a ip_address must be released with free() by you.
- * @param[in] connection  The handle of the connection
+ * @since_tizen 2.3
+ * @remarks You must release @a ip_address using free().
+ * @param[in] connection  The connection handle
  * @param[in] address_family  The address family
- * @param[out] ip_address  The pointer to IP address string.
- * @return 0 on success, otherwise negative error value.
+ * @param[out] ip_address  The pointer to the IP address string
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
@@ -232,11 +268,12 @@ int connection_get_ip_address(connection_h connection, connection_address_family
 
 /**
  * @brief Gets the proxy address of the current connection.
- * @remarks @a proxy must be released with free() by you.
- * @param[in] connection  The handle of the connection
+ * @since_tizen 2.3
+ * @remarks You must release @a proxy using free().
+ * @param[in] connection  The connection handle
  * @param[in] address_family  The address family
  * @param[out] proxy  The proxy address
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
@@ -245,59 +282,78 @@ int connection_get_ip_address(connection_h connection, connection_address_family
 int connection_get_proxy(connection_h connection, connection_address_family_e address_family, char** proxy);
 
 /**
- * @brief  Gets the state of celluar connection.
+ * @brief Gets the state of cellular connection.
  * @details The returned state is for the cellular connection state.
- * @param[in] connection  The handle of connection
- * @param[out] state  The state of cellular connection
- * @return 0 on success, otherwise negative error value.
+ * @since_tizen 2.3
+ * @param[in] connection  The connection handle
+ * @param[out] state  The state of the cellular connection
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
  */
 int connection_get_cellular_state(connection_h connection, connection_cellular_state_e* state);
 
 /**
- * @brief  Gets the state of Wi-Fi.
+ * @brief Gets the state of the Wi-Fi.
  * @details The returned state is for the Wi-Fi connection state.
- * @param[in] connection  The handle of connection
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.get
+ * @param[in] connection  The connection handle
  * @param[out] state  The state of Wi-Fi connection
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
  */
 int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* state);
 
 /**
- * @brief  Gets the state of ethernet.
- * @details The returned state is for the ethernet connection state.
- * @param[in] connection  The handle of connection
+ * @internal
+ * @brief Gets the state of the Ethernet.
+ * @details The returned state is for the Ethernet connection state.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.get
+ * @param[in] connection  The connection handle
  * @param[out] state  The state of Ethernet connection
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
  */
 int connection_get_ethernet_state(connection_h connection, connection_ethernet_state_e* state);
 
 /**
- * @brief  Gets the state of Bluetooth.
+ * @brief Gets the state of the Bluetooth.
  * @details The returned state is for the Bluetooth connection state.
- * @param[in] connection  The handle of connection
- * @param[out] state  The state of Ethernet connection
- * @return 0 on success, otherwise negative error value.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.get
+ * @param[in] connection  The connection handle
+ * @param[out] state  The state of the Bluetooth connection
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
  */
 int connection_get_bt_state(connection_h connection, connection_bt_state_e* state);
 
 /**
- * @brief Registers the callback called when the type of current connection is changed.
- * @param[in] connection  The handle of connection
+ * @brief Registers the callback that is called when the type of the current connection is changed.
+ * @since_tizen 2.3
+ * @param[in] connection  The connection handle
  * @param[in] callback  The callback function to be called
  * @param[in] user_data The user data passed to the callback function
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
@@ -305,9 +361,10 @@ int connection_get_bt_state(connection_h connection, connection_bt_state_e* stat
 int connection_set_type_changed_cb(connection_h connection, connection_type_changed_cb callback, void* user_data);
 
 /**
- * @brief Unregisters the callback called when the type of current connection is changed.
- * @param[in] connection  The handle of connection
- * @return 0 on success, otherwise negative error value.
+ * @brief Unregisters the callback that is called when the type of current connection is changed.
+ * @since_tizen 2.3
+ * @param[in] connection  The connection handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
@@ -315,11 +372,12 @@ int connection_set_type_changed_cb(connection_h connection, connection_type_chan
 int connection_unset_type_changed_cb(connection_h connection);
 
 /**
- * @brief Registers the callback called when the IP address is changed.
- * @param[in] connection  The handle of connection
+ * @brief Registers the callback that is called when the IP address is changed.
+ * @since_tizen 2.3
+ * @param[in] connection  The connection handle
  * @param[in] callback  The callback function to be called
  * @param[in] user_data The user data passed to the callback function
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
@@ -327,9 +385,10 @@ int connection_unset_type_changed_cb(connection_h connection);
 int connection_set_ip_address_changed_cb(connection_h connection, connection_address_changed_cb callback, void* user_data);
 
 /**
- * @brief Unregisters the callback called when the IP address is changed.
- * @param[in] connection  The handle of connection
- * @return 0 on success, otherwise negative error value.
+ * @brief Unregisters the callback that is called when the IP address is changed.
+ * @since_tizen 2.3
+ * @param[in] connection  The connection handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
@@ -337,11 +396,12 @@ int connection_set_ip_address_changed_cb(connection_h connection, connection_add
 int connection_unset_ip_address_changed_cb(connection_h connection);
 
 /**
- * @brief Registers the callback called when the proxy address is changed.
- * @param[in] connection  The handle of connection
+ * @brief Registers the callback that is called when the proxy address is changed.
+ * @since_tizen 2.3
+ * @param[in] connection  The connection handle
  * @param[in] callback  The callback function to be called
  * @param[in] user_data The user data passed to the callback function
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
@@ -349,9 +409,10 @@ int connection_unset_ip_address_changed_cb(connection_h connection);
 int connection_set_proxy_address_changed_cb(connection_h connection, connection_address_changed_cb callback, void* user_data);
 
 /**
- * @brief Unregisters the callback called when the proxy address is changed.
- * @param[in] connection  The handle of connection
- * @return 0 on success, otherwise negative error value.
+ * @brief Unregisters the callback that is called when the proxy address is changed.
+ * @since_tizen 2.3
+ * @param[in] connection  The connection handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
@@ -359,62 +420,88 @@ int connection_set_proxy_address_changed_cb(connection_h connection, connection_
 int connection_unset_proxy_address_changed_cb(connection_h connection);
 
 /**
- * @brief Adds new profile which is created by connection_profile_created().
- * @remarks You can only add a profile of cellular type.
- * @param[in] connection  The handle of connection
- * @param[in] profile  The handle of profile
- * @return 0 on success, otherwise negative error value.
+ * @brief Adds a new profile which is created by connection_profile_create().
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.profile \n
+ * 	      %http://tizen.org/privilege/network.get
+ * @remarks You can only add a profile of the cellular type. \n
+ *	    This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] profile  The profile handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not Supported
  */
 int connection_add_profile(connection_h connection, connection_profile_h profile);
 
 /**
- * @brief Removes existing profile.
- * @param[in] connection  The handle of connection
- * @param[in] profile  The handle of profile
- * @return 0 on success, otherwise negative error value.
+ * @brief Removes an existing profile.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.profile \n
+ * 	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] profile  The profile handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not Supported
  */
 int connection_remove_profile(connection_h connection, connection_profile_h profile);
 
 /**
- * @brief Updates existing profile.
- * @details If you change somethings of a profile, this changes will be not applied to the Connection Manager immediately.
+ * @brief Updates an existing profile.
+ * @details When a profile is changed, these changes will be not applied to the Connection Manager immediately.
  * When you call this function, your changes affect the Connection Manager and the existing profile is updated.
  * In addition, the existing profile will be updated if you call connection_open_profile().
- * @param[in] connection  The handle of connection
- * @param[in] profile  The handle of profile
- * @return 0 on success, otherwise negative error value.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.profile \n
+ * 	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] profile  The profile handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not Supported
  * @see connection_open_profile()
  */
 int connection_update_profile(connection_h connection, connection_profile_h profile);
 
 /**
- * @brief Gets a iterator of the profiles.
- * @remarks @a profile_iterator must be released with connection_destroy_profile_iterator().
- * @param[in] connection  The handle of connection
- * @param[in] type  The type of connetion iterator
+ * @brief Gets a profiles iterator.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.get
+ * @remarks You must release @a profile_iterator using connection_destroy().
+ * @param[in] connection  The connection handle
+ * @param[in] type  The type of the connetion iterator
  * @param[out] profile_iterator  The iterator of profile
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
  */
 int connection_get_profile_iterator(connection_h connection, connection_iterator_type_e type, connection_profile_iterator_h* profile_iterator);
 
 /**
  * @brief Moves the profile iterator to the next position and gets a profile handle.
+ * @since_tizen 2.3
  * @param[in] profile_iterator  The iterator of profile
- * @param[out] profile  The handle of profile
- * @return 0 on success, otherwise negative error value.
+ * @param[out] profile  The profile handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_ITERATOR_END  End of iteration
@@ -422,106 +509,150 @@ int connection_get_profile_iterator(connection_h connection, connection_iterator
 int connection_profile_iterator_next(connection_profile_iterator_h profile_iterator, connection_profile_h* profile);
 
 /**
- * @brief Checks whether the next element of profile iterator exists or not.
+ * @brief Checks whether the next element of a profile iterator exists or not.
+ * @since_tizen 2.3
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @param[in] profile_iterator  The iterator of profile
- * @return @c true if next element exists, \n @c false if next element doesn't exist
+ * @return @c true if next element exists, otherwise @c false if next element doesn't exist
  */
 bool connection_profile_iterator_has_next(connection_profile_iterator_h profile_iterator);
 
 /**
- * @brief Destroys a iterator of the profiles.
- * @param[in] profile_iterator  The iterator of profile
- * @return 0 on success, otherwise negative error value.
+ * @brief Destroys a profiles iterator.
+ * @since_tizen 2.3
+ * @param[in] profile_iterator  The iterator of the profile
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  */
 int connection_destroy_profile_iterator(connection_profile_iterator_h profile_iterator);
 
 /**
- * @brief Gets the name of default profile.
- * @remarks @a profile must be released with connection_profile_destroy().
- * @param[in] connection  The handle of connection
- * @param[out] profile  The handle of profile
- * @return 0 on success, otherwise negative error value.
+ * @brief Gets the name of the default profile.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.get
+ * @remarks You must release @a profile using connection_profile_destroy().
+ * @param[in] connection  The connection handle
+ * @param[out] profile  The profile handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
  * @retval #CONNECTION_ERROR_NO_CONNECTION  There is no connection
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
  */
 int connection_get_current_profile(connection_h connection, connection_profile_h* profile);
 
 /**
  * @brief Gets the default profile which provides the given cellular service.
- * @remarks  @a profile must be released with connection_profile_destroy().
- * @param[in] connection  The handle of connection
- * @param[in] type  The type of cellular service. #CONNECTION_CELLULAR_SERVICE_TYPE_APPLICATION is not permitted
- * @param[out] profile  The handle of profile
- * @return 0 on success, otherwise negative error value.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.get
+ * @remarks You must release @a profile using connection_profile_destroy().
+ * @param[in] connection  The connection handle
+ * @param[in] type  The type of cellular service \n
+ *		   #CONNECTION_CELLULAR_SERVICE_TYPE_APPLICATION is not permitted.
+ * @param[out] profile  The profile handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denieda
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not Supported
  */
 int connection_get_default_cellular_service_profile(connection_h connection, connection_cellular_service_type_e type, connection_profile_h* profile);
 
 /**
  * @brief Sets the default profile which provides the given cellular service.
- * @param[in] connection  The handle of connection
- * @param[in] type  The type of cellular service.
- * #CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET and #CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_INTERNET are only permitted.
- * @param[in] profile  The handle of profile
- * @return 0 on success, otherwise negative error value.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.profile \n
+ *	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] type  The type of cellular service \n
+ *		   only #CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET and #CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_INTERNET are permitted.
+ * @param[in] profile  The profile handle
+ * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not Supported
  */
 int connection_set_default_cellular_service_profile(connection_h connection, connection_cellular_service_type_e type, connection_profile_h profile);
 
 /**
  * @brief Sets the default profile which provides the given cellular service, asynchronously.
- * @param[in] connection  The handle of connection
- * @param[in] type  The type of cellular service.
- * #CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET and #CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_INTERNET are only permitted.
- * @param[in] profile  The handle of profile
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.profile \n
+ *	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] type  The type of cellular service (only #CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET and #CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_INTERNET are permitted)
+ * @param[in] profile  The profile handle
  * @param[in] callback  The callback function to be called
  * @param[in] user_data The user data passed to the callback function
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not Supported
  */
 int connection_set_default_cellular_service_profile_async(connection_h connection,
 		connection_cellular_service_type_e type, connection_profile_h profile, connection_set_default_cb callback, void* user_data);
 
 /**
-* @brief Called after connection_open_profile() is completed.
-* @param[in] result  The result
-* @param[in] user_data The user data passed from connection_open_profile()
-* @pre connection_open_profile() will invoke this callback function.
-* @see connection_open_profile()
+ * @brief Called after connection_open_profile() is finished.
+ * @since_tizen 2.3
+ * @param[in] result  The result
+ * @param[in] user_data The user data passed from connection_open_profile()
+ * @pre connection_open_profile() will invoke this callback function.
+ * @see connection_open_profile()
 */
 typedef void(*connection_opened_cb)(connection_error_e result, void* user_data);
 
 /**
-* @brief Called after connection_close_profile() is completed.
-* @param[in] result  The result
-* @param[in] user_data The user data passed from connection_close_profile()
-* @pre connection_close_profile() will invoke this callback function.
-* @see connection_close_profile()
+ * @brief Called after connection_close_profile() is finished.
+ * @since_tizen 2.3
+ * @param[in] result  The result
+ * @param[in] user_data The user data passed from connection_close_profile()
+ * @pre connection_close_profile() will invoke this callback function.
+ * @see connection_close_profile()
 */
 typedef void(*connection_closed_cb)(connection_error_e result, void* user_data);
 
 /**
+ * @brief Called after connection_reset_profile() is finished.
+ * @since_tizen 2.3
+ * @param[in] result  The result
+ * @param[in] user_data The user data passed from connection_reset_profile()
+ * @pre connection_reset_profile() will invoke this callback function.
+ * @see connection_reset_profile()
+*/
+typedef void(*connection_reset_cb)(connection_error_e result, void* user_data);
+
+/**
  * @brief Opens a connection of profile, asynchronously.
- * @param[in] connection  The handle of connection
- * @param[in] profile  The handle of profile
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.set \n
+ *	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] profile  The profile handle
  * @param[in] callback  The callback function to be called
  * @param[in] user_data The user data passed to the callback function
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
  * @post connection_opened_cb() will be invoked.
  * @see connection_opened_cb()
  * @see connection_close_profile()
@@ -533,14 +664,20 @@ int connection_open_profile(connection_h connection, connection_profile_h profil
 
 /**
  * @brief Closes a connection of profile.
- * @param[in] connection  The handle of connection
- * @param[in] profile  The handle of profile
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.set \n
+ *	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] profile  The profile handle
  * @param[in] callback  The callback function to be called
  * @param[in] user_data The user data passed to the callback function
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
  * @post connection_closed_cb() will be invoked.
  * @see connection_closed_cb()
  * @see connection_open_profile()
@@ -551,19 +688,68 @@ int connection_open_profile(connection_h connection, connection_profile_h profil
 int connection_close_profile(connection_h connection, connection_profile_h profile, connection_closed_cb callback, void* user_data);
 
 /**
- * @brief Add a route to routing table.
+ * @brief Resets the cellular profile.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.profile \n
+ *	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] type  The type of reset
+ * @param[in] id  The subscriber identity module id to reset (The sim index starts from 0.)
+ * @param[in] callback  The callback function to be called
+ * @param[in] user_data The user data passed to the callback function
+ * @return 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not Supported
+ * @post connection_reset_cb() will be invoked.
+*/
+int connection_reset_profile(connection_h connection, connection_reset_option_e type, int id, connection_reset_cb callback, void *user_data);
+
+/**
+ * @brief Adds a route to the routing table.
  * @details You can get the @a interface_name from connection_profile_get_network_interface_name() of opened profile.
- * @param[in] connection  The handle of connection
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.set \n
+ *	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
  * @param[in] interface_name  The name of network interface
  * @param[in] host_address  The IP address of the host
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_ALREADY_EXISTS  Already exists
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
  * @see connection_profile_get_network_interface_name()
  */
 int connection_add_route(connection_h connection, const char* interface_name, const char* host_address);
+
+/**
+ * @brief Removes a route from the routing table.
+ * @details You can get the @a interface_name from connection_profile_get_network_interface_name() of opened profile.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.set \n
+ *	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] interface_name  The name of network interface
+ * @param[in] host_address  The IP address of the host
+ * @return @c 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_ALREADY_EXISTS  Already exists
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @see connection_profile_get_network_interface_name()
+ */
+int connection_remove_route(connection_h connection, const char* interface_name, const char* host_address);
 
 /**
  * @}
@@ -576,31 +762,43 @@ int connection_add_route(connection_h connection, const char* interface_name, co
 
 /**
  * @brief Gets the statistics information.
- * @param[in] connection_type  The type of connection. CONNECTION_TYPE_WIFI and CONNECTION_TYPE_CELLULAR are only supported.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.get
+ * @param[in] connection  The connection handle
+ * @param[in] connection_type  The type of connection (only CONNECTION_TYPE_WIFI and CONNECTION_TYPE_CELLULAR are supported)
  * @param[in] statistics_type  The type of statistics
  * @param[out] size  The received data size of the last cellular packet data connection (bytes)
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not Supported
  */
-int connection_get_statistics(connection_type_e connection_type, connection_statistics_type_e statistics_type, long long* size);
+int connection_get_statistics(connection_h connection, connection_type_e connection_type, connection_statistics_type_e statistics_type, long long* size);
 
 /**
- * @brief Resets the statistics information
- * @param[in] connection_type  The type of connection. CONNECTION_TYPE_WIFI and CONNECTION_TYPE_CELLULAR are only supported.
+ * @brief Resets the statistics information.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.set \n
+ *	      %http://tizen.org/privilege/network.get
+ * @remarks This API needs both privileges.
+ * @param[in] connection  The connection handle
+ * @param[in] connection_type  The type of connection (only CONNECTION_TYPE_WIFI and CONNECTION_TYPE_CELLULAR are supported)
  * @param[in] statistics_type  The type of statistics
- * @return 0 on success, otherwise negative error value.
+ * @return @c 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
  * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not Supported
  */
-int connection_reset_statistics(connection_type_e connection_type, connection_statistics_type_e statistics_type);
+int connection_reset_statistics(connection_h connection, connection_type_e connection_type, connection_statistics_type_e statistics_type);
 
 /**
  * @}
- */
-
+*/
 
 #ifdef __cplusplus
 }
