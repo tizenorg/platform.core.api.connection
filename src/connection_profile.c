@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 #include <glib.h>
 #include <vconf/vconf.h>
+
 #include "net_connection_private.h"
 
 #define HTTP_PROXY "http_proxy"
@@ -694,24 +695,19 @@ EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	const char *proxy;
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
+	const struct service_proxy *proxy;
+	net_proxy_type_t proxy_type;
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	proxy = connman_service_get_proxy_info(service);
+	if (proxy == NULL || proxy->method == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (profile_info->profile_type == NET_DEVICE_ETHERNET) {
-		proxy = __profile_get_ethernet_proxy();
-		if (proxy == NULL)
-			*type = CONNECTION_PROXY_TYPE_DIRECT;
-		else
-			*type = CONNECTION_PROXY_TYPE_MANUAL;
-
-		return CONNECTION_ERROR_NONE;
-	}
-
-	switch (net_info->ProxyMethod) {
+	proxy_type = _connection_libnet_proxy_type_string2type(proxy->method);
+	switch (proxy_type) {
 	case NET_PROXY_TYPE_DIRECT:
 		*type = CONNECTION_PROXY_TYPE_DIRECT;
 		break;
@@ -725,7 +721,6 @@ EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, c
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-	 */
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -741,30 +736,15 @@ EXPORT_API int connection_profile_get_proxy_address(connection_profile_h profile
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	const char *proxy;
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	if (profile_info->profile_type == NET_DEVICE_ETHERNET) {
-		proxy = __profile_get_ethernet_proxy();
-		if (proxy == NULL)
-			return CONNECTION_ERROR_OPERATION_FAILED;
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-		*proxy_address = g_strdup(proxy);
-	} else
-		*proxy_address = g_strdup(net_info->ProxyAddr);
-
-	if (*proxy_address == NULL)
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
-	 */
-
-	return CONNECTION_ERROR_NONE;
+	return _connection_libnet_get_proxy_address(service, proxy_address);
 }
 
 EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profile,
@@ -1108,28 +1088,56 @@ EXPORT_API int connection_profile_set_proxy_type(connection_profile_h profile, c
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
+	connection_profile_type_e profile_type;
+	if (connection_profile_get_type(profile, &profile_type)
+						!= CONNECTION_ERROR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Fail to get profile type");
 		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	switch (profile_type) {
+	case CONNECTION_PROFILE_TYPE_CELLULAR:
+		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	case CONNECTION_PROFILE_TYPE_WIFI:
+		break;
+	case CONNECTION_PROFILE_TYPE_ETHERNET:
+		break;
+	case CONNECTION_PROFILE_TYPE_BT:
+		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	enum connman_lib_err err = CONNMAN_LIB_ERR_NONE;
+	struct service_proxy proxy_config;
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	memset(&proxy_config, 0, sizeof(struct service_proxy));
 
 	switch (type) {
-	case CONNECTION_PROXY_TYPE_DIRECT:
-		net_info->ProxyMethod = NET_PROXY_TYPE_DIRECT;
-		break;
 	case CONNECTION_PROXY_TYPE_AUTO:
-		net_info->ProxyMethod = NET_PROXY_TYPE_AUTO;
+		proxy_config.method = "auto";
 		break;
 	case CONNECTION_PROXY_TYPE_MANUAL:
-		net_info->ProxyMethod = NET_PROXY_TYPE_MANUAL;
+		proxy_config.method = "manual";
+		break;
+	case CONNECTION_PROXY_TYPE_DIRECT:
+		proxy_config.method = "direct";
 		break;
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
-	 */
 
-	return CONNECTION_ERROR_NONE;
+	err = connman_service_set_proxy_config(service, &proxy_config);
+	if (err != CONNMAN_LIB_ERR_NONE)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	else
+		return CONNECTION_ERROR_NONE;
 }
 
 EXPORT_API int connection_profile_set_proxy_address(connection_profile_h profile,
@@ -1142,20 +1150,68 @@ EXPORT_API int connection_profile_set_proxy_address(connection_profile_h profile
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	/*
-	net_profile_info_t *profile_info = profile;
-	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
-	if (net_info == NULL)
-		return CONNECTION_ERROR_OPERATION_FAILED;
-
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
-	if (proxy_address == NULL)
-		net_info->ProxyAddr[0] = '\0';
-	else
-		g_strlcpy(net_info->ProxyAddr, proxy_address, NET_PROXY_LEN_MAX);
-	 */
+	connection_profile_type_e profile_type;
+	if (connection_profile_get_type(profile, &profile_type)
+						!= CONNECTION_ERROR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Fail to get profile type");
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	switch (profile_type) {
+	case CONNECTION_PROFILE_TYPE_CELLULAR:
+		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	case CONNECTION_PROFILE_TYPE_WIFI:
+		break;
+	case CONNECTION_PROFILE_TYPE_ETHERNET:
+		break;
+	case CONNECTION_PROFILE_TYPE_BT:
+		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	enum connman_lib_err err = CONNMAN_LIB_ERR_NONE;
+	struct service_proxy proxy_config;
+	const struct service_proxy *proxy;
+	net_proxy_type_t proxy_type;
+	struct connman_service *service =
+				_connection_libnet_get_service_h(profile);
+	if (service == NULL)
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	proxy = connman_service_get_proxy_config(service);
+	if (proxy == NULL || proxy->method == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	memset(&proxy_config, 0, sizeof(struct service_proxy));
+
+	proxy_type = _connection_libnet_proxy_type_string2type(proxy->method);
+	switch (proxy_type) {
+	case NET_PROXY_TYPE_AUTO:
+		proxy_config.method = "auto";
+		proxy_config.url = g_strdup(proxy_address);
+		err = connman_service_set_proxy_config(service, &proxy_config);
+		g_free(proxy_config.url);
+		break;
+	case NET_PROXY_TYPE_MANUAL:
+		proxy_config.method = "manual";
+		proxy_config.servers = g_try_malloc0(sizeof(char *));
+		*proxy_config.servers = g_strdup(proxy_address);
+		err = connman_service_set_proxy_config(service, &proxy_config);
+		g_free(*proxy_config.servers);
+		g_free(proxy_config.servers);
+		break;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	if (err != CONNMAN_LIB_ERR_NONE)
+		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
 }
