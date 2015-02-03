@@ -440,6 +440,11 @@ static int test_update_network_info(connection_profile_h profile)
 			rv = connection_profile_set_ip_config_type(profile,
 								CONNECTION_ADDRESS_FAMILY_IPV4,
 								CONNECTION_IP_CONFIG_TYPE_DYNAMIC);
+			if (rv != CONNECTION_ERROR_NONE)
+				return -1;
+
+			if (test_update_proxy_info(profile) == -1)
+				return -1;
 			break;
 		case 2:
 			rv = connection_profile_set_ip_config_type(profile,
