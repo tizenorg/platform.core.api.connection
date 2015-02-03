@@ -24,12 +24,17 @@ extern "C" {
 #endif
 
 /**
+ * @file connection_profile.h
+ */
+
+/**
 * @addtogroup CAPI_NETWORK_CONNECTION_WIFI_PROFILE_MODULE
 * @{
 */
 
 /**
-* @brief Security type of Wi-Fi
+ * @brief Enumeration for security type of Wi-Fi.
+ * @since_tizen 2.3
 */
 typedef enum
 {
@@ -41,7 +46,8 @@ typedef enum
 } connection_wifi_security_type_e;
 
 /**
-* @brief Below encryption modes are used in infrastructure and ad-hoc mode
+ * @brief Enumeration for encryption modes.
+ * @since_tizen 2.3
 */
 typedef enum
 {
@@ -74,7 +80,8 @@ typedef enum
 } connection_cellular_network_type_e;
 
 /**
-* @breif This enum indicates cellular service type
+ * @brief Enumeration for cellular service type.
+ * @since_tizen 2.3
 */
 typedef enum
 {
@@ -88,7 +95,8 @@ typedef enum
 } connection_cellular_service_type_e;
 
 /**
-* @brief Cellular Authentication Type
+ * @brief Enumeration for cellular authentication type.
+ * @since_tizen 2.3
 */
 typedef enum
 {
@@ -108,12 +116,14 @@ typedef enum
 */
 
 /**
-* @brief The handle of profile
+ * @brief The profile handle.
+ * @since_tizen 2.3
 */
 typedef void* connection_profile_h;
 
 /**
-* @brief This enumeration defines the profile state type.
+ * @brief Enumeration for profile state type.
+ * @since_tizen 2.3
 */
 typedef enum
 {
@@ -124,7 +134,8 @@ typedef enum
 } connection_profile_state_e;
 
 /**
-* @brief Enumerations of Address family
+ * @brief Enumeration for address family.
+ * @since_tizen 2.3
 */
 typedef enum
 {
@@ -133,7 +144,8 @@ typedef enum
 } connection_address_family_e;
 
 /**
-* @brief Net IP configuration Type
+ * @brief Enumeration for IP configuration type.
+ * @since_tizen 2.3
 */
 typedef enum
 {
@@ -145,7 +157,8 @@ typedef enum
 } connection_ip_config_type_e;
 
 /**
-* @brief This enumeration defines the proxy method type.
+ * @brief Enumeration for proxy method type.
+ * @since_tizen 2.3
 */
 typedef enum
 {
@@ -155,8 +168,8 @@ typedef enum
 } connection_proxy_type_e;
 
 /**
-* @enum connection_profile_type_e
-* @brief Enumerations of network connection type.
+ * @brief Enumeration for network connection type.
+ * @since_tizen 2.3
 */
 typedef enum{
     CONNECTION_PROFILE_TYPE_CELLULAR = 0,  /**< Cellular type */
@@ -166,350 +179,392 @@ typedef enum{
 } connection_profile_type_e;
 
 /**
-* @brief Creates the profile handle.
-* @details The profile name, which is got from connection_profile_get_name(), will include the keyword you set.
-* @remarks  @a profile must be released with connection_profile_destroy().
-* @param[in] type  The type of profile. #CONNECTION_PROFILE_TYPE_CELLULAR is only supported.
-* @param[in] keyword  The keyword included in profile name
-* @param[out] profile  The handle of the profile
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @see connection_profile_destroy()
-* @see connection_profile_get_name()
+ * @brief Creates a profile handle.
+ * @details The profile name, which you get from connection_profile_get_name(), will include the keyword you set.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.profile \n
+ * 	      %http://tizen.org/privilege/network.get
+ * @remarks You must release @a profile using connection_profile_destroy(). \n
+ *	    This API needs both privileges.
+ * @param[in] type  The type of profile\n
+ *		 #CONNECTION_PROFILE_TYPE_CELLULAR and #CONNECTION_PROFILE_TYPE_WIFI are supported.
+ * @param[in] keyword  The keyword included in profile name
+ * @param[out] profile  The handle of the profile
+ * @return @c 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
+ * @see connection_profile_destroy()
+ * @see connection_profile_get_name()
 */
 int connection_profile_create(connection_profile_type_e type, const char* keyword, connection_profile_h* profile);
 
 /**
-* @brief Destroys the profile handle.
-* @param[out] connection  The handle to the connection
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @see connection_profile_create()
+ * @brief Destroys a profile handle.
+ * @since_tizen 2.3
+ * @param[out] profile  The handle to the profile
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @see connection_profile_create()
 */
 int connection_profile_destroy(connection_profile_h profile);
 
 /**
-* @brief Clons the profile handle.
-* @remarks @a cloned_profile must be released with connection_profile_destroy().
-* @param[in] origin_profile  The handle of origin profile
-* @param[out] cloned_profile  The handle of cloned profile
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @see connection_profile_destroy()
+ * @brief Clones a profile handle.
+ * @since_tizen 2.3
+ * @remarks You must release @a cloned_profile using connection_profile_destroy().
+ * @param[out] cloned_profile  The handle of the cloned profile
+ * @param[in] origin_profile  The handle of the origin profile
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @see connection_profile_destroy()
 */
 int connection_profile_clone(connection_profile_h* cloned_profile, connection_profile_h origin_profile);
 
 /**
-* @brief Gets the profile ID.
-* @details The separate profiles can have the same name.
-* So, you must use this API instead of connection_profile_get_name() if you want to get the unique identification.
-* In case that you create a profile, this value will be determined when you add the profile.
-* @remarks @a profile_id must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[out] profile_id  The ID of profile
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @see connection_profile_get_name()
-* @see connection_add_profile()
+ * @brief Gets the profile ID.
+ * @details The separate profiles can have the same name.
+ * So, you must use this API instead of connection_profile_get_name() if you want to get the unique identification.
+ * In case you create a profile, this value will be determined when you add the profile.
+ *
+ * @since_tizen 2.3
+ * @remarks You must release @a profile_id using free().
+ * @param[in] profile  The profile handle
+ * @param[out] profile_id  The ID of the profile
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @see connection_profile_get_name()
+ * @see connection_add_profile()
 */
 int connection_profile_get_id(connection_profile_h profile, char** profile_id);
 
 /**
-* @brief Gets the profile name.
-* @remarks @a profile_name must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[out] profile_name  The name of profile
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @see connection_profile_get_id()
+ * @brief Gets the profile name.
+ * @since_tizen 2.3
+ * @remarks You must release @a profile_name using free().
+ * @param[in] profile  The profile handle
+ * @param[out] profile_name  The name of the profile
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @see connection_profile_get_id()
 */
 int connection_profile_get_name(connection_profile_h profile, char** profile_name);
 
 /**
-* @brief Gets the network type.
-* @param[in] profile  The handle of profile
-* @param[out] type  The type of profile
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the network type.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] type  The type of the profile
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_get_type(connection_profile_h profile, connection_profile_type_e* type);
 
 /**
-* @brief Gets the name of network interface. For example, eth0 and pdp0.
-* @remarks @a interface_name must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[out] interface_name  The name of network interface
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @brief Gets the name of the network interface, e.g. eth0 and pdp0.
+ * @since_tizen 2.3
+ * @remarks You must release @a interface_name using free().
+ * @param[in] profile  The profile handle
+ * @param[out] interface_name  The name of the network interface
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
 */
 int connection_profile_get_network_interface_name(connection_profile_h profile, char** interface_name);
 
 /**
-* @brief Refresh the profile information.
-* @remarks You should call this function in order to get the current information because the profile information can be changed.
-* @param[in] profile  The handle of profile
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @brief Refreshes the profile information.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.get
+ * @remarks You should call this function in order to get the current information because the profile information can be changed.
+ * @param[in] profile  The profile handle
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
 */
 int connection_profile_refresh(connection_profile_h profile);
 
 /**
-* @brief Gets the network type.
-* @param[in] profile  The handle of profile
-* @param[out] state  The state of profile
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the network type.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] state  The state of the profile
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_get_state(connection_profile_h profile, connection_profile_state_e* state);
 
 /**
-* @brief Gets the IP config type.
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[out] type  The type of IP config
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the IP config type.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[out] type  The type of the IP config
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_get_ip_config_type(connection_profile_h profile, connection_address_family_e address_family, connection_ip_config_type_e* type);
 
 /**
-* @brief Gets the IP address.
-* @remarks @a ip_address must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[out] ip_address  The IP address
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the IP address.
+ * @since_tizen 2.3
+ * @remarks You must release @a ip_address using free().
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[out] ip_address  The IP address
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_get_ip_address(connection_profile_h profile, connection_address_family_e address_family, char** ip_address);
 
 /**
-* @brief Gets the Subnet Mask.
-* @remarks @a subnet_mask must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[out] subnet_mask  The subnet mask
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the Subnet Mask.
+ * @since_tizen 2.3
+ * @remarks You must release @a subnet_mask using free().
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[out] subnet_mask  The subnet mask
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_get_subnet_mask(connection_profile_h profile, connection_address_family_e address_family, char** subnet_mask);
 
 /**
-* @brief Gets the Gateway address.
-* @remarks @a gateway_address must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[out] gateway_address  The gateway address
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the Gateway address.
+ * @since_tizen 2.3
+ * @remarks You must release @a gateway_address using free().
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[out] gateway_address  The gateway address
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_get_gateway_address(connection_profile_h profile, connection_address_family_e address_family, char** gateway_address);
 
 /**
-* @brief Gets the DNS address.
-* @remarks The allowance of DNS address is 2. @a dns_address must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[in] order  The order of DNS address. It starts from 1, which means first DNS address.
-* @param[in] address_family  The address family
-* @param[out] dns_address  The DNS address
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the DNS address.
+ * @since_tizen 2.3
+ * @remarks The allowance of the DNS address is @c 2. You must release @a dns_address using free().
+ * @param[in] profile  The profile handle
+ * @param[in] order  The order of DNS address \n
+ *		it starts from 1, which means first DNS address.
+ * @param[in] address_family  The address family
+ * @param[out] dns_address  The DNS address
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_get_dns_address(connection_profile_h profile, int order, connection_address_family_e address_family, char** dns_address);
 
 /**
-* @brief Gets the Proxy type.
-* @param[in] profile  The handle of profile
-* @param[out] type  The type of proxy
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the Proxy type.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] type  The type of the proxy
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_get_proxy_type(connection_profile_h profile, connection_proxy_type_e* type);
 
 /**
-* @brief Gets the Proxy address.
-* @remarks @a proxy_address must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[out] proxy_address  The proxy address
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the Proxy address.
+ * @since_tizen 2.3
+ * @remarks You must release @a proxy_address using free().
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[out] proxy_address  The proxy address
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_get_proxy_address(connection_profile_h profile, connection_address_family_e address_family, char** proxy_address);
 
 /**
-* @brief Sets the IP config type.
-* @details If you set IP config type to #WIFI_IP_CONFIG_TYPE_STATIC,
-* then IP address, Gateway and Subnet mask will be set to the initial value "0.0.0.0".
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[in] type  The type of IP config
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Sets the IP config type.
+ * @details If you set IP config type to #CONNECTION_IP_CONFIG_TYPE_STATIC,
+ * then IP address, Gateway and Subnet mask will be set to the initial value "0.0.0.0".
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[in] type  The type of the IP config
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
 */
 int connection_profile_set_ip_config_type(connection_profile_h profile, connection_address_family_e address_family, connection_ip_config_type_e type);
 
 /**
-* @brief Sets the IP address.
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[in] ip_address  The IP address. If you set this value to NULL, then the existing value will be deleted.
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
-* @see connection_update_profile()
+ * @brief Sets the IP address.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[in] ip_address  The IP address.\n
+ *			If you set this value to @c NULL, then the existing value will be deleted.
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @see connection_update_profile()
 */
 int connection_profile_set_ip_address(connection_profile_h profile, connection_address_family_e address_family, const char* ip_address);
 
 /**
-* @brief Sets the Subnet Mask.
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[in] subnet_mask  The subnet mask. If you set this value to NULL, then the existing value will be deleted.
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
-* @see connection_update_profile()
+ * @brief Sets the Subnet Mask.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[in] subnet_mask  The subnet mask. \n
+ *			If you set this value to @c NULL, then the existing value will be deleted.
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @see connection_update_profile()
 */
 int connection_profile_set_subnet_mask(connection_profile_h profile, connection_address_family_e address_family, const char* subnet_mask);
 
 /**
-* @brief Sets the Gateway address.
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[in] gateway_address  The gateway address. If you set this value to NULL, then the existing value will be deleted.
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
-* @see connection_update_profile()
+ * @brief Sets the Gateway address.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[in] gateway_address  The gateway address. \n
+ *			If you set this value to @c NULL, then the existing value will be deleted.
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @see connection_update_profile()
 */
 int connection_profile_set_gateway_address(connection_profile_h profile, connection_address_family_e address_family, const char* gateway_address);
 
 /**
-* @brief Sets the DNS address.
-* @remarks The allowance of DNS address is 2.
-* @param[in] profile  The handle of profile
-* @param[in] order  The order of DNS address. It starts from 1, which means first DNS address.
-* @param[in] address_family  The address family
-* @param[in] dns_address  The DNS address. If you set this value to NULL, then the existing value will be deleted.
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
-* @see connection_update_profile()
+ * @brief Sets the DNS address.
+ * @since_tizen 2.3
+ * @remarks The allowance of the DNS address is @c 2.
+ * @param[in] profile  The profile handle
+ * @param[in] order  The order of the DNS address. \n
+ *		It starts from @c 1, which means first DNS address.
+ * @param[in] address_family  The address family
+ * @param[in] dns_address  The DNS address; if you set this value to NULL, then the existing value will be deleted
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @see connection_update_profile()
 */
 int connection_profile_set_dns_address(connection_profile_h profile, int order, connection_address_family_e address_family, const char* dns_address);
 
 /**
-* @brief Sets the Proxy type.
-* @details If you set Proxy type to #WIFI_PROXY_TYPE_AUTO or #WIFI_PROXY_TYPE_MANUAL, then Proxy will be restored.
-* @param[in] profile  The handle of profile
-* @param[in] type  The type of proxy
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
-* @see connection_update_profile()
+ * @brief Sets the Proxy type.
+ * @details If you set the Proxy type to #CONNECTION_PROXY_TYPE_AUTO or #CONNECTION_PROXY_TYPE_MANUAL, then Proxy will be restored.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] type  The type of the proxy
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @see connection_update_profile()
 */
 int connection_profile_set_proxy_type(connection_profile_h profile, connection_proxy_type_e type);
 
 /**
-* @brief Sets the Proxy address.
-* @param[in] profile  The handle of profile
-* @param[in] address_family  The address family
-* @param[in] proxy_address  The proxy address. If you set this value to NULL, then the existing value will be deleted.
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
-* @see connection_update_profile()
+ * @brief Sets the Proxy address.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] address_family  The address family
+ * @param[in] proxy_address  The proxy address. \n
+ *			if you set this value to @c NULL, then the existing value will be deleted.
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED  Not supported address family
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @see connection_update_profile()
 */
 int connection_profile_set_proxy_address(connection_profile_h profile, connection_address_family_e address_family, const char* proxy_address);
 
 /**
-* @brief Called when the state of profile is changed.
-* @param[in] state  The state
-* @param[in] user_data The user data passed from the callback registration function
-* @see connection_profile_set_state_changed_cb()
-* @see connection_profile_unset_state_changed_cb()
+ * @brief Called when the state of the profile is changed.
+ * @since_tizen 2.3
+ * @param[in] state  The state
+ * @param[in] user_data The user data passed from the callback registration function
+ * @see connection_profile_set_state_changed_cb()
+ * @see connection_profile_unset_state_changed_cb()
 */
 typedef void(*connection_profile_state_changed_cb)(connection_profile_state_e state, void* user_data);
 
 /**
-* @brief Registers the callback called when the state of profile is changed.
-* @param[in] profile  The handle of profile
-* @param[in] callback  The callback function to be called
-* @param[in] user_data The user data passed to the callback function
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
-* @post connection_opened_cb() is invoked when the state of profile is changed.
-* @see connection_profile_state_changed_cb()
-* @see connection_profile_unset_state_changed_cb()
+ * @brief Registers the callback that is called when the state of profile is changed.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] callback  The callback function to be called
+ * @param[in] user_data The user data passed to the callback function
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @post connection_opened_cb() is invoked when the state of profile is changed.
+ * @see connection_profile_state_changed_cb()
+ * @see connection_profile_unset_state_changed_cb()
 */
 int connection_profile_set_state_changed_cb(connection_profile_h profile, connection_profile_state_changed_cb callback, void* user_data);
 
 /**
-* @brief Unregisters the callback called when the state of profile is changed.
-* @param[in] profile  The handle of profile
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
-* @see connection_profile_state_changed_cb()
-* @see connection_profile_set_state_changed_cb()
+ * @brief Unregisters the callback that is called when the state of profile is changed.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @see connection_profile_state_changed_cb()
+ * @see connection_profile_set_state_changed_cb()
 */
 int connection_profile_unset_state_changed_cb(connection_profile_h profile);
 
@@ -524,111 +579,131 @@ int connection_profile_unset_state_changed_cb(connection_profile_h profile);
 */
 
 /**
-* @brief Gets the ESSID(Extended Service Set Identifier).
-* @remarks @a essid must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[out] essid  The ESSID
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @brief Gets the ESSID (Extended Service Set Identifier).
+ * @since_tizen 2.3
+ * @remarks You must release @a essid using free().
+ * @param[in] profile  The profile handle
+ * @param[out] essid  The ESSID
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_wifi_essid(connection_profile_h profile, char** essid);
 
 /**
-* @brief Gets the BSSID(Basic Service Set Identifier).
-* @remarks @a bssid must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[out] bssid  The BSSID
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @brief Gets the BSSID (Basic Service Set Identifier).
+ * @since_tizen 2.3
+ * @remarks You must release @a bssid using free().
+ * @param[in] profile  The profile handle
+ * @param[out] bssid  The BSSID
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_wifi_bssid(connection_profile_h profile, char** bssid);
 
 /**
-* @brief Gets the RSSI.
-* @param[in] profile  The handle of profile
-* @param[out] rssi  The RSSI
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @brief Gets the RSSI.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] rssi  The RSSI
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_wifi_rssi(connection_profile_h profile, int* rssi);
 
 /**
-* @brief Gets the frequency (MHz).
-* @param[in] profile  The handle of profile
-* @param[out] frequency  The frequency
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @brief Gets the frequency (MHz).
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] frequency  The frequency
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_wifi_frequency(connection_profile_h profile, int* frequency);
 
 /**
-* @brief Gets the max speed (Mbps).
-* @param[in] profile  The handle of profile
-* @param[out] max_speed  The max speed
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @brief Gets the max speed (Mbps).
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] max_speed  The max speed
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_wifi_max_speed(connection_profile_h profile, int* max_speed);
 
 /**
-* @brief Gets the security mode of Wi-Fi.
-* @param[in] profile  The handle of profile
-* @param[out] type  The type of Wi-Fi security
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the security mode of Wi-Fi.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] type  The type of Wi-Fi security
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_wifi_security_type(connection_profile_h profile, connection_wifi_security_type_e* type);
 
 /**
-* @brief Gets the security mode of Wi-Fi.
-* @param[in] profile  The handle of profile
-* @param[out] type  The type of Wi-Fi security
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the security mode of Wi-Fi.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] type  The type of Wi-Fi security
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_wifi_encryption_type(connection_profile_h profile, connection_wifi_encryption_type_e* type);
 
 /**
-* @brief Checks whether passphrase is required.
-* @remarks This function is not valid if security type is #WIFI_SECURITY_TYPE_EAP.
-* @param[in] profile  The handle of profile
-* @param[out] required  Indicates whether passphrase is required or not
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @brief Checks whether passphrase is required.
+ * @since_tizen 2.3
+ * @remarks This function is not valid if security type is #CONNECTION_WIFI_SECURITY_TYPE_EAP.
+ * @param[in] profile  The profile handle
+ * @param[out] required  @c true if a passphrase is required, otherwise @c false if a passphrase is not required.
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_is_wifi_passphrase_required(connection_profile_h profile, bool* required);
 
 /**
-* @brief Sets the passphrase of Wi-Fi WPA.
-* @param[in] profile  The handle of profile
-* @param[in] passphrase  The passphrase of Wi-Fi security
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @see connection_update_profile()
+ * @brief Sets the passphrase of the Wi-Fi WPA.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] passphrase  The passphrase of Wi-Fi security
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
+ * @see connection_update_profile()
 */
 int connection_profile_set_wifi_passphrase(connection_profile_h profile, const char* passphrase);
 
 /**
-* @brief Checks whether WPS(Wi-Fi Protected Setup) is supported.
-* @remarks If WPS is supported, you can connect access point with WPS by wifi_connect_with_wps().
-* @param[in] profile  The handle of profile
-* @param[out] supported  Indicates whether WPS is supported or not
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @brief Checks whether the WPS (Wi-Fi Protected Setup) is supported.
+ * @since_tizen 2.3
+ * @remarks If WPS is supported, you can connect the access point with WPS by wifi_connect_with_wps().
+ * @param[in] profile  The profile handle
+ * @param[out] supported  @c true if WPS is supported, otherwise @c false if WPS is not supported.
+ * @return @c 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_is_wifi_wps_supported(connection_profile_h profile, bool* supported);
 
@@ -654,108 +729,162 @@ int connection_profile_is_wifi_wps_supported(connection_profile_h profile, bool*
 int connection_profile_get_cellular_network_type(connection_profile_h profile, connection_cellular_network_type_e* type);
 
 /**
-* @brief Gets the service type.
-* @param[in] profile  The handle of profile
-* @param[out] type  The type of cellular service
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the service type.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] type  The type of the cellular service
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_cellular_service_type(connection_profile_h profile, connection_cellular_service_type_e* type);
 
 /**
-* @brief Gets the APN(access point name).
-* @remarks @a apn must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[out] apn  The name of APN
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @brief Gets the APN (access point name).
+ * @since_tizen 2.3
+ * @remarks You must release @a apn using free().
+ * @param[in] profile  The profile handle
+ * @param[out] apn  The name of the APN
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_cellular_apn(connection_profile_h profile, char** apn);
 
 /**
-* @brief Gets the authentication information.
-* @remarks @a user_name and @a password must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[out] type  The type of authentication
-* @param[out] user_name  The user name
-* @param[out] password  The password
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @brief Gets the authentication information.
+ * @since_tizen 2.3
+ * @remarks You must release @a user_name and @a password using free().
+ * @param[in] profile  The profile handle
+ * @param[out] type  The type of the authentication
+ * @param[out] user_name  The user name
+ * @param[out] password  The password
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_cellular_auth_info(connection_profile_h profile, connection_cellular_auth_type_e* type, char** user_name, char** password);
 
 /**
-* @brief Gets the home URL.
-* @remarks @a home_url must be released with free() by you.
-* @param[in] profile  The handle of profile
-* @param[out] home_url  The home URL
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @brief Gets the home URL.
+ * @since_tizen 2.3
+ * @remarks You must release @a home_url using free().
+ * @param[in] profile  The profile handle
+ * @param[out] home_url  The home URL
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_get_cellular_home_url(connection_profile_h profile, char** home_url);
 
 /**
-* @brief Gets the state of roaming.
-* @param[in] profile  The handle of profile
-* @param[out] is_roaming  Indicates whether cellular is in roaming or not
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @brief Checks wheter the connection is in roaming state.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] is_roaming  @c true if the cellular is roaming, otherwise @c false if it is not roaming.
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
 */
 int connection_profile_is_cellular_roaming(connection_profile_h profile, bool* is_roaming);
 
 /**
-* @brief Sets the service type.
-* @param[in] profile  The handle of profile
-* @param[out] type  The type of cellular service
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @see connection_update_profile()
+ * @brief Checks whether the profile is hidden.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] is_hidden @c ture if the profile is in hidden, otherwise @c false if the profile is not hidden.
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
+*/
+int connection_profile_is_cellular_hidden(connection_profile_h profile, bool* is_hidden);
+
+/**
+ * @brief Checks whether the profile is editable.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] is_editable  @c true if the profile is editable, otherwise @c false if the profile is not editable.
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
+*/
+int connection_profile_is_cellular_editable(connection_profile_h profile, bool* is_editable);
+
+/**
+ * @brief Checks whether the profile is default.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[out] is_default  @c true if the profile is default, otherwise @c false if the profile is not default.
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
+*/
+int connection_profile_is_cellular_default(connection_profile_h profile, bool* is_default);
+
+/**
+ * @brief Sets the service type.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] service_type  The type of cellular service
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
+ * @see connection_update_profile()
 */
 int connection_profile_set_cellular_service_type(connection_profile_h profile, connection_cellular_service_type_e service_type);
 
 /**
-* @brief Sets the APN(Access Point Name).
-* @param[in] profile  The handle of profile
-* @param[out] apn  The name of APN
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @see connection_update_profile()
+ * @brief Sets the APN (Access Point Name).
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] apn  The name of APN
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
+ * @see connection_update_profile()
 */
 int connection_profile_set_cellular_apn(connection_profile_h profile, const char* apn);
 
 /**
-* @brief Sets the Athentication information.
-* @param[in] profile  The handle of profile
-* @param[out] type  The type of authentication
-* @param[out] user_name  The user name
-* @param[out] password  The password
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @see connection_update_profile()
+ * @brief Sets the Authentication information.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] type  The type of the authentication
+ * @param[in] user_name  The user name
+ * @param[in] password  The password
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
+ * @see connection_update_profile()
 */
 int connection_profile_set_cellular_auth_info(connection_profile_h profile, connection_cellular_auth_type_e type, const char* user_name, const char* password);
 
 /**
-* @brief Sets the home URL.
-* @param[in] profile  The handle of profile
-* @param[out] home_url  The home URL
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @see connection_update_profile()
+ * @brief Sets the home URL.
+ * @since_tizen 2.3
+ * @param[in] profile  The profile handle
+ * @param[in] home_url  The home URL
+ * @return @c 0 on success, otherwise a negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
+ * @see connection_update_profile()
 */
 int connection_profile_set_cellular_home_url(connection_profile_h profile, const char* home_url);
 

@@ -789,13 +789,13 @@ int test_get_call_statistics_info(void)
 {
 	long long rv = 0;
 
-	connection_get_statistics(CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA, &rv);
+	connection_get_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA, &rv);
 	printf("last recv data size [%lld]\n", rv);
-	connection_get_statistics(CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA, &rv);
+	connection_get_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA, &rv);
 	printf("last sent data size [%lld]\n",rv );
-	connection_get_statistics(CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA, &rv);
+	connection_get_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA, &rv);
 	printf("total received data size [%lld]\n",rv );
-	connection_get_statistics(CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA, &rv);
+	connection_get_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA, &rv);
 	printf("total sent data size [%lld]\n", rv);
 
 	return 1;
@@ -805,13 +805,13 @@ int test_get_wifi_call_statistics_info(void)
 {
 	long long rv = 0;
 
-	connection_get_statistics(CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA, &rv);
+	connection_get_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA, &rv);
 	printf("WiFi last recv data size [%lld]\n", rv);
-	connection_get_statistics(CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA, &rv);
+	connection_get_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA, &rv);
 	printf("WiFi last sent data size [%lld]\n",rv );
-	connection_get_statistics(CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA, &rv);
+	connection_get_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA, &rv);
 	printf("WiFi total received data size [%lld]\n",rv );
-	connection_get_statistics(CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA, &rv);
+	connection_get_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA, &rv);
 	printf("WiFi total sent data size [%lld]\n", rv);
 
 	return 1;
@@ -1271,13 +1271,13 @@ int test_reset_call_statistics_info(void)
 {
 	int ret = CONNECTION_ERROR_NONE;
 
-	ret = connection_reset_statistics(CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA);
+	ret = connection_reset_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA);
 	printf("reset last recv data size [%d]\n", ret);
-	ret = connection_reset_statistics(CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA);
+	ret = connection_reset_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA);
 	printf("last sent data size [%d]\n", ret);
-	ret = connection_reset_statistics(CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA);
+	ret = connection_reset_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA);
 	printf("total received data size [%d]\n", ret);
-	ret = connection_reset_statistics(CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA);
+	ret = connection_reset_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA);
 	printf("total sent data size [%d]\n", ret);
 
 	return 1;
@@ -1287,13 +1287,13 @@ int test_reset_wifi_call_statistics_info(void)
 {
 	int ret = CONNECTION_ERROR_NONE;
 
-	ret = connection_reset_statistics(CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA);
+	ret = connection_reset_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA);
 	printf("WiFi last sent data size [%d]\n", ret);
-	ret = connection_reset_statistics(CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA);
+	ret = connection_reset_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA);
 	printf("WiFi last recv data size [%d]\n", ret);
-	ret = connection_reset_statistics(CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA);
+	ret = connection_reset_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA);
 	printf("WiFi total sent data size [%d]\n", ret);
-	ret = connection_reset_statistics(CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA);
+	ret = connection_reset_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA);
 	printf("WiFi total received data size [%d]\n", ret);
 
 	return 1;
