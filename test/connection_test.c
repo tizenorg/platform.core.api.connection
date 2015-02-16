@@ -47,7 +47,9 @@ static bool test_get_user_string(const char *msg, char *buf, int buf_size)
 		return false;
 	}
 
-	buf[strlen(buf) - 1] = '\0';
+	if (rv >= 0)
+		buf[rv] = '\0';
+
 
 	return true;
 }
@@ -82,6 +84,46 @@ static const char *test_print_state(connection_profile_state_e state)
 		return "Connected";
 	default:
 		return "Unknown";
+	}
+}
+
+static const char *test_print_error(connection_error_e error)
+{
+	switch (error) {
+	case CONNECTION_ERROR_NONE:
+		return "CONNECTION_ERROR_NONE";
+	case CONNECTION_ERROR_INVALID_PARAMETER:
+		return "CONNECTION_ERROR_INVALID_PARAMETER";
+	case CONNECTION_ERROR_OUT_OF_MEMORY:
+		return "CONNECTION_ERROR_OUT_OF_MEMORY";
+	case CONNECTION_ERROR_INVALID_OPERATION:
+		return "CONNECTION_ERROR_INVALID_OPERATION";
+	case CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED:
+		return "CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED";
+	case CONNECTION_ERROR_OPERATION_FAILED:
+		return "CONNECTION_ERROR_OPERATION_FAILED";
+	case CONNECTION_ERROR_ITERATOR_END:
+		return "CONNECTION_ERROR_ITERATOR_END";
+	case CONNECTION_ERROR_NO_CONNECTION:
+		return "CONNECTION_ERROR_NO_CONNECTION";
+	case CONNECTION_ERROR_NOW_IN_PROGRESS:
+		return "CONNECTION_ERROR_NOW_IN_PROGRESS";
+	case CONNECTION_ERROR_ALREADY_EXISTS:
+		return "CONNECTION_ERROR_ALREADY_EXISTS";
+	case CONNECTION_ERROR_OPERATION_ABORTED:
+		return "CONNECTION_ERROR_OPERATION_ABORTED";
+	case CONNECTION_ERROR_DHCP_FAILED:
+		return "CONNECTION_ERROR_DHCP_FAILED";
+	case CONNECTION_ERROR_INVALID_KEY:
+		return "CONNECTION_ERROR_INVALID_KEY";
+	case CONNECTION_ERROR_NO_REPLY:
+		return "CONNECTION_ERROR_NO_REPLY";
+	case CONNECTION_ERROR_PERMISSION_DENIED:
+		return "CONNECTION_ERROR_PERMISSION_DENIED";
+	case CONNECTION_ERROR_NOT_SUPPORTED:
+		return "CONNECTION_ERROR_NOT_SUPPORTED";
+	default:
+		return "CONNECTION_ERROR_UNKNOWN";
 	}
 }
 
@@ -131,6 +173,14 @@ static void test_connection_closed_callback(connection_error_e result, void* use
 		printf("Connection close Succeeded\n");
 	else
 		printf("Connection close Failed, err : %d\n", result);
+}
+
+static void test_connection_reset_profile_callback(connection_error_e result, void* user_data)
+{
+	if (result ==  CONNECTION_ERROR_NONE)
+		printf("Reset profile Succeeded\n");
+	else
+		printf("Reset profile Failed, err : [%s]\n", test_print_error(result));
 }
 
 static void test_connection_set_default_callback(connection_error_e result, void* user_data)
@@ -473,6 +523,8 @@ static void test_print_cellular_info(connection_profile_h profile)
 	char *password = NULL;
 	char *home_url = NULL;
 	bool roaming = false;
+	bool hidden = false;
+	bool editable = false;
 
 	if (connection_profile_get_cellular_network_type(profile, &network_type) != CONNECTION_ERROR_NONE)
 		printf("Fail to get cellular network type!\n");
@@ -512,6 +564,16 @@ static void test_print_cellular_info(connection_profile_h profile)
 		printf("Fail to get cellular is roaming!\n");
 	else
 		printf("Cellular roaming : %s\n", roaming ? "true" : "false");
+
+	if (connection_profile_is_cellular_hidden(profile, &hidden) != CONNECTION_ERROR_NONE)
+		printf("Fail to get cellular hidden state!\n");
+	else
+		printf("Cellular hidden : %s\n", hidden ? "true" : "false");
+
+	if (connection_profile_is_cellular_editable(profile, &editable) != CONNECTION_ERROR_NONE)
+		printf("Fail to get cellular editing state!\n");
+	else
+		printf("Cellular editable : %s\n", editable ? "true" : "false");
 }
 
 static void test_print_wifi_info(connection_profile_h profile)
@@ -825,12 +887,58 @@ int test_get_profile_list(void)
 	return 1;
 }
 
+int test_get_default_profile_list(void)
+{
+	int rv = 0;
+	char *profile_name = NULL;
+	connection_profile_iterator_h profile_iter;
+	connection_profile_h profile_h;
+	connection_cellular_service_type_e service_type;
+	bool is_default = false;
+
+	rv = connection_get_profile_iterator(connection, CONNECTION_ITERATOR_TYPE_DEFAULT, &profile_iter);
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to get profile iterator [%s]\n", test_print_error(rv));
+		return -1;
+	}
+
+	while (connection_profile_iterator_has_next(profile_iter)) {
+		if (connection_profile_iterator_next(profile_iter, &profile_h) != CONNECTION_ERROR_NONE) {
+			printf("Fail to get profile handle\n");
+			return -1;
+		}
+
+		if (connection_profile_get_name(profile_h, &profile_name) != CONNECTION_ERROR_NONE) {
+			printf("Fail to get profile name\n");
+			return -1;
+		}
+		printf("profile name : %s\n", profile_name);
+		g_free(profile_name);
+
+		if (connection_profile_get_cellular_service_type(profile_h, &service_type) != CONNECTION_ERROR_NONE) {
+			printf("Fail to get profile service type\n");
+			return -1;
+		}
+		printf("service type : %d\n", service_type);
+
+		if (connection_profile_is_cellular_default(profile_h, &is_default) != CONNECTION_ERROR_NONE) {
+			printf("Fail to get profile subscriber id\n");
+			return -1;
+		}
+		printf("Default : %d\n", is_default);
+	}
+
+	return 1;
+}
+
 int test_get_connected_profile_list(void)
 {
 	int rv = 0;
 	char *profile_name = NULL;
 	connection_profile_iterator_h profile_iter;
 	connection_profile_h profile_h;
+	bool is_default = false;
+	connection_profile_type_e type;
 
 	rv = connection_get_profile_iterator(connection, CONNECTION_ITERATOR_TYPE_CONNECTED, &profile_iter);
 	if (rv != CONNECTION_ERROR_NONE) {
@@ -850,6 +958,20 @@ int test_get_connected_profile_list(void)
 		}
 		printf("profile name : %s\n", profile_name);
 		g_free(profile_name);
+
+		if (connection_profile_get_type(profile_h, &type) != CONNECTION_ERROR_NONE) {
+			printf("Fail to get profile type\n");
+			return -1;
+		}
+		printf("profile type is %d\n", type);
+
+		if (type == CONNECTION_PROFILE_TYPE_CELLULAR) {
+		if (connection_profile_is_cellular_default(profile_h, &is_default) != CONNECTION_ERROR_NONE) {
+			printf("Fail to get profile is default\n");
+			return -1;
+		}
+			printf("[%s]\n", is_default ? "default" : "not default");
+		}
 	}
 
 	return 1;
@@ -1320,6 +1442,27 @@ int test_add_route(void)
 	return 1;
 }
 
+int test_remove_route(void)
+{
+	int rv = 0;
+	char ip_addr[30];
+	char if_name[40];
+
+	if (test_get_user_string("Input IP - (Enter for skip) :", ip_addr, 30) == false)
+		return -1;
+
+	if (test_get_user_string("Input Interface name - (Enter for skip) :", if_name, 40) == false)
+		return -1;
+
+	rv = connection_remove_route(connection, if_name, ip_addr);
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to remove the route [%s]\n", test_print_error(rv));
+		return -1;
+	}
+
+	return 1;
+}
+
 int test_get_bt_state(void)
 {
 	int rv = 0;
@@ -1352,6 +1495,31 @@ int test_get_profile_id(void)
 	} else {
 		printf("Profile id : %s\n", profile_id);
 		g_free(profile_id);
+	}
+
+	return 1;
+}
+
+int test_reset_profile(void)
+{
+	int type, sim_id, rv;
+
+	rv = test_get_user_int("Input reset type (0:default profile reset, 1:delete profile reset)", &type);
+
+	if (rv == false || (type != 0 && type != 1)) {
+		printf("Invalid input!!\n");
+		return -1;
+	}
+
+	rv = test_get_user_int("Input SIM id to reset (0:SIM1, 1:SIM2)", &sim_id);
+
+	if (rv == false || (sim_id != 0 && sim_id != 1)) {
+		printf("Invalid input!!\n");
+		return -1;
+	}
+
+	if (connection_reset_profile(connection, type, sim_id, test_connection_reset_profile_callback, NULL) != CONNECTION_ERROR_NONE) {
+		return -1;
 	}
 
 	return 1;
@@ -1505,10 +1673,19 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		rv = test_add_route();
 		break;
 	case 'r':
-		rv = test_get_bt_state();
+		rv = test_remove_route();
 		break;
 	case 's':
+		rv = test_get_bt_state();
+		break;
+	case 't':
 		rv = test_get_profile_id();
+		break;
+	case 'u':
+		rv = test_reset_profile();
+		break;
+	case 'v':
+		rv = test_get_default_profile_list();
 		break;
 	}
 

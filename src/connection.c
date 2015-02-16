@@ -219,12 +219,15 @@ static void __connection_cb_proxy_change_cb(keynode_t *node, void *user_data)
 
 static bool __connection_check_handle_validity(connection_h connection)
 {
-	GSList *list;
+	bool ret = false;
 
-	for (list = conn_handle_list; list; list = list->next)
-		if (connection == list->data) return true;
+	if (connection == NULL)
+		return false;
 
-	return false;
+	if (g_slist_find(conn_handle_list, connection) != NULL)
+		ret = true;
+
+	return ret;
 }
 
 static int __connection_get_handle_count(void)
@@ -244,20 +247,22 @@ static int __connection_get_handle_count(void)
 EXPORT_API int connection_create(connection_h* connection)
 {
 	CONNECTION_MUTEX_LOCK;
-
+	int rv;
 	if (connection == NULL || __connection_check_handle_validity(*connection)) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		CONNECTION_MUTEX_UNLOCK;
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	if (_connection_libnet_init() == false) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Creation failed!\n");
-		CONNECTION_MUTEX_UNLOCK;
+	rv = _connection_libnet_init();
+	if (rv == NET_ERR_ACCESS_DENIED) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		return CONNECTION_ERROR_PERMISSION_DENIED;
+	}
+	else if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to create connection[%d]", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
-
-	CONNECTION_LOG(CONNECTION_ERROR, "Connection successfully created!\n");
 
 	*connection = g_try_malloc0(sizeof(connection_handle_s));
 	if (*connection != NULL) {
@@ -537,8 +542,11 @@ EXPORT_API int connection_add_profile(connection_h connection, connection_profil
 	}
 
 	rv = net_add_profile(profile_info->ProfileInfo.Pdp.ServiceType, (net_profile_info_t*)profile);
-	if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "net_add_profile Failed = %d\n", rv);
+	if (rv == NET_ERR_ACCESS_DENIED) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		return CONNECTION_ERROR_PERMISSION_DENIED;
+	} else if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to add profile[%d]", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
@@ -563,8 +571,11 @@ EXPORT_API int connection_remove_profile(connection_h connection, connection_pro
 	}
 
 	rv = net_delete_profile(profile_info->ProfileName);
-	if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "net_delete_profile Failed = %d\n", rv);
+	if (rv == NET_ERR_ACCESS_DENIED) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		return CONNECTION_ERROR_PERMISSION_DENIED;
+	} else if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to delete profile[%d]", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
@@ -583,8 +594,11 @@ EXPORT_API int connection_update_profile(connection_h connection, connection_pro
 	net_profile_info_t *profile_info = profile;
 
 	rv = net_modify_profile(profile_info->ProfileName, (net_profile_info_t*)profile);
-	if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "net_modify_profile Failed = %d\n", rv);
+	if (rv == NET_ERR_ACCESS_DENIED) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		return CONNECTION_ERROR_PERMISSION_DENIED;
+	} else if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to modify profile[%d]", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
@@ -596,8 +610,9 @@ EXPORT_API int connection_get_profile_iterator(connection_h connection,
 {
 	if (!(__connection_check_handle_validity(connection)) ||
 	    (type != CONNECTION_ITERATOR_TYPE_REGISTERED &&
-	     type != CONNECTION_ITERATOR_TYPE_CONNECTED)) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+	     type != CONNECTION_ITERATOR_TYPE_CONNECTED &&
+	     type != CONNECTION_ITERATOR_TYPE_DEFAULT)) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -689,6 +704,22 @@ EXPORT_API int connection_close_profile(connection_h connection, connection_prof
 	return _connection_libnet_close_profile(profile, callback, user_data);
 }
 
+EXPORT_API int connection_reset_profile(connection_h connection,
+				connection_reset_option_e type, int id, connection_reset_cb callback, void *user_data)
+{
+	if (!(__connection_check_handle_validity(connection))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	if(id < 0 || id > 1) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_reset_profile(type, id, callback, user_data);
+}
+
 EXPORT_API int connection_add_route(connection_h connection, const char* interface_name, const char* host_address)
 {
 	if (!(__connection_check_handle_validity(connection)) ||
@@ -700,13 +731,23 @@ EXPORT_API int connection_add_route(connection_h connection, const char* interfa
 	return _connection_libnet_add_route(interface_name, host_address);
 }
 
+EXPORT_API int connection_remove_route(connection_h connection, const char* interface_name, const char* host_address)
+{
+	if (!(__connection_check_handle_validity(connection)) ||
+	    interface_name == NULL || host_address == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_remove_route(interface_name, host_address);
+}
 
 /* Connection Statistics module ******************************************************************/
 
 static int __get_statistic(connection_type_e connection_type,
 			connection_statistics_type_e statistics_type, long long* llsize)
 {
-	int size;
+	int rv, size;
 	unsigned long long ull_size;
 	int stat_type;
 	char *key = NULL;
@@ -760,8 +801,11 @@ static int __get_statistic(connection_type_e connection_type,
 			return CONNECTION_ERROR_INVALID_PARAMETER;
 		}
 
-		if (_connection_libnet_get_statistics(stat_type, &ull_size) != CONNECTION_ERROR_NONE) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Cannot Get Wi-Fi statistics : %d\n", ull_size);
+		rv  = _connection_libnet_get_statistics(stat_type, &ull_size);
+		if (rv == CONNECTION_ERROR_PERMISSION_DENIED)
+			return rv;
+		else if (rv != CONNECTION_ERROR_NONE) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get Wi-Fi statistics");
 			*llsize = 0;
 			return CONNECTION_ERROR_OPERATION_FAILED;
 		}
@@ -819,6 +863,11 @@ EXPORT_API int connection_get_statistics(connection_h connection,
 				connection_type_e connection_type,
 				connection_statistics_type_e statistics_type, long long* size)
 {
+	if (!(__connection_check_handle_validity(connection)) || size == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
 	return __get_statistic(connection_type, statistics_type, size);
 }
 
@@ -826,5 +875,10 @@ EXPORT_API int connection_reset_statistics(connection_h connection,
 				connection_type_e connection_type,
 				connection_statistics_type_e statistics_type)
 {
+	if (!(__connection_check_handle_validity(connection))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
 	return __reset_statistic(connection_type, statistics_type);
 }

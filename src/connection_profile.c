@@ -59,11 +59,22 @@ static char* __profile_convert_ip_to_string(net_addr_t *ip_addr)
 
 static void __profile_init_cellular_profile(net_profile_info_t *profile_info, const char *keyword)
 {
+	int default_subscriber_id = 0;
+	connection_profile_h profile = NULL;
+
 	profile_info->profile_type = NET_DEVICE_CELLULAR;
 	profile_info->ProfileState = NET_STATE_TYPE_IDLE;
 	profile_info->ProfileInfo.Pdp.net_info.IpConfigType = NET_IP_CONFIG_TYPE_OFF;
 	profile_info->ProfileInfo.Pdp.net_info.ProxyMethod = NET_PROXY_TYPE_DIRECT;
 	g_strlcpy(profile_info->ProfileInfo.Pdp.Keyword, keyword, NET_PDP_APN_LEN_MAX);
+
+	if (vconf_get_int(VCONF_TELEPHONY_DEFAULT_DATA_SERVICE,
+					&default_subscriber_id) != 0)
+		CONNECTION_LOG(CONNECTION_ERROR,
+						"Failed to get VCONF_TELEPHONY_DEFAULT_DATA_SERVICE");
+
+	profile = (connection_profile_h)profile_info;
+	_connection_libnet_set_cellular_subscriber_id(profile, default_subscriber_id);
 }
 
 static void __profile_init_wifi_profile(net_profile_info_t *profile_info)
@@ -355,6 +366,7 @@ EXPORT_API int connection_profile_get_network_interface_name(connection_profile_
 
 EXPORT_API int connection_profile_refresh(connection_profile_h profile)
 {
+	int rv;
 	if (!(_connection_libnet_check_profile_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -363,8 +375,12 @@ EXPORT_API int connection_profile_refresh(connection_profile_h profile)
 	net_profile_info_t profile_info_local;
 	net_profile_info_t *profile_info = profile;
 
-	if (net_get_profile_info(profile_info->ProfileName, &profile_info_local) != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Error!!! net_get_profile_info() failed\n");
+	rv = net_get_profile_info(profile_info->ProfileName, &profile_info_local);
+	if (rv == NET_ERR_ACCESS_DENIED) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		return CONNECTION_ERROR_PERMISSION_DENIED;
+	} else if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get profile information");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
@@ -1242,6 +1258,72 @@ EXPORT_API int connection_profile_is_cellular_roaming(connection_profile_h profi
 		*is_roaming = true;
 	else
 		*is_roaming = false;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_is_cellular_hidden(connection_profile_h profile, bool* is_hidden)
+{
+	if (!(_connection_libnet_check_profile_validity(profile)) || is_hidden == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	if (profile_info->ProfileInfo.Pdp.Hidden)
+		*is_hidden = true;
+	else
+		*is_hidden = false;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_is_cellular_editable(connection_profile_h profile, bool* is_editable)
+{
+	if (!(_connection_libnet_check_profile_validity(profile)) || is_editable == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	if (profile_info->ProfileInfo.Pdp.Editable)
+		*is_editable = true;
+	else
+		*is_editable = false;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_is_cellular_default(connection_profile_h profile, bool* is_default)
+{
+	if (!(_connection_libnet_check_profile_validity(profile)) || is_default == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	if (profile_info->ProfileInfo.Pdp.DefaultConn)
+		*is_default = true;
+	else
+		*is_default = false;
 
 	return CONNECTION_ERROR_NONE;
 }
