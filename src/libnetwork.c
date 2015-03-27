@@ -399,7 +399,7 @@ void __libnet_copy_connected_profile(net_profile_info_t **dest, struct _profile_
 	}
 }
 
-bool _connection_libnet_init(void)
+int _connection_libnet_init(void)
 {
 	int rv;
 
@@ -414,7 +414,7 @@ bool _connection_libnet_init(void)
 			profile_cb_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 	}
 
-	return true;
+	return NET_ERR_NONE;
 }
 
 bool _connection_libnet_deinit(void)

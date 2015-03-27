@@ -1,6 +1,6 @@
 Name:       capi-network-connection
 Summary:    Network Connection library in TIZEN C API
-Version:    0.1.3_19
+Version:    0.1.3_20
 Release:    1
 Group:      System/Network
 License:    Apache-2.0
