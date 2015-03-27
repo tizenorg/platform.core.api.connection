@@ -94,7 +94,7 @@ typedef struct _connection_handle_s
 } connection_handle_s;
 
 
-bool _connection_libnet_init(void);
+int _connection_libnet_init(void);
 bool _connection_libnet_deinit(void);
 int _connection_libnet_get_wifi_state(connection_wifi_state_e *state);
 int _connection_libnet_get_ethernet_state(connection_ethernet_state_e *state);
