@@ -257,10 +257,12 @@ EXPORT_API int connection_create(connection_h* connection)
 	rv = _connection_libnet_init();
 	if (rv == NET_ERR_ACCESS_DENIED) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		CONNECTION_MUTEX_UNLOCK;
 		return CONNECTION_ERROR_PERMISSION_DENIED;
 	}
 	else if (rv != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Failed to create connection[%d]", rv);
+		CONNECTION_MUTEX_UNLOCK;
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
