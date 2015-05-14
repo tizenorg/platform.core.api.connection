@@ -47,9 +47,7 @@ static bool test_get_user_string(const char *msg, char *buf, int buf_size)
 		return false;
 	}
 
-	if (rv >= 0)
-		buf[rv] = '\0';
-
+	buf[rv-1]='\0';
 
 	return true;
 }
