@@ -83,15 +83,14 @@ typedef enum
 } connection_wifi_state_e;
 
 /**
- * @internal
  * @brief Enumeration for ethernet state.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum
 {
-    CONNECTION_ETHERNET_STATE_DEACTIVATED = 0,  /**< @internal There is no Ethernet profile to open */
-    CONNECTION_ETHERNET_STATE_DISCONNECTED = 1,  /**< @internal Disconnected */
-    CONNECTION_ETHERNET_STATE_CONNECTED = 2,  /**< @internal Connected */
+    CONNECTION_ETHERNET_STATE_DEACTIVATED = 0,  /**< There is no Ethernet profile to open */
+    CONNECTION_ETHERNET_STATE_DISCONNECTED = 1,  /**< Disconnected */
+    CONNECTION_ETHERNET_STATE_CONNECTED = 2,  /**< Connected */
 } connection_ethernet_state_e;
 
 /**
@@ -314,10 +313,9 @@ int connection_get_cellular_state(connection_h connection, connection_cellular_s
 int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* state);
 
 /**
- * @internal
  * @brief Gets the state of the Ethernet.
  * @details The returned state is for the Ethernet connection state.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/network.get
  * @param[in] connection  The connection handle
@@ -424,10 +422,8 @@ int connection_unset_proxy_address_changed_cb(connection_h connection);
  * @brief Adds a new profile which is created by connection_profile_create().
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/network.profile \n
- * 	      %http://tizen.org/privilege/network.get
- * @remarks You can only add a profile of the cellular type. \n
- *	    This API needs both privileges.
+ * @privilege %http://tizen.org/privilege/network.profile
+ * @remarks You can only add a profile of the cellular type.
  * @param[in] connection  The connection handle
  * @param[in] profile  The profile handle
  * @return @c 0 on success, otherwise a negative error value
@@ -667,9 +663,7 @@ int connection_open_profile(connection_h connection, connection_profile_h profil
  * @brief Closes a connection of profile.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/network.set \n
- *	      %http://tizen.org/privilege/network.get
- * @remarks This API needs both privileges.
+ * @privilege %http://tizen.org/privilege/network.set
  * @param[in] connection  The connection handle
  * @param[in] profile  The profile handle
  * @param[in] callback  The callback function to be called
@@ -711,13 +705,11 @@ int connection_close_profile(connection_h connection, connection_profile_h profi
 int connection_reset_profile(connection_h connection, connection_reset_option_e type, int id, connection_reset_cb callback, void *user_data);
 
 /**
- * @brief Adds a route to the routing table.
+ * @brief Adds a IPv4 route to the routing table.
  * @details You can get the @a interface_name from connection_profile_get_network_interface_name() of opened profile.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/network.set \n
- *	      %http://tizen.org/privilege/network.get
- * @remarks This API needs both privileges.
+ * @privilege %http://tizen.org/privilege/network.set
  * @param[in] connection  The connection handle
  * @param[in] interface_name  The name of network interface
  * @param[in] host_address  The IP address of the host
@@ -732,16 +724,33 @@ int connection_reset_profile(connection_h connection, connection_reset_option_e 
 int connection_add_route(connection_h connection, const char* interface_name, const char* host_address);
 
 /**
- * @brief Removes a route from the routing table.
+ * @brief Removes a IPv4 route from the routing table.
  * @details You can get the @a interface_name from connection_profile_get_network_interface_name() of opened profile.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/network.set \n
- *	      %http://tizen.org/privilege/network.get
- * @remarks This API needs both privileges.
+ * @privilege %http://tizen.org/privilege/network.set
  * @param[in] connection  The connection handle
  * @param[in] interface_name  The name of network interface
  * @param[in] host_address  The IP address of the host
+ * @return @c 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @see connection_profile_get_network_interface_name()
+ */
+int connection_remove_route(connection_h connection, const char* interface_name, const char* host_address);
+
+/**
+ * @brief Adds a IPv6 route to the routing table.
+ * @details You can get the @a interface_name from connection_profile_get_network_interface_name() of opened profile.
+ * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.set
+ * @param[in] connection  The connection handle
+ * @param[in] interface_name  The name of network interface
+ * @param[in] host_address  The IP address of the host
+ * @param[in] gateway  The gateway address
  * @return @c 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
  * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
@@ -782,8 +791,7 @@ int connection_get_statistics(connection_h connection, connection_type_e connect
  * @brief Resets the statistics information.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/network.set \n
- *	      %http://tizen.org/privilege/network.get
+ * @privilege %http://tizen.org/privilege/network.set
  * @remarks This API needs both privileges.
  * @param[in] connection  The connection handle
  * @param[in] connection_type  The type of connection (only CONNECTION_TYPE_WIFI and CONNECTION_TYPE_CELLULAR are supported)
