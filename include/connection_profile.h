@@ -183,10 +183,8 @@ typedef enum{
  * @details The profile name, which you get from connection_profile_get_name(), will include the keyword you set.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/network.profile \n
- * 	      %http://tizen.org/privilege/network.get
- * @remarks You must release @a profile using connection_profile_destroy(). \n
- *	    This API needs both privileges.
+ * @privilege %http://tizen.org/privilege/network.get
+ * @remarks You must release @a profile using connection_profile_destroy().
  * @param[in] type  The type of profile\n
  *		 #CONNECTION_PROFILE_TYPE_CELLULAR and #CONNECTION_PROFILE_TYPE_WIFI are supported.
  * @param[in] keyword  The keyword included in profile name
