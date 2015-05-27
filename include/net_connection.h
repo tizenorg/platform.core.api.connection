@@ -838,7 +838,27 @@ int connection_remove_route(connection_h connection, const char* interface_name,
  * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
  * @see connection_profile_get_network_interface_name()
  */
-int connection_remove_route(connection_h connection, const char* interface_name, const char* host_address);
+
+int connection_add_route_ipv6(connection_h connection, const char *interface_name, const char *host_address, const char * gateway);
+	
+/**
+ * @brief Removes a IPV6 route from the routing table.
+ * @details You can get the @a interface_name from connection_profile_get_network_interface_name() of opened profile.
+ * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/network.set
+ * @param[in] connection  The connection handle
+ * @param[in] interface_name  The name of network interface
+ * @param[in] host_address	The IP address of the host
+ * @param[in] gateway  The gateway address
+ * @return @c 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER	 Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @see connection_profile_get_network_interface_name()
+ */
+int connection_remove_route_ipv6(connection_h connection, const char *interface_name, const char *host_address, const char * gateway);
 
 /**
  * @}

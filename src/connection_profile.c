@@ -23,6 +23,7 @@
 #include "net_connection_private.h"
 
 #define HTTP_PROXY "http_proxy"
+#define MAX_PREFIX_LENGTH 6
 
 static net_dev_info_t* __profile_get_net_info(net_profile_info_t *profile_info)
 {
@@ -44,15 +45,26 @@ static net_dev_info_t* __profile_get_net_info(net_profile_info_t *profile_info)
 	}
 }
 
-static char* __profile_convert_ip_to_string(net_addr_t *ip_addr)
+static char *__profile_convert_ip_to_string(net_addr_t *ip_addr, connection_address_family_e address_family)
 {
-	unsigned char *ipaddr = (unsigned char *)&ip_addr->Data.Ipv4.s_addr;
+	unsigned char *ipaddr = NULL;
+	char *ipstr = NULL;
 
-	char *ipstr = g_try_malloc0(16);
-	if (ipstr == NULL)
-		return NULL;
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4) {
+		ipaddr = (unsigned char *)&ip_addr->Data.Ipv4.s_addr;
+		ipstr = g_try_malloc0(INET_ADDRSTRLEN);
+		if (ipstr == NULL)
+			return NULL;
 
-	snprintf(ipstr, 16, "%d.%d.%d.%d", ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
+		inet_ntop(AF_INET, ipaddr, ipstr, INET_ADDRSTRLEN);
+	} else {
+		ipaddr = (unsigned char *)&ip_addr->Data.Ipv6.s6_addr;
+		ipstr = g_try_malloc0(INET6_ADDRSTRLEN);
+		if (ipstr == NULL)
+				return NULL;
+
+		inet_ntop(AF_INET6, ipaddr, ipstr, INET6_ADDRSTRLEN);
+	}
 
 	return ipstr;
 }
@@ -407,40 +419,68 @@ EXPORT_API int connection_profile_get_state(connection_profile_h profile, connec
 EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profile,
 		connection_address_family_e address_family, connection_ip_config_type_e* type)
 {
+	net_ip_config_type_t profile_type;
+
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6) ||
 	    type == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
-
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	switch (net_info->IpConfigType) {
-	case NET_IP_CONFIG_TYPE_STATIC:
-		*type = CONNECTION_IP_CONFIG_TYPE_STATIC;
-		break;
-	case NET_IP_CONFIG_TYPE_DYNAMIC:
-		*type = CONNECTION_IP_CONFIG_TYPE_DYNAMIC;
-		break;
-	case NET_IP_CONFIG_TYPE_AUTO_IP:
-		*type = CONNECTION_IP_CONFIG_TYPE_AUTO;
-		break;
-	case NET_IP_CONFIG_TYPE_FIXED:
-		*type = CONNECTION_IP_CONFIG_TYPE_FIXED;
-		break;
-	case NET_IP_CONFIG_TYPE_OFF:
-		*type = CONNECTION_IP_CONFIG_TYPE_NONE;
-		break;
-	default:
-		return CONNECTION_ERROR_OPERATION_FAILED;
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4)
+		profile_type = net_info->IpConfigType;
+	else
+		profile_type = net_info->IpConfigType6;
+
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4) {
+		switch (profile_type) {
+		case NET_IP_CONFIG_TYPE_STATIC:
+			*type = CONNECTION_IP_CONFIG_TYPE_STATIC;
+			break;
+
+		case NET_IP_CONFIG_TYPE_DYNAMIC:
+			*type = CONNECTION_IP_CONFIG_TYPE_DYNAMIC;
+			break;
+
+		case NET_IP_CONFIG_TYPE_AUTO_IP:
+			*type = CONNECTION_IP_CONFIG_TYPE_AUTO;
+			break;
+
+		case NET_IP_CONFIG_TYPE_FIXED:
+			*type = CONNECTION_IP_CONFIG_TYPE_FIXED;
+			break;
+
+		case NET_IP_CONFIG_TYPE_OFF:
+			*type = CONNECTION_IP_CONFIG_TYPE_NONE;
+			break;
+		default:
+			return CONNECTION_ERROR_OPERATION_FAILED;
+		}
+	} else {
+		switch (profile_type) {
+		case NET_IP_CONFIG_TYPE_STATIC:
+			*type = CONNECTION_IP_CONFIG_TYPE_STATIC;
+			break;
+
+		case NET_IP_CONFIG_TYPE_AUTO_IP:
+			*type = CONNECTION_IP_CONFIG_TYPE_AUTO;
+			break;
+
+		case NET_IP_CONFIG_TYPE_OFF:
+			*type = CONNECTION_IP_CONFIG_TYPE_NONE;
+			break;
+
+		default:
+			return	CONNECTION_ERROR_OPERATION_FAILED;
+
+		}
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -453,7 +493,7 @@ EXPORT_API int connection_profile_get_ip_address(connection_profile_h profile,
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6) ||
 	    ip_address == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -463,9 +503,12 @@ EXPORT_API int connection_profile_get_ip_address(connection_profile_h profile,
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
+		*ip_address = __profile_convert_ip_to_string(&net_info->IpAddr6,
+				address_family);
+	else
+		*ip_address = __profile_convert_ip_to_string(&net_info->IpAddr,
+				address_family);
 
-	*ip_address = __profile_convert_ip_to_string(&net_info->IpAddr);
 	if (*ip_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 
@@ -475,11 +518,13 @@ EXPORT_API int connection_profile_get_ip_address(connection_profile_h profile,
 EXPORT_API int connection_profile_get_subnet_mask(connection_profile_h profile,
 		connection_address_family_e address_family, char** subnet_mask)
 {
+	char* prefixlen;
+	
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6) ||
 	    subnet_mask == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -488,10 +533,14 @@ EXPORT_API int connection_profile_get_subnet_mask(connection_profile_h profile,
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		prefixlen = g_try_malloc0(MAX_PREFIX_LENGTH);
+		snprintf(prefixlen, MAX_PREFIX_LENGTH, "%d", net_info->PrefixLen6);
+		*subnet_mask =  prefixlen;
+	} else
+		*subnet_mask = __profile_convert_ip_to_string(&net_info->SubnetMask,
+				address_family);
 
-	*subnet_mask = __profile_convert_ip_to_string(&net_info->SubnetMask);
 	if (*subnet_mask == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 
@@ -500,12 +549,12 @@ EXPORT_API int connection_profile_get_subnet_mask(connection_profile_h profile,
 
 EXPORT_API int connection_profile_get_gateway_address(connection_profile_h profile,
 		connection_address_family_e address_family, char** gateway_address)
-{
+{	
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6) ||
 	    gateway_address == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -514,10 +563,13 @@ EXPORT_API int connection_profile_get_gateway_address(connection_profile_h profi
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
+	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
+		*gateway_address = __profile_convert_ip_to_string(
+					&net_info->GatewayAddr6, address_family);
+	else
+		*gateway_address = __profile_convert_ip_to_string(
+					&net_info->GatewayAddr, address_family);
 
-	*gateway_address = __profile_convert_ip_to_string(&net_info->GatewayAddr);
 	if (*gateway_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 
@@ -533,7 +585,7 @@ EXPORT_API int connection_profile_get_dns_address(connection_profile_h profile, 
 	    dns_address == NULL ||
 	    order <= 0 ||
 	    order > NET_DNS_ADDR_MAX) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -542,10 +594,15 @@ EXPORT_API int connection_profile_get_dns_address(connection_profile_h profile, 
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
+	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV4)
+		*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr[order-1],
+				address_family);
+	else if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
+		*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr6[order-1],
+				address_family);
+	else
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid address family\n");
 
-	*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr[order-1]);
 	if (*dns_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
 
@@ -600,27 +657,16 @@ EXPORT_API int connection_profile_get_proxy_address(connection_profile_h profile
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6) ||
 	     proxy_address == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	const char *proxy;
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
-
-	if (profile_info->profile_type == NET_DEVICE_ETHERNET) {
-		proxy = __profile_get_ethernet_proxy();
-		if (proxy == NULL)
-			return CONNECTION_ERROR_OPERATION_FAILED;
-
-		*proxy_address = g_strdup(proxy);
-	} else
-		*proxy_address = g_strdup(net_info->ProxyAddr);
+	*proxy_address = g_strdup(net_info->ProxyAddr);
 
 	if (*proxy_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
@@ -631,10 +677,12 @@ EXPORT_API int connection_profile_get_proxy_address(connection_profile_h profile
 EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profile,
 		connection_address_family_e address_family, connection_ip_config_type_e type)
 {
+	net_ip_config_type_t *profile_type = NULL;
+
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6)) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -643,30 +691,60 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
+	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV4)
+		profile_type = &net_info->IpConfigType ;
+	else
+		profile_type = &net_info->IpConfigType6 ;
 
-	switch (type) {
-	case CONNECTION_IP_CONFIG_TYPE_STATIC:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_STATIC;
-		net_info->IpAddr.Data.Ipv4.s_addr = 0;
-		net_info->SubnetMask.Data.Ipv4.s_addr = 0;
-		net_info->GatewayAddr.Data.Ipv4.s_addr = 0;
-		break;
-	case CONNECTION_IP_CONFIG_TYPE_DYNAMIC:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_DYNAMIC;
-		break;
-	case CONNECTION_IP_CONFIG_TYPE_AUTO:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_AUTO_IP;
-		break;
-	case CONNECTION_IP_CONFIG_TYPE_FIXED:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_FIXED;
-		break;
-	case CONNECTION_IP_CONFIG_TYPE_NONE:
-		net_info->IpConfigType = NET_IP_CONFIG_TYPE_OFF;
-		break;
-	default:
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV4) {
+		switch (type) {
+		case CONNECTION_IP_CONFIG_TYPE_STATIC:
+			*profile_type = NET_IP_CONFIG_TYPE_STATIC;
+			net_info->IpAddr.Data.Ipv4.s_addr = 0;
+			net_info->SubnetMask.Data.Ipv4.s_addr = 0;
+			net_info->GatewayAddr.Data.Ipv4.s_addr = 0 ;
+			break;
+
+		case CONNECTION_IP_CONFIG_TYPE_DYNAMIC:
+			*profile_type = NET_IP_CONFIG_TYPE_DYNAMIC;
+			break;
+
+		case CONNECTION_IP_CONFIG_TYPE_AUTO:
+			*profile_type = NET_IP_CONFIG_TYPE_AUTO_IP;
+			break;
+
+		case CONNECTION_IP_CONFIG_TYPE_FIXED:
+			net_info->IpConfigType = NET_IP_CONFIG_TYPE_FIXED;
+			break;
+
+		case CONNECTION_IP_CONFIG_TYPE_NONE:
+			*profile_type = NET_IP_CONFIG_TYPE_OFF;
+			break;
+
+		default:
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		}
+	} else {
+		switch (type) {
+		case CONNECTION_IP_CONFIG_TYPE_STATIC:
+			*profile_type = NET_IP_CONFIG_TYPE_STATIC;
+			inet_pton(AF_INET6, "::", &net_info->IpAddr6.Data.Ipv6);
+			net_info->PrefixLen6 = 0 ;
+			inet_pton(AF_INET6, "::",
+					&net_info->GatewayAddr6.Data.Ipv6);
+			break;
+
+		case CONNECTION_IP_CONFIG_TYPE_AUTO:
+			*profile_type = NET_IP_CONFIG_TYPE_AUTO_IP;
+			break;
+
+		case CONNECTION_IP_CONFIG_TYPE_NONE:
+			*profile_type = NET_IP_CONFIG_TYPE_OFF;
+			break;
+
+		default:
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		}
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -674,11 +752,11 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 
 EXPORT_API int connection_profile_set_ip_address(connection_profile_h profile,
 		connection_address_family_e address_family, const char* ip_address)
-{
+{	
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6)) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -687,24 +765,30 @@ EXPORT_API int connection_profile_set_ip_address(connection_profile_h profile,
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
-
-	if (ip_address == NULL)
-		net_info->IpAddr.Data.Ipv4.s_addr = 0;
-	else if (inet_aton(ip_address, &(net_info->IpAddr.Data.Ipv4)) == 0)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		if (ip_address == NULL)
+			inet_pton(AF_INET6, "::", &net_info->IpAddr6.Data.Ipv6);
+		else if (inet_pton(AF_INET6, ip_address,
+					&net_info->IpAddr6.Data.Ipv6) < 1)
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+	} else {
+		if (ip_address == NULL)
+			net_info->IpAddr.Data.Ipv4.s_addr = 0;
+		else if (inet_pton(AF_INET, ip_address,
+					&net_info->IpAddr.Data.Ipv4) < 1)
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	return CONNECTION_ERROR_NONE;
 }
 
 EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 		connection_address_family_e address_family, const char* subnet_mask)
-{
+{	
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6)) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -713,13 +797,17 @@ EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
-
-	if (subnet_mask == NULL)
-		net_info->SubnetMask.Data.Ipv4.s_addr = 0;
-	else if (inet_aton(subnet_mask, &(net_info->SubnetMask.Data.Ipv4)) == 0)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		if (subnet_mask == NULL)
+			net_info->PrefixLen6 = 0 ;
+		else
+			net_info->PrefixLen6 = atoi(subnet_mask) ;
+	} else {
+		if (subnet_mask == NULL)
+			net_info->SubnetMask.Data.Ipv4.s_addr = 0;
+		else if (inet_pton(AF_INET, subnet_mask , &net_info->SubnetMask.Data.Ipv4)  < 1 )
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -730,7 +818,7 @@ EXPORT_API int connection_profile_set_gateway_address(connection_profile_h profi
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6)) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -739,13 +827,17 @@ EXPORT_API int connection_profile_set_gateway_address(connection_profile_h profi
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
-
-	if (gateway_address == NULL)
-		net_info->GatewayAddr.Data.Ipv4.s_addr = 0;
-	else if (inet_aton(gateway_address, &(net_info->GatewayAddr.Data.Ipv4)) == 0)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		if (gateway_address == NULL)
+			inet_pton(AF_INET6, "::", &net_info->GatewayAddr6.Data.Ipv6);
+		else if (inet_pton(AF_INET6, gateway_address, &net_info->GatewayAddr6.Data.Ipv6) < 1)
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+	} else {
+		if (gateway_address == NULL)
+			net_info->GatewayAddr.Data.Ipv4.s_addr = 0;
+		else if (inet_pton(AF_INET, gateway_address, &(net_info->GatewayAddr.Data.Ipv4)) < 1)
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -758,7 +850,7 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6) ||
 	    order <= 0 ||
 	    order > NET_DNS_ADDR_MAX) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -767,16 +859,23 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
-
-	if (dns_address == NULL)
-		net_info->DnsAddr[order-1].Data.Ipv4.s_addr = 0;
-	else if (inet_aton(dns_address, &(net_info->DnsAddr[order-1].Data.Ipv4)) == 0)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
-
-	if (net_info->DnsCount < order)
-		net_info->DnsCount = order;
+	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		net_info->DnsAddr6[order-1].Type = NET_ADDR_IPV6;
+		if (dns_address == NULL)
+			inet_pton(AF_INET6, "::", &net_info->DnsAddr6[order-1].Data.Ipv6);
+		else if (inet_pton(AF_INET6, dns_address, &net_info->DnsAddr6[order-1].Data.Ipv6) < 1)
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		if (net_info->DnsCount6 < order)
+			net_info->DnsCount6 = order;
+	} else {
+		net_info->DnsAddr[order-1].Type = NET_ADDR_IPV4;
+		if (dns_address == NULL)
+			net_info->DnsAddr[order-1].Data.Ipv4.s_addr = 0;
+		else if (inet_pton(AF_INET, dns_address, &(net_info->DnsAddr[order-1].Data.Ipv4)) < 1)
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		if (net_info->DnsCount < order)
+			net_info->DnsCount = order;
+	}
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -816,7 +915,7 @@ EXPORT_API int connection_profile_set_proxy_address(connection_profile_h profile
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
 	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6)) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -824,9 +923,6 @@ EXPORT_API int connection_profile_set_proxy_address(connection_profile_h profile
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
-
-	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
 
 	if (proxy_address == NULL)
 		net_info->ProxyAddr[0] = '\0';
