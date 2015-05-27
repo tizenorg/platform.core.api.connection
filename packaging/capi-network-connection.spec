@@ -1,6 +1,6 @@
 Name:       capi-network-connection
 Summary:    Network Connection library in TIZEN C API
-Version:    0.1.3_21
+Version:    0.1.3_22
 Release:    1
 Group:      System/Network
 License:    Apache-2.0
@@ -53,6 +53,7 @@ cp LICENSE.APLv2 %{buildroot}%{_datadir}/license/capi-network-connection
 %manifest %{name}.manifest
 %attr(644,-,-) %{_libdir}/libcapi-network-connection.so.*
 %{_datadir}/license/capi-network-connection
+%{_bindir}/connection_test
 
 %files devel
 %manifest %{name}.manifest
