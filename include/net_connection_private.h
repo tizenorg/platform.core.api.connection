@@ -126,6 +126,8 @@ int _connection_libnet_set_cellular_service_profile_async(connection_cellular_se
 int _connection_libnet_close_profile(connection_profile_h profile, connection_closed_cb callback, void *user_data);
 int _connection_libnet_add_route(const char *interface_name, const char *host_address);
 int _connection_libnet_remove_route(const char *interface_name, const char *host_address);
+int _connection_libnet_add_route_ipv6(const char *interface_name, const char *host_address, const char * gateway);
+int _connection_libnet_remove_route_ipv6(const char *interface_name, const char *host_address, const char * gateway);
 void _connection_libnet_add_to_profile_list(connection_profile_h profile);
 void _connection_libnet_remove_from_profile_list(connection_profile_h profile);
 bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,

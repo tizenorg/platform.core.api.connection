@@ -377,28 +377,26 @@ EXPORT_API int connection_get_type(connection_h connection, connection_type_e* t
 }
 
 EXPORT_API int connection_get_ip_address(connection_h connection,
-				connection_address_family_e address_family, char** ip_address)
+					 connection_address_family_e address_family, char **ip_address)
 {
 	if (ip_address == NULL || !(__connection_check_handle_validity(connection))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	switch (address_family) {
 	case CONNECTION_ADDRESS_FAMILY_IPV4:
+	case CONNECTION_ADDRESS_FAMILY_IPV6:
 		*ip_address = vconf_get_str(VCONFKEY_NETWORK_IP);
 		break;
-	case CONNECTION_ADDRESS_FAMILY_IPV6:
-		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
-		break;
+
 	default:
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	if (*ip_address == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
@@ -406,28 +404,26 @@ EXPORT_API int connection_get_ip_address(connection_h connection,
 }
 
 EXPORT_API int connection_get_proxy(connection_h connection,
-				connection_address_family_e address_family, char** proxy)
+				    connection_address_family_e address_family, char **proxy)
 {
 	if (proxy == NULL || !(__connection_check_handle_validity(connection))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	switch (address_family) {
 	case CONNECTION_ADDRESS_FAMILY_IPV4:
+	case CONNECTION_ADDRESS_FAMILY_IPV6:
 		*proxy = vconf_get_str(VCONFKEY_NETWORK_PROXY);
 		break;
-	case CONNECTION_ADDRESS_FAMILY_IPV6:
-		CONNECTION_LOG(CONNECTION_ERROR, "Not supported yet\n");
-		return CONNECTION_ERROR_ADDRESS_FAMILY_NOT_SUPPORTED;
-		break;
+
 	default:
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	if (*proxy == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
@@ -901,6 +897,28 @@ EXPORT_API int connection_remove_route(connection_h connection, const char* inte
 	}
 
 	return _connection_libnet_remove_route(interface_name, host_address);
+}
+
+EXPORT_API int connection_add_route_ipv6(connection_h connection, const char *interface_name, const char *host_address, const char * gateway)
+{
+	if (!(__connection_check_handle_validity(connection)) ||
+	    interface_name == NULL || host_address == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_add_route_ipv6(interface_name, host_address, gateway);
+}
+
+EXPORT_API int connection_remove_route_ipv6(connection_h connection, const char *interface_name, const char *host_address, const char * gateway)
+{
+	if (!(__connection_check_handle_validity(connection)) ||
+	    interface_name == NULL || host_address == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_remove_route_ipv6(interface_name, host_address, gateway);
 }
 
 /* Connection Statistics module ******************************************************************/

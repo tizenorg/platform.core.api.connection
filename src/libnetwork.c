@@ -18,6 +18,7 @@
 #include <string.h>
 #include <glib.h>
 #include <vconf/vconf.h>
+#include <arpa/inet.h>
 
 #include "net_connection_private.h"
 
@@ -393,6 +394,18 @@ static void __libnet_evt_cb(net_event_info_t*  event_cb, void* user_data)
 		CONNECTION_LOG(CONNECTION_ERROR, "Error! Unknown Event\n\n");
 		break;
 	}
+}
+
+static int __libnet_check_address_type(int address_family, const char *address)
+{
+	struct in6_addr buf;
+	int err = 0;
+
+	err = inet_pton(address_family, address, &buf);
+	if(err > 0)
+		return 1;
+
+	return 0;
 }
 
 int __libnet_get_connected_count(struct _profile_list_s *profile_list)
@@ -936,18 +949,30 @@ int _connection_libnet_close_profile(connection_profile_h profile, connection_cl
 int _connection_libnet_add_route(const char *interface_name, const char *host_address)
 {
 	int rv;
-	char *endstr = strrchr(host_address, '.');
+	char *endstr = NULL;
+	int address_family = 0;
 
-	if (endstr == NULL ||
-	    strcmp(endstr, ".0") == 0 ||
-	    strncmp(host_address, "0.", 2) == 0 ||
-	    strstr(host_address, ".0.") != NULL ||
-	    strstr(host_address, "255") != NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
+	if(__libnet_check_address_type(AF_INET, host_address))
+		address_family = AF_INET;
+	else
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	switch(address_family) {
+		case AF_INET:
+			endstr = strrchr(host_address, '.');
+			if (endstr == NULL ||
+					strcmp(endstr, ".0") == 0 ||
+					strncmp(host_address, "0.", 2) == 0 ||
+					strstr(host_address, "255") != NULL) {
+				CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
+				return CONNECTION_ERROR_INVALID_PARAMETER;
+			}
+			break;
+		default:
+			return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
-	rv = net_add_route(host_address, interface_name);
+	rv = net_add_route(host_address, interface_name, address_family);
 	if (rv == NET_ERR_ACCESS_DENIED) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
 		return CONNECTION_ERROR_PERMISSION_DENIED;
@@ -961,17 +986,97 @@ int _connection_libnet_remove_route(const char *interface_name, const char *host
 {
 	int rv;
 	char *endstr = strrchr(host_address, '.');
+	int address_family = 0;
 
-	if (endstr == NULL ||
-	    strcmp(endstr, ".0") == 0 ||
-	    strncmp(host_address, "0.", 2) == 0 ||
-	    strstr(host_address, ".0.") != NULL ||
-	    strstr(host_address, "255") != NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed");
+	if (__libnet_check_address_type(AF_INET, host_address))
+		address_family = AF_INET;
+	else
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+
+	switch(address_family) {
+		case AF_INET:
+			endstr = strrchr(host_address, '.');
+			if (endstr == NULL ||
+				strcmp(endstr, ".0") == 0 ||
+				strncmp(host_address, "0.", 2) == 0 ||
+				strstr(host_address, ".0.") != NULL ||strstr(host_address, "255") != NULL) {
+				CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed");
+				return CONNECTION_ERROR_INVALID_PARAMETER;
+			}
+			break;
+		default:
+			return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
-	rv = net_remove_route(host_address, interface_name);
+	rv = net_remove_route(host_address, interface_name, address_family);
+	if (rv == NET_ERR_ACCESS_DENIED) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		return CONNECTION_ERROR_PERMISSION_DENIED;
+	} else if (rv != NET_ERR_NONE)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+int _connection_libnet_add_route_ipv6(const char *interface_name, const char *host_address, const char *gateway)
+{
+	int rv;
+	int address_family = 0;
+
+	address_family = AF_INET6;
+/*	if(__libnet_check_address_type(AF_INET6, host_address))
+		address_family = AF_INET6;
+	else
+		return CONNECTION_ERROR_INVALID_PARAMETER;*/
+
+	switch(address_family) {
+		case AF_INET6:
+			if (strncmp(host_address, "fe80:", 5) == 0 ||
+				strncmp(host_address, "ff00:", 5) == 0 ||
+				strncmp(host_address, "::", 2) == 0) {
+				CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
+				return CONNECTION_ERROR_INVALID_PARAMETER;
+			}
+			break;
+		default:
+			return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	rv = net_add_route_ipv6(host_address, interface_name, address_family, gateway);
+	if (rv == NET_ERR_ACCESS_DENIED) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		return CONNECTION_ERROR_PERMISSION_DENIED;
+	} else if (rv != NET_ERR_NONE)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+int _connection_libnet_remove_route_ipv6(const char *interface_name, const char *host_address, const char *gateway)
+{
+	int rv;
+	int address_family = 0;
+
+	address_family = AF_INET6;
+/*	if (__libnet_check_address_type(AF_INET6, host_address))
+		address_family = AF_INET6;
+	else
+		return CONNECTION_ERROR_INVALID_PARAMETER;*/
+
+	switch(address_family) {
+		case AF_INET6:
+			if (strncmp(host_address, "fe80:", 5) == 0 ||
+				strncmp(host_address, "ff00:", 5) == 0 ||
+				strncmp(host_address, "::", 2) == 0) {
+				CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
+				return CONNECTION_ERROR_INVALID_PARAMETER;
+			}
+			break;
+		default:
+			return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	rv = net_remove_route_ipv6(host_address, interface_name, address_family, gateway);
 	if (rv == NET_ERR_ACCESS_DENIED) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
 		return CONNECTION_ERROR_PERMISSION_DENIED;
