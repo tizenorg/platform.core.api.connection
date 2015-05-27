@@ -34,6 +34,10 @@ extern "C" {
 #define CONNECTION_ERROR	2
 #define CONNECTION_WARN		3
 
+#define CONNECTION_MAC_INFO_LENGTH	17
+#define ETHERNET_MAC_INFO_FILE		"/sys/class/net/eth0/address"
+#define WIFI_MAC_INFO_FILE			"/sys/class/net/wlan0/address"
+
 typedef enum
 {
 	FEATURE_TYPE_TELEPHONY = 0,
@@ -81,23 +85,29 @@ typedef enum
 #define VCONF_TELEPHONY_DEFAULT_DATA_SERVICE \
 			"db/telephony/dualsim/default_data_service"
 
-bool _connection_is_created(void);
-
-typedef struct _connection_handle_s
-{
+typedef struct _connection_handle_s {
 	connection_type_changed_cb type_changed_callback;
 	connection_address_changed_cb ip_changed_callback;
 	connection_address_changed_cb proxy_changed_callback;
-	void *state_changed_user_data;
+	connection_ethernet_cable_state_chaged_cb ethernet_cable_state_changed_callback;
+	void *type_changed_user_data;
 	void *ip_changed_user_data;
 	void *proxy_changed_user_data;
+	void *ethernet_cable_state_changed_user_data;
 } connection_handle_s;
 
+typedef void(*libnet_ethernet_cable_state_changed_cb)
+		(connection_ethernet_cable_state_e state);
+
+bool _connection_is_created(void);
 
 int _connection_libnet_init(void);
 bool _connection_libnet_deinit(void);
 int _connection_libnet_get_wifi_state(connection_wifi_state_e *state);
 int _connection_libnet_get_ethernet_state(connection_ethernet_state_e *state);
+int _connection_libnet_get_ethernet_cable_state(connection_ethernet_cable_state_e* state);
+int _connection_libnet_set_ethernet_cable_state_changed_cb(
+				libnet_ethernet_cable_state_changed_cb callback);
 int _connection_libnet_get_bluetooth_state(connection_bt_state_e* state);
 bool _connection_libnet_check_profile_validity(connection_profile_h profile);
 bool _connection_libnet_check_profile_cb_validity(connection_profile_h profile);

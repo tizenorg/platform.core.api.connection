@@ -189,6 +189,15 @@ static void test_connection_set_default_callback(connection_error_e result, void
 		printf("Default profile setting Failed, err : %d\n", result);
 }
 
+void test_get_ethernet_cable_state_callback(connection_ethernet_cable_state_e state,
+								void* user_data)
+{
+	if(state == CONNECTION_ETHERNET_CABLE_ATTACHED)
+		printf("Ethernet Cable Connected\n");
+	else if(state == CONNECTION_ETHERNET_CABLE_DETACHED)
+		printf("Ethernet Cable Disconnected\n");
+}
+
 static bool test_get_user_selected_profile(connection_profile_h *profile, bool select)
 {
 	int rv = 0;
@@ -717,6 +726,8 @@ int test_register_client(void)
 		connection_set_type_changed_cb(connection, test_type_changed_callback, NULL);
 		connection_set_ip_address_changed_cb(connection, test_ip_changed_callback, NULL);
 		connection_set_proxy_address_changed_cb(connection, test_proxy_changed_callback, NULL);
+		connection_set_ethernet_cable_state_chaged_cb(connection,
+					test_get_ethernet_cable_state_callback, NULL);
 	} else {
 		printf("Client registration failed %d\n", err);
 		return -1;
@@ -1498,6 +1509,57 @@ int test_get_profile_id(void)
 	return 1;
 }
 
+int test_get_mac_address(void)
+{
+	int rv = 0, type = 0;
+	connection_type_e conn_type;
+	char *mac_addr = NULL;
+
+	test_get_user_int("Input connection type (1:wifi, 2:ethernet)", &type);
+
+	switch (type) {
+	case 1:
+		conn_type = CONNECTION_TYPE_WIFI;
+		break;
+	case 2:
+		conn_type = CONNECTION_TYPE_ETHERNET;
+		break;
+	default:
+		printf("Wrong number!!\n");
+		return -1;
+	}
+
+	rv = connection_get_mac_address(connection, conn_type, &mac_addr);
+
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to get MAC address [%s]\n", test_print_error(rv));
+		return -1;
+	}
+
+	printf("mac address is %s\n", mac_addr);
+
+	g_free(mac_addr);
+
+	return 1;
+}
+
+int test_get_ethernet_cable_state(void)
+{
+	int rv = 0;
+	connection_ethernet_cable_state_e cable_state;
+
+	rv = connection_get_ethernet_cable_state(connection, &cable_state);
+
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to get ethernet cable state [%s]\n", test_print_error(rv));
+		return -1;
+	}
+
+	printf("Retval = [%s], Ethernet cable state [%d]\n", test_print_error(rv), cable_state);
+
+	return 1;
+}
+
 int test_reset_profile(void)
 {
 	int type, sim_id, rv;
@@ -1584,8 +1646,13 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		printf("o 	- Reset cellular data call statistics\n");
 		printf("p 	- Reset WiFi data call statistics\n");
 		printf("q 	- Add new route\n");
-		printf("r 	- Get Bluetooth state\n");
-		printf("s 	- Get profile id\n");
+		printf("r 	- Remove a route\n");
+		printf("s 	- Get Bluetooth state\n");
+		printf("t 	- Get profile id\n");
+		printf("u 	- Reset profile\n");
+		printf("v 	- Get all cellular default profiles\n");
+		printf("w 	- Get mac address\n");
+		printf("x 	- Get ethernet cable state\n");
 		printf("0 	- Exit \n");
 		printf("ENTER  - Show options menu.......\n");
 	}
@@ -1683,6 +1750,12 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		break;
 	case 'v':
 		rv = test_get_default_profile_list();
+		break;
+	case 'w':
+		rv = test_get_mac_address();
+		break;
+	case 'x':
+		rv = test_get_ethernet_cable_state();
 		break;
 	}
 

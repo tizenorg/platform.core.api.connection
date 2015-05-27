@@ -41,6 +41,7 @@ struct _libnet_s {
 	connection_closed_cb closed_cb;
 	connection_set_default_cb set_default_cb;
 	connection_reset_cb reset_profile_cb;
+	libnet_ethernet_cable_state_changed_cb ethernet_cable_state_changed_cb;
 	void *opened_user_data;
 	void *closed_user_data;
 	void *set_default_user_data;
@@ -242,6 +243,19 @@ static void __libnet_default_cb(connection_error_e result)
 	libnet.set_default_user_data = NULL;
 }
 
+static void __libnet_set_ethernet_cable_state_changed_cb(
+		libnet_ethernet_cable_state_changed_cb user_cb)
+{
+	libnet.ethernet_cable_state_changed_cb = user_cb;
+}
+
+static void __libnet_ethernet_cable_state_changed_cb(
+		connection_ethernet_cable_state_e state)
+{
+	if (libnet.ethernet_cable_state_changed_cb)
+		libnet.ethernet_cable_state_changed_cb(state);
+}
+
 static void __libnet_state_changed_cb(char *profile_name, connection_profile_state_e state)
 {
 	if (profile_name == NULL)
@@ -366,6 +380,15 @@ static void __libnet_evt_cb(net_event_info_t*  event_cb, void* user_data)
 		result = __libnet_convert_to_cp_error_type(event_cb->Error);
 		CONNECTION_LOG(CONNECTION_INFO, "Got reset default profile RSP %d", result);
 		__libnet_reset_profile_cb(result);
+
+	case NET_EVENT_ETHERNET_CABLE_ATTACHED:
+		CONNECTION_LOG(CONNECTION_INFO, "Got Ethernet cable Attached Indication\n");
+		__libnet_ethernet_cable_state_changed_cb(CONNECTION_ETHERNET_CABLE_ATTACHED);
+		break;
+	case NET_EVENT_ETHERNET_CABLE_DETACHED:
+		CONNECTION_LOG(CONNECTION_INFO, "Got Ethernet cable detached Indication\n");
+		__libnet_ethernet_cable_state_changed_cb(CONNECTION_ETHERNET_CABLE_DETACHED);
+		break;
 	default :
 		CONNECTION_LOG(CONNECTION_ERROR, "Error! Unknown Event\n\n");
 		break;
@@ -533,6 +556,35 @@ int _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
 	}
 
 	__libnet_clear_profile_list(&ethernet_profiles);
+
+	return CONNECTION_ERROR_NONE;
+}
+
+int _connection_libnet_get_ethernet_cable_state(connection_ethernet_cable_state_e* state)
+{
+	int rv = 0;
+	int status = 0;
+
+	rv = net_get_ethernet_cable_state(&status);
+	if (rv == NET_ERR_ACCESS_DENIED) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		return CONNECTION_ERROR_PERMISSION_DENIED;
+	} else if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get ethernet cable state[%d]", rv);
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	if(status == 1)
+		*state = CONNECTION_ETHERNET_CABLE_ATTACHED;
+	else
+		*state = CONNECTION_ETHERNET_CABLE_DETACHED;
+	return CONNECTION_ERROR_NONE;
+}
+
+int _connection_libnet_set_ethernet_cable_state_changed_cb(
+		libnet_ethernet_cable_state_changed_cb callback)
+{
+	__libnet_set_ethernet_cable_state_changed_cb(callback);
 
 	return CONNECTION_ERROR_NONE;
 }

@@ -126,6 +126,16 @@ typedef enum
 } connection_reset_option_e;
 
 /**
+ * @brief This enumeration defines the attached or detached state of ethernet cable.
+ * @since_tizen 2.4
+ */
+typedef enum
+{
+    CONNECTION_ETHERNET_CABLE_DETACHED = 0,  /**< Ethernet cable is detached */
+    CONNECTION_ETHERNET_CABLE_ATTACHED = 1,  /**< Ethernet cable is attached */
+} connection_ethernet_cable_state_e;
+
+/**
  * @brief Enumeration for connection errors.
  * @since_tizen 2.3
  */
@@ -282,6 +292,23 @@ int connection_get_ip_address(connection_h connection, connection_address_family
 int connection_get_proxy(connection_h connection, connection_address_family_e address_family, char** proxy);
 
 /**
+ * @brief Gets the MAC address of the Wi-Fi or ethernet.
+ * @since_tizen 2.4
+ * @remarks @a mac_addr must be released with free() by you.
+ * @param[in] connection  The handle of the connection
+ * @param[in] type  The type of current network connection
+ * @param[out] mac_addr  The MAC address
+ * @return 0 on success, otherwise negative error value.
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_INVALID_OPERATION   Invalid operation
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED  Not supported
+ * @retval #CONNECTION_ERROR_OUT_OF_MEMORY  Out of memory
+ */
+int connection_get_mac_address(connection_h connection, connection_type_e type, char** mac_addr);
+
+/**
  * @brief Gets the state of cellular connection.
  * @details The returned state is for the cellular connection state.
  * @since_tizen 2.3
@@ -328,6 +355,58 @@ int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* 
  * @retval #CONNECTION_ERROR_NOT_SUPPORTED	Not supported
  */
 int connection_get_ethernet_state(connection_h connection, connection_ethernet_state_e* state);
+
+/**
+* @brief Checks for ethernet cable is attached or not.
+* @details The returned state is for the ethernet cable state.
+* @since_tizen 2.4
+* @privlevel public
+* @privilege %http://tizen.org/privilege/network.get
+* @param[in] connection  The handle of the connection
+* @param[in] state - Enum connection_ethernet_cable_state_e
+* @return 0 on success, otherwise negative error value
+* @retval #CONNECTION_ERROR_NONE  Successful
+* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #CONNECTION_ERROR_OPERATION_FAILED Operation failed
+* @retval #CONNECTION_ERROR_NOT_SUPPORTED  Not supported
+* @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+*/
+int connection_get_ethernet_cable_state(connection_h connection, connection_ethernet_cable_state_e *state);
+
+/**
+ * @brief Called when ethernet cable is plugged [in/out].
+ * @since_tizen 2.4
+ * @param[in] state The ethernet cable state (connection_ethernet_cable_state_e)
+ * @param[in] user_data The user data passed to callback registration function
+ */
+typedef void(*connection_ethernet_cable_state_chaged_cb)(
+			connection_ethernet_cable_state_e state, void* user_data);
+
+/**
+ * @brief Registers callback for ethernet cable is plugged [in/out] event.
+ * @since_tizen 2.4
+ * @param[in] callback  The callback function to be called
+ * @param[in] user_data The user data passed to the callback function
+ * @return 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE   Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED   Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED  Not supported
+ */
+int connection_set_ethernet_cable_state_chaged_cb( connection_h connection,
+		connection_ethernet_cable_state_chaged_cb callback, void *user_data);
+
+/**
+ * @brief Unregisters callback for ethernet cable is plugged [in/out] event.
+ * @since_tizen 2.4
+ * @param[in] connection  The handle of connection
+ * @return 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE  Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED  Not supported
+ */
+int connection_unset_ethernet_cable_state_chaged_cb(connection_h connection);
 
 /**
  * @brief Gets the state of the Bluetooth.

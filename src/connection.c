@@ -97,6 +97,33 @@ static int __connection_get_proxy_changed_callback_count(void)
 	return count;
 }
 
+static void __connection_cb_ethernet_cable_state_changed_cb(connection_ethernet_cable_state_e state)
+{
+	CONNECTION_LOG(CONNECTION_INFO, "Ethernet Cable state Indication");
+
+	GSList *list;
+
+	for (list = conn_handle_list; list; list = list->next) {
+		connection_handle_s *local_handle = (connection_handle_s *)list->data;
+		if (local_handle->ethernet_cable_state_changed_callback)
+			local_handle->ethernet_cable_state_changed_callback(state,
+					local_handle->ethernet_cable_state_changed_user_data);
+	}
+}
+
+static int __connection_get_ethernet_cable_state_changed_callback_count(void)
+{
+	GSList *list;
+	int count = 0;
+
+	for (list = conn_handle_list; list; list = list->next) {
+		connection_handle_s *local_handle = (connection_handle_s *)list->data;
+		if (local_handle->ethernet_cable_state_changed_callback) count++;
+	}
+
+	return count;
+}
+
 static int __connection_set_type_changed_callback(connection_h connection,
 							void *callback, void *user_data)
 {
@@ -108,7 +135,7 @@ static int __connection_set_type_changed_callback(connection_h connection,
 					__connection_cb_state_change_cb, NULL))
 				return CONNECTION_ERROR_OPERATION_FAILED;
 
-		local_handle->state_changed_user_data = user_data;
+		local_handle->type_changed_user_data = user_data;
 	} else {
 		if (local_handle->type_changed_callback &&
 		    __connection_get_type_changed_callback_count() == 1)
@@ -181,7 +208,7 @@ static void __connection_cb_state_change_cb(keynode_t *node, void *user_data)
 		if (local_handle->type_changed_callback)
 			local_handle->type_changed_callback(
 					__connection_convert_net_state(state),
-					local_handle->state_changed_user_data);
+					local_handle->type_changed_user_data);
 	}
 }
 
@@ -228,6 +255,26 @@ static bool __connection_check_handle_validity(connection_h connection)
 		ret = true;
 
 	return ret;
+}
+
+static int __connection_set_ethernet_cable_state_changed_cb(connection_h connection,
+		connection_ethernet_cable_state_chaged_cb callback, void *user_data)
+{
+	connection_handle_s *local_handle = (connection_handle_s *)connection;
+
+	if (callback) {
+		if (__connection_get_ethernet_cable_state_changed_callback_count() == 0)
+			_connection_libnet_set_ethernet_cable_state_changed_cb(
+					__connection_cb_ethernet_cable_state_changed_cb);
+
+	} else {
+		if (__connection_get_ethernet_cable_state_changed_callback_count() == 1)
+			_connection_libnet_set_ethernet_cable_state_changed_cb(NULL);
+	}
+
+	local_handle->ethernet_cable_state_changed_callback = callback;
+	local_handle->ethernet_cable_state_changed_user_data = user_data;
+	return CONNECTION_ERROR_NONE;
 }
 
 static int __connection_get_handle_count(void)
@@ -295,6 +342,7 @@ EXPORT_API int connection_destroy(connection_h connection)
 	__connection_set_type_changed_callback(connection, NULL, NULL);
 	__connection_set_ip_changed_callback(connection, NULL, NULL);
 	__connection_set_proxy_changed_callback(connection, NULL, NULL);
+	__connection_set_ethernet_cable_state_changed_cb(connection, NULL, NULL);
 
 	conn_handle_list = g_slist_remove(conn_handle_list, connection);
 
@@ -386,6 +434,84 @@ EXPORT_API int connection_get_proxy(connection_h connection,
 	return CONNECTION_ERROR_NONE;
 }
 
+EXPORT_API int connection_get_mac_address(connection_h connection, connection_type_e type, char** mac_addr)
+{
+	FILE *fp;
+	char buf[CONNECTION_MAC_INFO_LENGTH + 1];
+
+	if (mac_addr == NULL || !(__connection_check_handle_validity(connection))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	switch (type) {
+	case CONNECTION_TYPE_WIFI:
+		fp = fopen(WIFI_MAC_INFO_FILE, "r");
+		if (fp == NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to open file %s", WIFI_MAC_INFO_FILE);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+
+		if (fgets(buf, sizeof(buf), fp) == NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get MAC info from %s", WIFI_MAC_INFO_FILE);
+			fclose(fp);
+			return CONNECTION_ERROR_OPERATION_FAILED;
+		}
+
+		CONNECTION_LOG(CONNECTION_INFO, "%s : %s", WIFI_MAC_INFO_FILE, buf);
+
+		*mac_addr = (char *)malloc(CONNECTION_MAC_INFO_LENGTH + 1);
+		if (*mac_addr == NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR, "malloc() failed");
+			fclose(fp);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+		g_strlcpy(*mac_addr, buf, CONNECTION_MAC_INFO_LENGTH + 1);
+		fclose(fp);
+		break;
+	case CONNECTION_TYPE_ETHERNET:
+		fp = fopen(ETHERNET_MAC_INFO_FILE, "r");
+		if (fp == NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to open file %s", ETHERNET_MAC_INFO_FILE);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+
+		if (fgets(buf, sizeof(buf), fp) == NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get MAC info from %s", ETHERNET_MAC_INFO_FILE);
+			fclose(fp);
+			return CONNECTION_ERROR_OPERATION_FAILED;
+		}
+
+		CONNECTION_LOG(CONNECTION_INFO, "%s : %s", ETHERNET_MAC_INFO_FILE, buf);
+
+		*mac_addr = (char *)malloc(CONNECTION_MAC_INFO_LENGTH + 1);
+		if (*mac_addr == NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR, "malloc() failed");
+			fclose(fp);
+			return CONNECTION_ERROR_OUT_OF_MEMORY;
+		}
+
+		g_strlcpy(*mac_addr, buf,CONNECTION_MAC_INFO_LENGTH + 1);
+		fclose(fp);
+
+		break;
+	default:
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	/* Checking Invalid MAC Address */
+	if((strcmp(*mac_addr, "00:00:00:00:00:00") == 0) ||
+			(strcmp(*mac_addr, "ff:ff:ff:ff:ff:ff") == 0)) {
+		CONNECTION_LOG(CONNECTION_ERROR, "MAC Address(%s) is invalid", *mac_addr);
+		return CONNECTION_ERROR_INVALID_OPERATION;
+	}
+
+	CONNECTION_LOG(CONNECTION_INFO, "MAC Address %s", *mac_addr);
+
+	return CONNECTION_ERROR_NONE;
+}
+
 EXPORT_API int connection_get_cellular_state(connection_h connection, connection_cellular_state_e* state)
 {
 	int status = 0;
@@ -450,6 +576,39 @@ EXPORT_API int connection_get_ethernet_state(connection_h connection, connection
 	}
 
 	return _connection_libnet_get_ethernet_state(state);
+}
+
+EXPORT_API int connection_get_ethernet_cable_state(connection_h connection, connection_ethernet_cable_state_e *state)
+{
+	if (state == NULL || !(__connection_check_handle_validity(connection))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return _connection_libnet_get_ethernet_cable_state(state);
+}
+
+EXPORT_API int connection_set_ethernet_cable_state_chaged_cb(connection_h connection,
+			  connection_ethernet_cable_state_chaged_cb callback, void *user_data)
+{
+	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return __connection_set_ethernet_cable_state_changed_cb(connection,
+							callback, user_data);
+}
+
+EXPORT_API int connection_unset_ethernet_cable_state_chaged_cb(connection_h connection)
+{
+	if ( !(__connection_check_handle_validity(connection)) ) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return __connection_set_ethernet_cable_state_changed_cb(connection,
+							NULL, NULL);
 }
 
 EXPORT_API int connection_get_bt_state(connection_h connection, connection_bt_state_e* state)
