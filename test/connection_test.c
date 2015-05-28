@@ -1190,6 +1190,10 @@ int test_update_profile(void)
 
 		break;
 	case CONNECTION_PROFILE_TYPE_ETHERNET:
+		if (test_update_network_info(profile) == -1)
+			return -1;
+		
+		break;
 	case CONNECTION_PROFILE_TYPE_BT:
 		printf("Not supported!\n");
 		/* fall through */
