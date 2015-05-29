@@ -17,3 +17,5 @@ FOREACH(src ${sources})
     ADD_EXECUTABLE(${src_name} ${src})
     TARGET_LINK_LIBRARIES(${src_name} ${fw_name} ${${fw_test}_LDFLAGS})
 ENDFOREACH()
+
+INSTALL(TARGETS connection_test RUNTIME DESTINATION bin/)

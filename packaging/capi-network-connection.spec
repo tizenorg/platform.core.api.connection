@@ -53,6 +53,7 @@ cp LICENSE.APLv2 %{buildroot}%{_datadir}/license/capi-network-connection
 %manifest %{name}.manifest
 %attr(644,-,-) %{_libdir}/libcapi-network-connection.so.*
 %{_datadir}/license/capi-network-connection
+%{_bindir}/connection_test
 
 %files devel
 %manifest %{name}.manifest
