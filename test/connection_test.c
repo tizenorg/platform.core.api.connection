@@ -385,14 +385,14 @@ static int test_update_wifi_info(connection_profile_h profile)
 	return 1;
 }
 
-static int test_update_ip_info(connection_profile_h profile)
+static int test_update_ip_info(connection_profile_h profile, connection_address_family_e address_family)
 {
 	int rv = 0;
 	char input_str[100] = {0,};
 
 	if (test_get_user_string("Input IP Address - (Enter for skip) :", input_str, 100)) {
 		rv = connection_profile_set_ip_address(profile,
-							CONNECTION_ADDRESS_FAMILY_IPV4,
+							address_family,
 							input_str);
 		if (rv != CONNECTION_ERROR_NONE)
 			return -1;
@@ -400,7 +400,7 @@ static int test_update_ip_info(connection_profile_h profile)
 
 	if (test_get_user_string("Input Netmask - (Enter for skip) :", input_str, 100)) {
 		rv = connection_profile_set_subnet_mask(profile,
-							CONNECTION_ADDRESS_FAMILY_IPV4,
+							address_family,
 							input_str);
 		if (rv != CONNECTION_ERROR_NONE)
 			return -1;
@@ -408,7 +408,7 @@ static int test_update_ip_info(connection_profile_h profile)
 
 	if (test_get_user_string("Input Gateway - (Enter for skip) :", input_str, 100)) {
 		rv = connection_profile_set_gateway_address(profile,
-							CONNECTION_ADDRESS_FAMILY_IPV4,
+							address_family,
 							input_str);
 		if (rv != CONNECTION_ERROR_NONE)
 			return -1;
@@ -417,7 +417,7 @@ static int test_update_ip_info(connection_profile_h profile)
 	if (test_get_user_string("Input DNS 1 Address - (Enter for skip) :", input_str, 100)) {
 		rv = connection_profile_set_dns_address(profile,
 							1,
-							CONNECTION_ADDRESS_FAMILY_IPV4,
+							address_family,
 							input_str);
 		if (rv != CONNECTION_ERROR_NONE)
 			return -1;
@@ -425,7 +425,7 @@ static int test_update_ip_info(connection_profile_h profile)
 		if (test_get_user_string("Input DNS 2 Address - (Enter for skip) :", input_str, 100)) {
 			rv = connection_profile_set_dns_address(profile,
 								2,
-								CONNECTION_ADDRESS_FAMILY_IPV4,
+								address_family,
 								input_str);
 			if (rv != CONNECTION_ERROR_NONE)
 				return -1;
@@ -435,7 +435,7 @@ static int test_update_ip_info(connection_profile_h profile)
 	return 1;
 }
 
-static int test_update_proxy_info(connection_profile_h profile)
+static int test_update_proxy_info(connection_profile_h profile, connection_address_family_e address_family)
 {
 	int rv = 0;
 	int input_int = 0;
@@ -470,7 +470,7 @@ static int test_update_proxy_info(connection_profile_h profile)
 		if (test_get_user_string("Input auto Proxy URL or Proxy address"
 					" - (Enter for skip) :", input_str, 100)) {
 			rv = connection_profile_set_proxy_address(profile,
-								CONNECTION_ADDRESS_FAMILY_IPV4,
+								address_family,
 								input_str);
 			if (rv != CONNECTION_ERROR_NONE)
 				return -1;
@@ -486,26 +486,29 @@ static int test_update_network_info(connection_profile_h profile)
 {
 	int rv = 0;
 	int input_int = 0;
+	int address_family;
+
+	test_get_user_int("Input Address Family (0:IPv4 1:IPv6) :", &address_family);
 
 	if (test_get_user_int("Input IPv4 Address Type (DHCP:1, Static:2)"
 				" - (Enter for skip) :", &input_int)) {
 		switch (input_int) {
 		case 1:
 			rv = connection_profile_set_ip_config_type(profile,
-								CONNECTION_ADDRESS_FAMILY_IPV4,
-								CONNECTION_IP_CONFIG_TYPE_DYNAMIC);
+								   address_family,
+								   CONNECTION_IP_CONFIG_TYPE_DYNAMIC);
 			break;
 		case 2:
 			rv = connection_profile_set_ip_config_type(profile,
-								CONNECTION_ADDRESS_FAMILY_IPV4,
-								CONNECTION_IP_CONFIG_TYPE_STATIC);
+								   address_family,
+								   CONNECTION_IP_CONFIG_TYPE_STATIC);
 			if (rv != CONNECTION_ERROR_NONE)
 				return -1;
 
-			if (test_update_ip_info(profile) == -1)
+			if (test_update_ip_info(profile, address_family) == -1)
 				return -1;
 
-			if (test_update_proxy_info(profile) == -1)
+			if (test_update_proxy_info(profile, address_family) == -1)
 				return -1;
 			break;
 		default:
@@ -645,7 +648,7 @@ static void test_print_wifi_info(connection_profile_h profile)
 		printf("Wi-Fi wps supported : %s\n", wps_supported ? "true" : "false");
 }
 
-static void test_print_network_info(connection_profile_h profile)
+static void test_print_network_info(connection_profile_h profile, connection_address_family_e address_family)
 {
 	char *interface_name = NULL;
 	connection_ip_config_type_e ip_type;
@@ -664,40 +667,40 @@ static void test_print_network_info(connection_profile_h profile)
 		g_free(interface_name);
 	}
 
-	if (connection_profile_get_ip_config_type(profile, CONNECTION_ADDRESS_FAMILY_IPV4, &ip_type) != CONNECTION_ERROR_NONE)
+	if (connection_profile_get_ip_config_type(profile, address_family, &ip_type) != CONNECTION_ERROR_NONE)
 		printf("Fail to get ipconfig type!\n");
 	else
 		printf("Ipconfig type : %d\n", ip_type);
 
-	if (connection_profile_get_ip_address(profile, CONNECTION_ADDRESS_FAMILY_IPV4, &ip) != CONNECTION_ERROR_NONE)
+	if (connection_profile_get_ip_address(profile, address_family, &ip) != CONNECTION_ERROR_NONE)
 		printf("Fail to get IP address!\n");
 	else {
 		printf("IP address : %s\n", ip);
 		g_free(ip);
 	}
 
-	if (connection_profile_get_subnet_mask(profile, CONNECTION_ADDRESS_FAMILY_IPV4, &subnet) != CONNECTION_ERROR_NONE)
+	if (connection_profile_get_subnet_mask(profile, address_family, &subnet) != CONNECTION_ERROR_NONE)
 		printf("Fail to get subnet mask!\n");
 	else {
 		printf("Subnet mask : %s\n", subnet);
 		g_free(subnet);
 	}
 
-	if (connection_profile_get_gateway_address(profile, CONNECTION_ADDRESS_FAMILY_IPV4, &gateway) != CONNECTION_ERROR_NONE)
+	if (connection_profile_get_gateway_address(profile, address_family, &gateway) != CONNECTION_ERROR_NONE)
 		printf("Fail to get gateway!\n");
 	else {
 		printf("Gateway : %s\n", gateway);
 		g_free(gateway);
 	}
 
-	if (connection_profile_get_dns_address(profile, 1, CONNECTION_ADDRESS_FAMILY_IPV4, &dns1) != CONNECTION_ERROR_NONE)
+	if (connection_profile_get_dns_address(profile, 1, address_family, &dns1) != CONNECTION_ERROR_NONE)
 		printf("Fail to get DNS1!\n");
 	else {
 		printf("DNS1 : %s\n", dns1);
 		g_free(dns1);
 	}
 
-	if (connection_profile_get_dns_address(profile, 2, CONNECTION_ADDRESS_FAMILY_IPV4, &dns2) != CONNECTION_ERROR_NONE)
+	if (connection_profile_get_dns_address(profile, 2, address_family, &dns2) != CONNECTION_ERROR_NONE)
 		printf("Fail to get DNS2!\n");
 	else {
 		printf("DNS2 : %s\n", dns2);
@@ -709,7 +712,7 @@ static void test_print_network_info(connection_profile_h profile)
 	else
 		printf("Proxy type : %d\n", proxy_type);
 
-	if (connection_profile_get_proxy_address(profile, CONNECTION_ADDRESS_FAMILY_IPV4, &proxy) != CONNECTION_ERROR_NONE)
+	if (connection_profile_get_proxy_address(profile, address_family, &proxy) != CONNECTION_ERROR_NONE)
 		printf("Fail to get proxy!\n");
 	else {
 		printf("Proxy : %s\n", proxy);
@@ -842,17 +845,41 @@ int test_get_current_proxy(void)
 int test_get_current_ip(void)
 {
 	char *ip_addr = NULL;
+       int input;
+       bool rv;
 
-	connection_get_ip_address(connection, CONNECTION_ADDRESS_FAMILY_IPV4, &ip_addr);
+       rv = test_get_user_int("Input Address type to get"
+                       "(1:IPV4, 2:IPV6):", &input);
 
-	if (ip_addr == NULL) {
-		printf("IP address does not exist\n");
+       if (rv == false) {
+               printf("Invalid input!!\n");
+               return -1;
+       }
+
+	switch (input) {
+	case 1:
+		connection_get_ip_address(connection, CONNECTION_ADDRESS_FAMILY_IPV4, &ip_addr);
+		if (ip_addr == NULL) {
+			printf("IPv4 address does not exist\n");
+			return -1;
+		}
+		printf("IPv4 address : %s\n", ip_addr);
+		break;
+
+	case 2:
+		connection_get_ip_address(connection, CONNECTION_ADDRESS_FAMILY_IPV6, &ip_addr);
+		if (ip_addr == NULL) {
+			printf("IPv6 address does not exist\n");
+			return -1;
+		}
+		printf("IPv6 address : %s\n", ip_addr);
+		break;
+	default:
+		printf("Wrong IP address family!!\n");
 		return -1;
 	}
 
-	printf("IPv4 address : %s\n", ip_addr);
 	g_free(ip_addr);
-
 	return 1;
 }
 
@@ -1225,6 +1252,7 @@ int test_get_profile_info(void)
 	connection_profile_state_e profile_state;
 	connection_profile_h profile;
 	char *profile_name = NULL;
+	int address_family = 0;
 
 	printf("\n** Choose a profile to print. **\n");
 	if (test_get_user_selected_profile(&profile, true) == false)
@@ -1244,9 +1272,10 @@ int test_get_profile_info(void)
 	} else
 		printf("Profile State : %s\n", test_print_state(profile_state));
 
-
 	if (connection_profile_get_type(profile, &prof_type) != CONNECTION_ERROR_NONE)
 		return -1;
+
+	test_get_user_int("Input Address Family (0:IPv4 1:IPv6) :", &address_family);
 
 	switch (prof_type) {
 	case CONNECTION_PROFILE_TYPE_CELLULAR:
@@ -1267,7 +1296,7 @@ int test_get_profile_info(void)
 		return -1;
 	}
 
-	test_print_network_info(profile);
+	test_print_network_info(profile, address_family);
 
 	return 1;
 }
@@ -1278,6 +1307,7 @@ int test_refresh_profile_info(void)
 	connection_profile_state_e profile_state;
 	connection_profile_h profile;
 	char *profile_name = NULL;
+	int address_family = 0;
 
 	printf("\n** Choose a profile to refresh. **\n");
 	if (test_get_user_selected_profile(&profile, true) == false)
@@ -1304,6 +1334,8 @@ int test_refresh_profile_info(void)
 	if (connection_profile_get_type(profile, &prof_type) != CONNECTION_ERROR_NONE)
 		return -1;
 
+	test_get_user_int("Input Address Family (0:IPv4 1:IPv6) :", &address_family);
+
 	switch (prof_type) {
 	case CONNECTION_PROFILE_TYPE_CELLULAR:
 		printf("Profile Type : Cellular\n");
@@ -1323,7 +1355,7 @@ int test_refresh_profile_info(void)
 		return -1;
 	}
 
-	test_print_network_info(profile);
+	test_print_network_info(profile, address_family);
 
 	return 1;
 }
@@ -1437,20 +1469,23 @@ int test_reset_wifi_call_statistics_info(void)
 int test_add_route(void)
 {
 	int rv = 0;
-	char ip_addr[30];
-	char if_name[40];
+	char ip_addr[100] = {0};
+	char if_name[40] = {0};
 
-	if (test_get_user_string("Input IP - (Enter for skip) :", ip_addr, 30) == false)
+	if (test_get_user_string("Input IP - (Enter for skip) :", ip_addr, 100) == false)
 		return -1;
 
 	if (test_get_user_string("Input Interface name - (Enter for skip) :", if_name, 40) == false)
 		return -1;
 
+	g_strstrip(ip_addr);
+	g_strstrip(if_name);
 	rv = connection_add_route(connection, if_name, ip_addr);
 	if (rv != CONNECTION_ERROR_NONE) {
 		printf("Fail to get add new route [%d]\n", rv);
 		return -1;
 	}
+	printf("Add Route successfully\n");
 
 	return 1;
 }
@@ -1458,20 +1493,81 @@ int test_add_route(void)
 int test_remove_route(void)
 {
 	int rv = 0;
-	char ip_addr[30];
-	char if_name[40];
+	char ip_addr[100] = {0};
+	char if_name[40] = {0};
 
-	if (test_get_user_string("Input IP - (Enter for skip) :", ip_addr, 30) == false)
+	if (test_get_user_string("Input IP - (Enter for skip) :", ip_addr, 100) == false)
 		return -1;
 
 	if (test_get_user_string("Input Interface name - (Enter for skip) :", if_name, 40) == false)
 		return -1;
 
+	g_strstrip(ip_addr);
+	g_strstrip(if_name);
 	rv = connection_remove_route(connection, if_name, ip_addr);
 	if (rv != CONNECTION_ERROR_NONE) {
 		printf("Fail to remove the route [%s]\n", test_print_error(rv));
 		return -1;
 	}
+	printf("Remove Route successfully\n");
+
+	return 1;
+}
+
+int test_add_route_ipv6(void)
+{
+	int rv = 0;
+	char ip_addr[100] = {0};
+	char gateway[100] = {0};
+	char if_name[40] = {0};
+
+	if (test_get_user_string("Input IPv6 - (Enter for skip) :", ip_addr, 100) == false)
+		return -1;
+
+	if (test_get_user_string("Input Gateway - (Enter for skip) :", gateway, 100) == false)
+		return -1;
+
+	if (test_get_user_string("Input Interface name - (Enter for skip) :", if_name, 40) == false)
+		return -1;
+
+	g_strstrip(ip_addr);
+	g_strstrip(gateway);
+	g_strstrip(if_name);
+	rv = connection_add_route_ipv6(connection, if_name, ip_addr, gateway);
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to get add new route [%d]\n", rv);
+		return -1;
+	}
+	printf("Add Route successfully\n");
+
+	return 1;
+}
+
+int test_remove_route_ipv6(void)
+{
+	int rv = 0;
+	char ip_addr[100] = {0};
+	char gateway[100] = {0};
+	char if_name[40] = {0};
+
+	if (test_get_user_string("Input IPv6 - (Enter for skip) :", ip_addr, 100) == false)
+		return -1;
+
+	if (test_get_user_string("Input Gateway - (Enter for skip) :", gateway, 100) == false)
+		return -1;
+
+	if (test_get_user_string("Input Interface name - (Enter for skip) :", if_name, 40) == false)
+		return -1;
+
+	g_strstrip(ip_addr);
+	g_strstrip(gateway);
+	g_strstrip(if_name);
+	rv = connection_remove_route_ipv6(connection, if_name, ip_addr, gateway);
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Fail to remove the route [%d]\n", rv);
+		return -1;
+	}
+	printf("Remove Route successfully\n");
 
 	return 1;
 }
@@ -1657,6 +1753,8 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		printf("v 	- Get all cellular default profiles\n");
 		printf("w 	- Get mac address\n");
 		printf("x 	- Get ethernet cable state\n");
+		printf("B	- Add IPv6 new route\n");
+		printf("C	- Remove IPv6 route\n");
 		printf("0 	- Exit \n");
 		printf("ENTER  - Show options menu.......\n");
 	}
@@ -1760,6 +1858,12 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		break;
 	case 'x':
 		rv = test_get_ethernet_cable_state();
+		break;
+	case 'B':
+		rv = test_add_route_ipv6();
+		break;
+	case 'C':
+		rv = test_remove_route_ipv6();
 		break;
 	}
 
