@@ -552,6 +552,11 @@ int _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
 		return CONNECTION_ERROR_PERMISSION_DENIED;
 	}
 
+	if (ethernet_profiles.count == 0) {
+		state = CONNECTION_ETHERNET_STATE_DEACTIVATED;
+		return true;
+	}
+
 	switch (ethernet_profiles.profiles->ProfileState) {
 	case NET_STATE_TYPE_ONLINE:
 	case NET_STATE_TYPE_READY:
