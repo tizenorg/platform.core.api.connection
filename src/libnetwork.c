@@ -482,6 +482,9 @@ bool _connection_libnet_check_profile_validity(connection_profile_h profile)
 	GSList *list;
 	int i = 0;
 
+	if (profile == NULL)
+		return false;
+
 	for (list = prof_handle_list; list; list = list->next)
 		if (profile == list->data) return true;
 
