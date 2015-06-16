@@ -557,7 +557,7 @@ int _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
 
 	if (ethernet_profiles.count == 0) {
 		state = CONNECTION_ETHERNET_STATE_DEACTIVATED;
-		return true;
+		return CONNECTION_ERROR_NONE;
 	}
 
 	switch (ethernet_profiles.profiles->ProfileState) {
