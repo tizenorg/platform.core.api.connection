@@ -11,13 +11,14 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <glib.h>
 #include <vconf/vconf.h>
+#include <system_info.h>
 #include <arpa/inet.h>
 
 #include "net_connection_private.h"
@@ -57,17 +58,9 @@ struct managed_idle_data {
 	guint id;
 };
 
-struct feature_type {
-	bool telephony;
-	bool wifi;
-	bool tethering_bluetooth;
-};
-
 static struct _profile_list_s profile_iterator = {0, 0, NULL};
 static struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
 static __thread GSList *managed_idler_list = NULL;
-static __thread bool is_check_enable_feature = false;
-static __thread struct feature_type enable_feature = {false, false, false};
 
 bool _connection_is_created(void)
 {
@@ -1281,26 +1274,32 @@ int _connection_libnet_check_profile_privilege()
 	return CONNECTION_ERROR_NONE;
 }
 
-bool _connection_libnet_get_is_check_enable_feature()
+int _connection_check_feature_supported(const char *feature_name, ...)
 {
-	return is_check_enable_feature;
-}
+	va_list list;
+	const char *key;
+	bool value, feature_supported = false;
 
-bool _connection_libnet_get_enable_feature_state(enable_feature_type_e feature_type)
-{
-	if(is_check_enable_feature){
-		switch(feature_type) {
-		case FEATURE_TYPE_TELEPHONY:
-			return enable_feature.telephony;
-		case FEATURE_TYPE_WIFI:
-			return enable_feature.wifi;
-		case FEATURE_TYPE_TETHERING_BLUETOOTH:
-			return enable_feature.tethering_bluetooth;
-		default:
-			CONNECTION_LOG(CONNECTION_ERROR, "Invalid feature type");
-			return false;
+	va_start(list, feature_name);
+	key = feature_name;
+	while(1) {
+		if(system_info_get_platform_bool(key, &value) < 0) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Error - Feature getting from System Info");
+			set_last_result(CONNECTION_ERROR_OPERATION_FAILED);
+			return CONNECTION_ERROR_OPERATION_FAILED;
 		}
+		SECURE_CONNECTION_LOG(CONNECTION_INFO, "%s feature is %s", key, (value?"true":"false"));
+		feature_supported |= value;
+		key = va_arg(list, const char *);
+		if (!key) break;
 	}
-	CONNECTION_LOG(CONNECTION_ERROR, "Not checked enable feature yet");
-	return false;
+	if (!feature_supported) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Error - Feature is not supported");
+		set_last_result(CONNECTION_ERROR_NOT_SUPPORTED);
+		return CONNECTION_ERROR_NOT_SUPPORTED;
+	}
+	va_end(list);
+
+	set_last_result(CONNECTION_ERROR_NONE);
+	return CONNECTION_ERROR_NONE;
 }

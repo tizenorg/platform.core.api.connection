@@ -840,7 +840,7 @@ int connection_remove_route(connection_h connection, const char* interface_name,
  */
 
 int connection_add_route_ipv6(connection_h connection, const char *interface_name, const char *host_address, const char * gateway);
-	
+
 /**
  * @brief Removes a IPV6 route from the routing table.
  * @details You can get the @a interface_name from connection_profile_get_network_interface_name() of opened profile.

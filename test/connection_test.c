@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 #include <stdio.h>
@@ -1704,12 +1704,12 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 {
 	int rv = 0;
 	char a[100];
-	
+
 	memset(a, '\0', 100);
 	printf("Event received from stdin\n");
-	
+
 	rv = read(0, a, 100);
-	
+
 	if (rv < 0 || a[0] == '0') {
 		if (connection != NULL)
 			test_deregister_client();

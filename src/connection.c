@@ -293,6 +293,8 @@ static int __connection_get_handle_count(void)
 /* Connection Manager ********************************************************/
 EXPORT_API int connection_create(connection_h* connection)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	CONNECTION_MUTEX_LOCK;
 	int rv;
 	if (connection == NULL || __connection_check_handle_validity(*connection)) {
@@ -329,6 +331,8 @@ EXPORT_API int connection_create(connection_h* connection)
 
 EXPORT_API int connection_destroy(connection_h connection)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	CONNECTION_MUTEX_LOCK;
 
 	if (connection == NULL || !(__connection_check_handle_validity(connection))) {
@@ -359,6 +363,8 @@ EXPORT_API int connection_get_type(connection_h connection, connection_type_e* t
 {
 	int status = 0;
 
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (type == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -379,6 +385,8 @@ EXPORT_API int connection_get_type(connection_h connection, connection_type_e* t
 EXPORT_API int connection_get_ip_address(connection_h connection,
 					 connection_address_family_e address_family, char **ip_address)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (ip_address == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -406,6 +414,8 @@ EXPORT_API int connection_get_ip_address(connection_h connection,
 EXPORT_API int connection_get_proxy(connection_h connection,
 				    connection_address_family_e address_family, char **proxy)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (proxy == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -434,6 +444,13 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 {
 	FILE *fp;
 	char buf[CONNECTION_MAC_INFO_LENGTH + 1];
+
+	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE, ETHERNET_FEATURE);
+
+	if(type == CONNECTION_TYPE_WIFI)
+		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
+	else if(type == CONNECTION_TYPE_ETHERNET)
+		CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
 
 	if (mac_addr == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
@@ -513,6 +530,8 @@ EXPORT_API int connection_get_cellular_state(connection_h connection, connection
 	int status = 0;
 	int cellular_state = 0;
 
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -546,6 +565,8 @@ EXPORT_API int connection_get_cellular_state(connection_h connection, connection
 
 EXPORT_API int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* state)
 {
+	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
+
 	int rv;
 
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
@@ -566,6 +587,8 @@ EXPORT_API int connection_get_wifi_state(connection_h connection, connection_wif
 
 EXPORT_API int connection_get_ethernet_state(connection_h connection, connection_ethernet_state_e* state)
 {
+	CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
+
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -576,6 +599,8 @@ EXPORT_API int connection_get_ethernet_state(connection_h connection, connection
 
 EXPORT_API int connection_get_ethernet_cable_state(connection_h connection, connection_ethernet_cable_state_e *state)
 {
+	CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
+
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -587,6 +612,8 @@ EXPORT_API int connection_get_ethernet_cable_state(connection_h connection, conn
 EXPORT_API int connection_set_ethernet_cable_state_chaged_cb(connection_h connection,
 			  connection_ethernet_cable_state_chaged_cb callback, void *user_data)
 {
+	CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
+
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -598,6 +625,8 @@ EXPORT_API int connection_set_ethernet_cable_state_chaged_cb(connection_h connec
 
 EXPORT_API int connection_unset_ethernet_cable_state_chaged_cb(connection_h connection)
 {
+	CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
+
 	if ( !(__connection_check_handle_validity(connection)) ) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -609,6 +638,8 @@ EXPORT_API int connection_unset_ethernet_cable_state_chaged_cb(connection_h conn
 
 EXPORT_API int connection_get_bt_state(connection_h connection, connection_bt_state_e* state)
 {
+	CHECK_FEATURE_SUPPORTED(TETHERING_BLUETOOTH_FEATURE);
+
 	if (state == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -621,6 +652,8 @@ EXPORT_API int connection_get_bt_state(connection_h connection, connection_bt_st
 EXPORT_API int connection_set_type_changed_cb(connection_h connection,
 					connection_type_changed_cb callback, void* user_data)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -631,6 +664,8 @@ EXPORT_API int connection_set_type_changed_cb(connection_h connection,
 
 EXPORT_API int connection_unset_type_changed_cb(connection_h connection)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -642,6 +677,8 @@ EXPORT_API int connection_unset_type_changed_cb(connection_h connection)
 EXPORT_API int connection_set_ip_address_changed_cb(connection_h connection,
 				connection_address_changed_cb callback, void* user_data)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -652,6 +689,8 @@ EXPORT_API int connection_set_ip_address_changed_cb(connection_h connection,
 
 EXPORT_API int connection_unset_ip_address_changed_cb(connection_h connection)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -663,6 +702,8 @@ EXPORT_API int connection_unset_ip_address_changed_cb(connection_h connection)
 EXPORT_API int connection_set_proxy_address_changed_cb(connection_h connection,
 				connection_address_changed_cb callback, void* user_data)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (callback == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -673,6 +714,8 @@ EXPORT_API int connection_set_proxy_address_changed_cb(connection_h connection,
 
 EXPORT_API int connection_unset_proxy_address_changed_cb(connection_h connection)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -683,6 +726,8 @@ EXPORT_API int connection_unset_proxy_address_changed_cb(connection_h connection
 
 EXPORT_API int connection_add_profile(connection_h connection, connection_profile_h profile)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    !(_connection_libnet_check_profile_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -712,6 +757,8 @@ EXPORT_API int connection_add_profile(connection_h connection, connection_profil
 
 EXPORT_API int connection_remove_profile(connection_h connection, connection_profile_h profile)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    !(_connection_libnet_check_profile_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -741,6 +788,8 @@ EXPORT_API int connection_remove_profile(connection_h connection, connection_pro
 
 EXPORT_API int connection_update_profile(connection_h connection, connection_profile_h profile)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    !(_connection_libnet_check_profile_validity(profile))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -765,6 +814,8 @@ EXPORT_API int connection_update_profile(connection_h connection, connection_pro
 EXPORT_API int connection_get_profile_iterator(connection_h connection,
 		connection_iterator_type_e type, connection_profile_iterator_h* profile_iterator)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    (type != CONNECTION_ITERATOR_TYPE_REGISTERED &&
 	     type != CONNECTION_ITERATOR_TYPE_CONNECTED &&
@@ -779,21 +830,29 @@ EXPORT_API int connection_get_profile_iterator(connection_h connection,
 EXPORT_API int connection_profile_iterator_next(connection_profile_iterator_h profile_iterator,
 							connection_profile_h* profile)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	return _connection_libnet_get_iterator_next(profile_iterator, profile);
 }
 
 EXPORT_API bool connection_profile_iterator_has_next(connection_profile_iterator_h profile_iterator)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	return _connection_libnet_iterator_has_next(profile_iterator);
 }
 
 EXPORT_API int connection_destroy_profile_iterator(connection_profile_iterator_h profile_iterator)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	return _connection_libnet_destroy_iterator(profile_iterator);
 }
 
 EXPORT_API int connection_get_current_profile(connection_h connection, connection_profile_h* profile)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -805,6 +864,8 @@ EXPORT_API int connection_get_current_profile(connection_h connection, connectio
 EXPORT_API int connection_get_default_cellular_service_profile(connection_h connection,
 		connection_cellular_service_type_e type, connection_profile_h* profile)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -816,6 +877,8 @@ EXPORT_API int connection_get_default_cellular_service_profile(connection_h conn
 EXPORT_API int connection_set_default_cellular_service_profile(connection_h connection,
 		connection_cellular_service_type_e type, connection_profile_h profile)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) || profile == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -828,6 +891,8 @@ EXPORT_API int connection_set_default_cellular_service_profile_async(connection_
 		connection_cellular_service_type_e type, connection_profile_h profile,
 		connection_set_default_cb callback, void* user_data)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    profile == NULL || callback == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -840,6 +905,8 @@ EXPORT_API int connection_set_default_cellular_service_profile_async(connection_
 EXPORT_API int connection_open_profile(connection_h connection, connection_profile_h profile,
 					connection_opened_cb callback, void* user_data)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    profile == NULL || callback == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -852,6 +919,8 @@ EXPORT_API int connection_open_profile(connection_h connection, connection_profi
 EXPORT_API int connection_close_profile(connection_h connection, connection_profile_h profile,
 					connection_closed_cb callback, void* user_data)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    profile == NULL || callback == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -864,6 +933,8 @@ EXPORT_API int connection_close_profile(connection_h connection, connection_prof
 EXPORT_API int connection_reset_profile(connection_h connection,
 				connection_reset_option_e type, int id, connection_reset_cb callback, void *user_data)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -879,6 +950,8 @@ EXPORT_API int connection_reset_profile(connection_h connection,
 
 EXPORT_API int connection_add_route(connection_h connection, const char* interface_name, const char* host_address)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    interface_name == NULL || host_address == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
@@ -890,6 +963,8 @@ EXPORT_API int connection_add_route(connection_h connection, const char* interfa
 
 EXPORT_API int connection_remove_route(connection_h connection, const char* interface_name, const char* host_address)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    interface_name == NULL || host_address == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
@@ -901,6 +976,8 @@ EXPORT_API int connection_remove_route(connection_h connection, const char* inte
 
 EXPORT_API int connection_add_route_ipv6(connection_h connection, const char *interface_name, const char *host_address, const char * gateway)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    interface_name == NULL || host_address == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
@@ -912,6 +989,8 @@ EXPORT_API int connection_add_route_ipv6(connection_h connection, const char *in
 
 EXPORT_API int connection_remove_route_ipv6(connection_h connection, const char *interface_name, const char *host_address, const char * gateway)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, ETHERNET_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) ||
 	    interface_name == NULL || host_address == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
@@ -1042,6 +1121,13 @@ EXPORT_API int connection_get_statistics(connection_h connection,
 				connection_type_e connection_type,
 				connection_statistics_type_e statistics_type, long long* size)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE);
+
+	if(connection_type == CONNECTION_TYPE_CELLULAR )
+		CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+	else if(connection_type == CONNECTION_TYPE_WIFI)
+		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection)) || size == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -1054,6 +1140,13 @@ EXPORT_API int connection_reset_statistics(connection_h connection,
 				connection_type_e connection_type,
 				connection_statistics_type_e statistics_type)
 {
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE);
+
+	if(connection_type == CONNECTION_TYPE_CELLULAR )
+		CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+	else if(connection_type == CONNECTION_TYPE_WIFI)
+		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
+
 	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed");
 		return CONNECTION_ERROR_INVALID_PARAMETER;

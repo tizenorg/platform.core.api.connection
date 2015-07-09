@@ -38,18 +38,23 @@ extern "C" {
 #define ETHERNET_MAC_INFO_FILE		"/sys/class/net/eth0/address"
 #define WIFI_MAC_INFO_FILE			"/sys/class/net/wlan0/address"
 
-typedef enum
-{
-	FEATURE_TYPE_TELEPHONY = 0,
-	FEATURE_TYPE_WIFI = 1,
-	FEATURE_TYPE_TETHERING_BLUETOOTH = 2
-} enable_feature_type_e;
+#define TELEPHONY_FEATURE 			"http://tizen.org/feature/network.telephony"
+#define WIFI_FEATURE 				"http://tizen.org/feature/network.wifi"
+#define TETHERING_BLUETOOTH_FEATURE	"http://tizen.org/feature/network.tethering.bluetooth"
+#define ETHERNET_FEATURE			"http://tizen.org/feature/network.ethernet"
 
 typedef enum
 {
 	CONNECTION_CELLULAR_SUBSCRIBER_1 = 0x00,
 	CONNECTION_CELLULAR_SUBSCRIBER_2 = 0x01,
 } connection_cellular_subscriber_id_e;
+
+#define CHECK_FEATURE_SUPPORTED(...) \
+	do { \
+		int rv = _connection_check_feature_supported(__VA_ARGS__, NULL); \
+		if( rv != CONNECTION_ERROR_NONE ) \
+			return rv; \
+	} while(0)
 
 #define CONNECTION_LOG(log_level, format, args...) \
 	do { \
@@ -138,9 +143,7 @@ int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, uns
 int _connection_libnet_check_get_privilege();
 int _connection_libnet_check_profile_privilege();
 
-bool _connection_libnet_get_is_check_enable_feature();
-bool _connection_libnet_get_enable_feature_state(enable_feature_type_e feature_type);
-int _connection_libnet_check_enable_feature();
+int _connection_check_feature_supported(const char *feature_name, ...);
 
 guint _connection_callback_add(GSourceFunc func, gpointer user_data);
 void _connection_callback_cleanup(void);
