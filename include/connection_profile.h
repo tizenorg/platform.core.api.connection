@@ -34,7 +34,7 @@ extern "C" {
 
 /**
  * @brief Enumeration for security type of Wi-Fi.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef enum
 {
@@ -47,7 +47,7 @@ typedef enum
 
 /**
  * @brief Enumeration for encryption modes.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef enum
 {
@@ -69,19 +69,8 @@ typedef enum
 */
 
 /**
-* @brief This enumeration defines the cellular protocol type.
-*/
-typedef enum
-{
-    CONNECTION_CELLULAR_NETWORK_TYPE_UNKNOWN = 0,  /**< Not defined */
-    CONNECTION_CELLULAR_NETWORK_TYPE_GPRS = 1,  /**< GPRS type */
-    CONNECTION_CELLULAR_NETWORK_TYPE_EDGE = 2,  /**< EDGE type */
-    CONNECTION_CELLULAR_NETWORK_TYPE_UMTS = 3,  /**< UMTS type */
-} connection_cellular_network_type_e;
-
-/**
  * @brief Enumeration for cellular service type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef enum
 {
@@ -96,7 +85,7 @@ typedef enum
 
 /**
  * @brief Enumeration for cellular authentication type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef enum
 {
@@ -117,13 +106,13 @@ typedef enum
 
 /**
  * @brief The profile handle.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef void* connection_profile_h;
 
 /**
  * @brief Enumeration for profile state type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef enum
 {
@@ -135,7 +124,7 @@ typedef enum
 
 /**
  * @brief Enumeration for address family.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef enum
 {
@@ -145,7 +134,7 @@ typedef enum
 
 /**
  * @brief Enumeration for IP configuration type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef enum
 {
@@ -158,7 +147,7 @@ typedef enum
 
 /**
  * @brief Enumeration for proxy method type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef enum
 {
@@ -169,7 +158,7 @@ typedef enum
 
 /**
  * @brief Enumeration for network connection type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
 typedef enum{
     CONNECTION_PROFILE_TYPE_CELLULAR = 0,  /**< Cellular type */
@@ -181,7 +170,7 @@ typedef enum{
 /**
  * @brief Creates a profile handle.
  * @details The profile name, which you get from connection_profile_get_name(), will include the keyword you set.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @privlevel public
  * @privilege %http://tizen.org/privilege/network.get
  * @remarks You must release @a profile using connection_profile_destroy().
@@ -201,7 +190,7 @@ int connection_profile_create(connection_profile_type_e type, const char* keywor
 
 /**
  * @brief Destroys a profile handle.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[out] profile  The handle to the profile
  * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
@@ -230,7 +219,7 @@ int connection_profile_clone(connection_profile_h* cloned_profile, connection_pr
  * So, you must use this API instead of connection_profile_get_name() if you want to get the unique identification.
  * In case you create a profile, this value will be determined when you add the profile.
  *
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a profile_id using free().
  * @param[in] profile  The profile handle
  * @param[out] profile_id  The ID of the profile
@@ -245,7 +234,7 @@ int connection_profile_get_id(connection_profile_h profile, char** profile_id);
 
 /**
  * @brief Gets the profile name.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a profile_name using free().
  * @param[in] profile  The profile handle
  * @param[out] profile_name  The name of the profile
@@ -259,7 +248,7 @@ int connection_profile_get_name(connection_profile_h profile, char** profile_nam
 
 /**
  * @brief Gets the network type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] type  The type of the profile
  * @return @c 0 on success, otherwise a negative error value
@@ -271,7 +260,7 @@ int connection_profile_get_type(connection_profile_h profile, connection_profile
 
 /**
  * @brief Gets the name of the network interface, e.g. eth0 and pdp0.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a interface_name using free().
  * @param[in] profile  The profile handle
  * @param[out] interface_name  The name of the network interface
@@ -284,7 +273,7 @@ int connection_profile_get_network_interface_name(connection_profile_h profile, 
 
 /**
  * @brief Refreshes the profile information.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @privlevel public
  * @privilege %http://tizen.org/privilege/network.get
  * @remarks You should call this function in order to get the current information because the profile information can be changed.
@@ -300,7 +289,7 @@ int connection_profile_refresh(connection_profile_h profile);
 
 /**
  * @brief Gets the network type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] state  The state of the profile
  * @return @c 0 on success, otherwise a negative error value
@@ -312,7 +301,7 @@ int connection_profile_get_state(connection_profile_h profile, connection_profil
 
 /**
  * @brief Gets the IP config type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
  * @param[out] type  The type of the IP config
@@ -325,7 +314,7 @@ int connection_profile_get_ip_config_type(connection_profile_h profile, connecti
 
 /**
  * @brief Gets the IP address.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a ip_address using free().
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
@@ -341,7 +330,7 @@ int connection_profile_get_ip_address(connection_profile_h profile, connection_a
 
 /**
  * @brief Gets the Subnet Mask.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a subnet_mask using free().
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
@@ -357,7 +346,7 @@ int connection_profile_get_subnet_mask(connection_profile_h profile, connection_
 
 /**
  * @brief Gets the Gateway address.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a gateway_address using free().
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
@@ -373,7 +362,7 @@ int connection_profile_get_gateway_address(connection_profile_h profile, connect
 
 /**
  * @brief Gets the DNS address.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks The allowance of the DNS address is @c 2. You must release @a dns_address using free().
  * @param[in] profile  The profile handle
  * @param[in] order  The order of DNS address \n
@@ -391,7 +380,7 @@ int connection_profile_get_dns_address(connection_profile_h profile, int order, 
 
 /**
  * @brief Gets the Proxy type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] type  The type of the proxy
  * @return @c 0 on success, otherwise a negative error value
@@ -403,7 +392,7 @@ int connection_profile_get_proxy_type(connection_profile_h profile, connection_p
 
 /**
  * @brief Gets the Proxy address.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a proxy_address using free().
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
@@ -421,7 +410,7 @@ int connection_profile_get_proxy_address(connection_profile_h profile, connectio
  * @brief Sets the IP config type.
  * @details If you set IP config type to #CONNECTION_IP_CONFIG_TYPE_STATIC,
  * then IP address, Gateway and Subnet mask will be set to the initial value "0.0.0.0".
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
  * @param[in] type  The type of the IP config
@@ -434,7 +423,7 @@ int connection_profile_set_ip_config_type(connection_profile_h profile, connecti
 
 /**
  * @brief Sets the IP address.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
  * @param[in] ip_address  The IP address.\n
@@ -450,7 +439,7 @@ int connection_profile_set_ip_address(connection_profile_h profile, connection_a
 
 /**
  * @brief Sets the Subnet Mask.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
  * @param[in] subnet_mask  The subnet mask. \n
@@ -466,7 +455,7 @@ int connection_profile_set_subnet_mask(connection_profile_h profile, connection_
 
 /**
  * @brief Sets the Gateway address.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
  * @param[in] gateway_address  The gateway address. \n
@@ -482,7 +471,7 @@ int connection_profile_set_gateway_address(connection_profile_h profile, connect
 
 /**
  * @brief Sets the DNS address.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks The allowance of the DNS address is @c 2.
  * @param[in] profile  The profile handle
  * @param[in] order  The order of the DNS address. \n
@@ -501,7 +490,7 @@ int connection_profile_set_dns_address(connection_profile_h profile, int order, 
 /**
  * @brief Sets the Proxy type.
  * @details If you set the Proxy type to #CONNECTION_PROXY_TYPE_AUTO or #CONNECTION_PROXY_TYPE_MANUAL, then Proxy will be restored.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] type  The type of the proxy
  * @return @c 0 on success, otherwise a negative error value
@@ -514,7 +503,7 @@ int connection_profile_set_proxy_type(connection_profile_h profile, connection_p
 
 /**
  * @brief Sets the Proxy address.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] address_family  The address family
  * @param[in] proxy_address  The proxy address. \n
@@ -530,7 +519,7 @@ int connection_profile_set_proxy_address(connection_profile_h profile, connectio
 
 /**
  * @brief Called when the state of the profile is changed.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] state  The state
  * @param[in] user_data The user data passed from the callback registration function
  * @see connection_profile_set_state_changed_cb()
@@ -540,7 +529,7 @@ typedef void(*connection_profile_state_changed_cb)(connection_profile_state_e st
 
 /**
  * @brief Registers the callback that is called when the state of profile is changed.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] callback  The callback function to be called
  * @param[in] user_data The user data passed to the callback function
@@ -556,7 +545,7 @@ int connection_profile_set_state_changed_cb(connection_profile_h profile, connec
 
 /**
  * @brief Unregisters the callback that is called when the state of profile is changed.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @return @c 0 on success, otherwise a negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
@@ -578,7 +567,7 @@ int connection_profile_unset_state_changed_cb(connection_profile_h profile);
 
 /**
  * @brief Gets the ESSID (Extended Service Set Identifier).
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a essid using free().
  * @param[in] profile  The profile handle
  * @param[out] essid  The ESSID
@@ -592,7 +581,7 @@ int connection_profile_get_wifi_essid(connection_profile_h profile, char** essid
 
 /**
  * @brief Gets the BSSID (Basic Service Set Identifier).
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a bssid using free().
  * @param[in] profile  The profile handle
  * @param[out] bssid  The BSSID
@@ -606,7 +595,7 @@ int connection_profile_get_wifi_bssid(connection_profile_h profile, char** bssid
 
 /**
  * @brief Gets the RSSI.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] rssi  The RSSI
  * @return @c 0 on success, otherwise a negative error value
@@ -618,7 +607,7 @@ int connection_profile_get_wifi_rssi(connection_profile_h profile, int* rssi);
 
 /**
  * @brief Gets the frequency (MHz).
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] frequency  The frequency
  * @return @c 0 on success, otherwise a negative error value
@@ -630,7 +619,7 @@ int connection_profile_get_wifi_frequency(connection_profile_h profile, int* fre
 
 /**
  * @brief Gets the max speed (Mbps).
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] max_speed  The max speed
  * @return @c 0 on success, otherwise a negative error value
@@ -642,7 +631,7 @@ int connection_profile_get_wifi_max_speed(connection_profile_h profile, int* max
 
 /**
  * @brief Gets the security mode of Wi-Fi.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] type  The type of Wi-Fi security
  * @return @c 0 on success, otherwise a negative error value
@@ -655,7 +644,7 @@ int connection_profile_get_wifi_security_type(connection_profile_h profile, conn
 
 /**
  * @brief Gets the security mode of Wi-Fi.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] type  The type of Wi-Fi security
  * @return @c 0 on success, otherwise a negative error value
@@ -668,7 +657,7 @@ int connection_profile_get_wifi_encryption_type(connection_profile_h profile, co
 
 /**
  * @brief Checks whether passphrase is required.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks This function is not valid if security type is #CONNECTION_WIFI_SECURITY_TYPE_EAP.
  * @param[in] profile  The profile handle
  * @param[out] required  @c true if a passphrase is required, otherwise @c false if a passphrase is not required.
@@ -681,7 +670,7 @@ int connection_profile_is_wifi_passphrase_required(connection_profile_h profile,
 
 /**
  * @brief Sets the passphrase of the Wi-Fi WPA.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] passphrase  The passphrase of Wi-Fi security
  * @return @c 0 on success, otherwise a negative error value
@@ -694,7 +683,7 @@ int connection_profile_set_wifi_passphrase(connection_profile_h profile, const c
 
 /**
  * @brief Checks whether the WPS (Wi-Fi Protected Setup) is supported.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks If WPS is supported, you can connect the access point with WPS by wifi_connect_with_wps().
  * @param[in] profile  The profile handle
  * @param[out] supported  @c true if WPS is supported, otherwise @c false if WPS is not supported.
@@ -716,19 +705,8 @@ int connection_profile_is_wifi_wps_supported(connection_profile_h profile, bool*
 */
 
 /**
-* @brief Gets the cellular network type.
-* @param[in] profile  The handle of profile
-* @param[out] type  The type of cellular
-* @return 0 on success, otherwise negative error value.
-* @retval #CONNECTION_ERROR_NONE  Successful
-* @retval #CONNECTION_ERROR_INVALID_PARAMETER  Invalid parameter
-* @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
-*/
-int connection_profile_get_cellular_network_type(connection_profile_h profile, connection_cellular_network_type_e* type);
-
-/**
  * @brief Gets the service type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] type  The type of the cellular service
  * @return @c 0 on success, otherwise a negative error value
@@ -741,7 +719,7 @@ int connection_profile_get_cellular_service_type(connection_profile_h profile, c
 
 /**
  * @brief Gets the APN (access point name).
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a apn using free().
  * @param[in] profile  The profile handle
  * @param[out] apn  The name of the APN
@@ -755,7 +733,7 @@ int connection_profile_get_cellular_apn(connection_profile_h profile, char** apn
 
 /**
  * @brief Gets the authentication information.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a user_name and @a password using free().
  * @param[in] profile  The profile handle
  * @param[out] type  The type of the authentication
@@ -772,7 +750,7 @@ int connection_profile_get_cellular_auth_info(connection_profile_h profile, conn
 
 /**
  * @brief Gets the home URL.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @remarks You must release @a home_url using free().
  * @param[in] profile  The profile handle
  * @param[out] home_url  The home URL
@@ -786,7 +764,7 @@ int connection_profile_get_cellular_home_url(connection_profile_h profile, char*
 
 /**
  * @brief Checks wheter the connection is in roaming state.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] is_roaming  @c true if the cellular is roaming, otherwise @c false if it is not roaming.
  * @return @c 0 on success, otherwise a negative error value
@@ -798,7 +776,7 @@ int connection_profile_is_cellular_roaming(connection_profile_h profile, bool* i
 
 /**
  * @brief Checks whether the profile is hidden.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] is_hidden @c ture if the profile is in hidden, otherwise @c false if the profile is not hidden.
  * @return @c 0 on success, otherwise a negative error value
@@ -810,7 +788,7 @@ int connection_profile_is_cellular_hidden(connection_profile_h profile, bool* is
 
 /**
  * @brief Checks whether the profile is editable.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] is_editable  @c true if the profile is editable, otherwise @c false if the profile is not editable.
  * @return @c 0 on success, otherwise a negative error value
@@ -822,7 +800,7 @@ int connection_profile_is_cellular_editable(connection_profile_h profile, bool* 
 
 /**
  * @brief Checks whether the profile is default.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[out] is_default  @c true if the profile is default, otherwise @c false if the profile is not default.
  * @return @c 0 on success, otherwise a negative error value
@@ -834,7 +812,7 @@ int connection_profile_is_cellular_default(connection_profile_h profile, bool* i
 
 /**
  * @brief Sets the service type.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] service_type  The type of cellular service
  * @return @c 0 on success, otherwise a negative error value
@@ -847,7 +825,7 @@ int connection_profile_set_cellular_service_type(connection_profile_h profile, c
 
 /**
  * @brief Sets the APN (Access Point Name).
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] apn  The name of APN
  * @return @c 0 on success, otherwise a negative error value
@@ -860,7 +838,7 @@ int connection_profile_set_cellular_apn(connection_profile_h profile, const char
 
 /**
  * @brief Sets the Authentication information.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] type  The type of the authentication
  * @param[in] user_name  The user name
@@ -875,7 +853,7 @@ int connection_profile_set_cellular_auth_info(connection_profile_h profile, conn
 
 /**
  * @brief Sets the home URL.
- * @since_tizen 2.3
+ * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
  * @param[in] home_url  The home URL
  * @return @c 0 on success, otherwise a negative error value

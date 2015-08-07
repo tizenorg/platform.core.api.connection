@@ -1,6 +1,0 @@
-* Tue Jul 09 2013 Baptiste DURAND <baptiste.durand@eurogiciel.fr> bd62c93
-- x86_64 compliance: Fix libdir variable in PC file
-
-* Mon May 20 2013 Rusty Lynch <rusty.lynch@intel.com> submit/tizen/20130520.200645@62a88ba
-- Work around build breakages by unsetting LD_AS_NEEDED
-

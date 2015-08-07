@@ -1,39 +1,56 @@
-Name:       capi-network-connection
-Summary:    Network Connection library in TIZEN C API
-Version:    0.1.3_27
-Release:    1
-Group:      System/Network
-License:    Apache-2.0
-Source0:    %{name}-%{version}.tar.gz
-Source1001: 	capi-network-connection.manifest
-BuildRequires:  cmake
-BuildRequires:  pkgconfig(dlog)
-BuildRequires:  pkgconfig(glib-2.0)
-BuildRequires:  pkgconfig(vconf)
-BuildRequires:  pkgconfig(capi-base-common)
-BuildRequires:  pkgconfig(capi-system-info)
-BuildRequires:  pkgconfig(network)
+Name:		capi-network-connection
+Summary:	Network Connection library in TIZEN C API
+Version:	1.0.70
+Release:	1
+Group:		System/Network
+License:	Apache-2.0
+Source0:	%{name}-%{version}.tar.gz
+BuildRequires:	cmake
+BuildRequires:	pkgconfig(dlog)
+BuildRequires:	pkgconfig(vconf)
+BuildRequires:	pkgconfig(network)
+BuildRequires:	pkgconfig(glib-2.0)
+BuildRequires:	pkgconfig(capi-base-common)
+BuildRequires:	pkgconfig(capi-system-info)
+BuildRequires:  model-build-features
+Requires(post):		/sbin/ldconfig
+Requires(postun):	/sbin/ldconfig
 
 %description
 Network Connection library in Tizen C API
 
 %package devel
-Summary:  Network Connection library in Tizen C API (Development)
-Group:    System/Network
-Requires: %{name} = %{version}-%{release}
+Summary:	Network Connection library in Tizen C API (Development)
+Group:		System/Network
+Requires:	%{name} = %{version}-%{release}
 
 %description devel
 Network Connection library in Tizen C API (Development)
 
 %prep
 %setup -q
-cp %{SOURCE1001} .
 
 
 %build
-unset LD_AS_NEEDED
+export CFLAGS+=' -Wno-unused-local-typedefs'
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
-%cmake . -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DFULLVER=%{version} -DMAJORVER=${MAJORVER} \
+	-DLIB_PATH=%{_lib} \
+%if 0%{?model_build_feature_network_dsds} == 1
+	-DTIZEN_DUALSIM_ENABLE=1 \
+%endif
+%if "%{?tizen_profile_name}" == "wearable"
+	-DTIZEN_WEARABLE=1 \
+%else
+%if "%{?tizen_profile_name}" == "mobile"
+	-DTIZEN_MOBILE=1 \
+%else
+%if "%{?tizen_profile_name}" == "tv"
+	-DTIZEN_TV=1 \
+%endif
+%endif
+%endif
+	.
 
 make %{?_smp_mflags}
 
@@ -43,7 +60,7 @@ make %{?_smp_mflags}
 
 #License
 mkdir -p %{buildroot}%{_datadir}/license
-cp LICENSE.APLv2 %{buildroot}%{_datadir}/license/capi-network-connection
+cp LICENSE %{buildroot}%{_datadir}/license/capi-network-connection
 
 %post -p /sbin/ldconfig
 
@@ -51,13 +68,12 @@ cp LICENSE.APLv2 %{buildroot}%{_datadir}/license/capi-network-connection
 
 
 %files
-%manifest %{name}.manifest
+%manifest capi-network-connection.manifest
 %attr(644,-,-) %{_libdir}/libcapi-network-connection.so.*
 %{_datadir}/license/capi-network-connection
 %{_bindir}/connection_test
 
 %files devel
-%manifest %{name}.manifest
 %{_includedir}/network/*.h
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/libcapi-network-connection.so

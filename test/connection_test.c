@@ -22,6 +22,7 @@
 #include <glib.h>
 
 #include "net_connection.h"
+
 #include <tizen_error.h>
 
 #define RETURN_FAIL_DESTROY(x) {connection_profile_destroy(x); return -1;}
@@ -48,7 +49,6 @@ static bool test_get_user_string(const char *msg, char *buf, int buf_size)
 	}
 
 	buf[rv-1]='\0';
-
 	return true;
 }
 
@@ -162,7 +162,7 @@ static void test_connection_opened_callback(connection_error_e result, void* use
 	if (result ==  CONNECTION_ERROR_NONE)
 		printf("Connection open Succeeded\n");
 	else
-		printf("Connection open Failed, err : %d\n", result);
+		printf("Connection open Failed, err : [%s]\n", test_print_error(result));
 }
 
 static void test_connection_closed_callback(connection_error_e result, void* user_data)
@@ -170,7 +170,7 @@ static void test_connection_closed_callback(connection_error_e result, void* use
 	if (result ==  CONNECTION_ERROR_NONE)
 		printf("Connection close Succeeded\n");
 	else
-		printf("Connection close Failed, err : %d\n", result);
+		printf("Connection close Failed, err : [%s]\n", test_print_error(result));
 }
 
 static void test_connection_reset_profile_callback(connection_error_e result, void* user_data)
@@ -186,7 +186,7 @@ static void test_connection_set_default_callback(connection_error_e result, void
 	if (result ==  CONNECTION_ERROR_NONE)
 		printf("Default profile setting Succeeded\n");
 	else
-		printf("Default profile setting Failed, err : %d\n", result);
+		printf("Default profile setting Failed, err : [%s]\n", test_print_error(result));
 }
 
 void test_get_ethernet_cable_state_callback(connection_ethernet_cable_state_e state,
@@ -213,7 +213,7 @@ static bool test_get_user_selected_profile(connection_profile_h *profile, bool s
 
 	rv = connection_get_profile_iterator(connection, CONNECTION_ITERATOR_TYPE_REGISTERED, &profile_iter);
 	if (rv != CONNECTION_ERROR_NONE) {
-		printf("Fail to get profile iterator [%d]\n", rv);
+		printf("Fail to get profile iterator [%s]\n", test_print_error(rv));
 		return false;
 	}
 
@@ -251,8 +251,13 @@ static bool test_get_user_selected_profile(connection_profile_h *profile, bool s
 			profile_list[profile_count] = profile_h;
 			profile_count++;
 		} else {
-			printf("%d. state:[%s], profile name : %s\n",
-				profile_count, test_print_state(profile_state), profile_name);
+			connection_cellular_service_type_e service_type;
+			if (connection_profile_get_cellular_service_type(profile_h, &service_type) != CONNECTION_ERROR_NONE) {
+				printf("Fail to get cellular service type!\n");
+			}
+
+			printf("%d. state:[%s], profile name:%s[%d]\n",
+				profile_count, test_print_state(profile_state), profile_name, service_type);
 
 			profile_list[profile_count] = profile_h;
 			profile_count++;
@@ -325,18 +330,21 @@ static int test_update_cellular_info(connection_profile_h profile)
 		return -1;
 
 	if (test_get_user_string("Input Apn - (Enter for skip) :", input_str1, 100)) {
+		g_strstrip(input_str1);
 		rv = connection_profile_set_cellular_apn(profile, input_str1);
 		if (rv != CONNECTION_ERROR_NONE)
 			return -1;
 	}
 
 	if (test_get_user_string("Input Proxy - (Enter for skip) :", input_str1, 100)) {
+		g_strstrip(input_str1);
 		rv = connection_profile_set_proxy_address(profile, CONNECTION_ADDRESS_FAMILY_IPV4, input_str1);
 		if (rv != CONNECTION_ERROR_NONE)
 			return -1;
 	}
 
 	if (test_get_user_string("Input HomeURL - (Enter for skip) :", input_str1, 100)) {
+		g_strstrip(input_str1);
 		rv = connection_profile_set_cellular_home_url(profile, input_str1);
 		if (rv != CONNECTION_ERROR_NONE)
 			return -1;
@@ -362,6 +370,8 @@ static int test_update_cellular_info(connection_profile_h profile)
 			if (test_get_user_string("Input AuthPwd(Enter for skip) :", input_str2, 100) == false)
 				input_str2[0] = 0;
 
+			g_strstrip(input_str1);
+			g_strstrip(input_str2);
 			rv = connection_profile_set_cellular_auth_info(profile, type_val, input_str1, input_str2);
 			if (rv != CONNECTION_ERROR_NONE)
 				return -1;
@@ -486,7 +496,7 @@ static int test_update_network_info(connection_profile_h profile)
 {
 	int rv = 0;
 	int input_int = 0;
-	int address_family = 0;
+	int address_family;
 
 	test_get_user_int("Input Address Family (0:IPv4 1:IPv6) :", &address_family);
 
@@ -525,7 +535,6 @@ static int test_update_network_info(connection_profile_h profile)
 
 static void test_print_cellular_info(connection_profile_h profile)
 {
-	connection_cellular_network_type_e network_type;
 	connection_cellular_service_type_e service_type;
 	char *apn = NULL;
 	connection_cellular_auth_type_e auth_type;
@@ -535,11 +544,6 @@ static void test_print_cellular_info(connection_profile_h profile)
 	bool roaming = false;
 	bool hidden = false;
 	bool editable = false;
-
-	if (connection_profile_get_cellular_network_type(profile, &network_type) != CONNECTION_ERROR_NONE)
-		printf("Fail to get cellular network type!\n");
-	else
-		printf("Cellular network type : %d\n", network_type);
 
 	if (connection_profile_get_cellular_service_type(profile, &service_type) != CONNECTION_ERROR_NONE)
 		printf("Fail to get cellular service type!\n");
@@ -571,7 +575,7 @@ static void test_print_cellular_info(connection_profile_h profile)
 	}
 
 	if (connection_profile_is_cellular_roaming(profile, &roaming) != CONNECTION_ERROR_NONE)
-		printf("Fail to get cellular is roaming!\n");
+		printf("Fail to get cellular roaming state!\n");
 	else
 		printf("Cellular roaming : %s\n", roaming ? "true" : "false");
 
@@ -732,7 +736,7 @@ int test_register_client(void)
 		connection_set_ethernet_cable_state_chaged_cb(connection,
 					test_get_ethernet_cable_state_callback, NULL);
 	} else {
-		printf("Client registration failed %d\n", err);
+		printf("Client registration failed [%s]\n", test_print_error(err));
 		return -1;
 	}
 
@@ -753,8 +757,8 @@ int  test_deregister_client(void)
 		rv = CONNECTION_ERROR_INVALID_OPERATION;
 	}
 
-	if (rv != CONNECTION_ERROR_NONE){
-		printf("Client deregistration fail [%d]\n", rv);
+	if (rv != CONNECTION_ERROR_NONE) {
+		printf("Client deregistration fail [%s]\n", test_print_error(rv));
 		return -1;
 	}
 
@@ -782,11 +786,11 @@ int test_get_network_state(void)
 	rv = connection_get_type(connection, &net_state);
 
 	if (rv != CONNECTION_ERROR_NONE) {
-		printf("Fail to get network state [%d]\n", rv);
+		printf("Fail to get network state [%s]\n", test_print_error(rv));
 		return -1;
 	}
 
-	printf("Retval = %d network connection state [%d]\n", rv, net_state);
+	printf("Retval = [%s] network connection state [%d]\n", test_print_error(rv), net_state);
 
 	return 1;
 }
@@ -799,11 +803,11 @@ int test_get_cellular_state(void)
 	rv = connection_get_cellular_state(connection, &cellular_state);
 
 	if (rv != CONNECTION_ERROR_NONE) {
-		printf("Fail to get Cellular state [%d]\n", rv);
+		printf("Fail to get Cellular state [%s]\n", test_print_error(rv));
 		return -1;
 	}
 
-	printf("Retval = %d Cellular state [%d]\n", rv, cellular_state);
+	printf("Retval = [%s] Cellular state [%d]\n", test_print_error(rv), cellular_state);
 
 	return 1;
 }
@@ -816,11 +820,11 @@ int test_get_wifi_state(void)
 	rv = connection_get_wifi_state(connection, &wifi_state);
 
 	if (rv != CONNECTION_ERROR_NONE) {
-		printf("Fail to get WiFi state [%d]\n", rv);
+		printf("Fail to get WiFi state [%s]\n", test_print_error(rv));
 		return -1;
 	}
 
-	printf("Retval = %d WiFi state [%d]\n", rv, wifi_state);
+	printf("Retval = [%s] WiFi state [%d]\n", test_print_error(rv), wifi_state);
 
 	return 1;
 }
@@ -978,7 +982,7 @@ int test_get_connected_profile_list(void)
 
 	rv = connection_get_profile_iterator(connection, CONNECTION_ITERATOR_TYPE_CONNECTED, &profile_iter);
 	if (rv != CONNECTION_ERROR_NONE) {
-		printf("Fail to get profile iterator [%d]\n", rv);
+		printf("Fail to get profile iterator [%s]\n", test_print_error(rv));
 		return -1;
 	}
 
@@ -992,7 +996,7 @@ int test_get_connected_profile_list(void)
 			printf("Fail to get profile name\n");
 			return -1;
 		}
-		printf("profile name : %s\n", profile_name);
+		printf("profile name is %s\n", profile_name);
 		g_free(profile_name);
 
 		if (connection_profile_get_type(profile_h, &type) != CONNECTION_ERROR_NONE) {
@@ -1021,7 +1025,7 @@ int test_get_current_profile(void)
 
 	rv = connection_get_current_profile(connection, &profile_h);
 	if (rv != CONNECTION_ERROR_NONE) {
-		printf("Fail to get profile iterator [%d]\n", rv);
+		printf("Fail to get profile iterator [%s]\n", test_print_error(rv));
 		return -1;
 	}
 
@@ -1063,7 +1067,7 @@ int test_get_default_cellular_service_type(void)
 	char *profile_name = NULL;
 
 	rv = test_get_user_int("Input profile type to get"
-			"(1:Internet, 2:MMS, 3:Prepaid internet, 4:Prepaid MMS, 5:Tethering):", &input);
+			"(1:Internet, 2:MMS, 3:Prepaid internet, 4:Prepaid MMS, 5:Tethering, 6:Application):", &input);
 
 	if (rv == false) {
 		printf("Invalid input!!\n");
@@ -1085,6 +1089,9 @@ int test_get_default_cellular_service_type(void)
 		break;
 	case 5:
 		service_type = CONNECTION_CELLULAR_SERVICE_TYPE_TETHERING;
+		break;
+	case 6:
+		service_type =  CONNECTION_CELLULAR_SERVICE_TYPE_APPLICATION;
 		break;
 	default:
 		printf("Wrong number!!\n");
@@ -1168,6 +1175,7 @@ int test_add_profile(void)
 	if (test_get_user_string("Input Keyword - (Enter for skip) :", input_str, 100) == false)
 		return -1;
 
+	g_strstrip(input_str);
 	rv = connection_profile_create(CONNECTION_PROFILE_TYPE_CELLULAR, input_str, &profile);
 	if (rv != CONNECTION_ERROR_NONE)
 		RETURN_FAIL_DESTROY(profile);
@@ -1230,8 +1238,8 @@ int test_update_profile(void)
 	case CONNECTION_PROFILE_TYPE_ETHERNET:
 		if (test_update_network_info(profile) == -1)
 			return -1;
-
 		break;
+
 	case CONNECTION_PROFILE_TYPE_BT:
 		printf("Not supported!\n");
 		/* fall through */
@@ -1580,11 +1588,11 @@ int test_get_bt_state(void)
 	rv = connection_get_bt_state(connection, &bt_state);
 
 	if (rv != CONNECTION_ERROR_NONE) {
-		printf("Fail to get Bluetooth state [%d]\n", rv);
+		printf("Fail to get Bluetooth state [%s]\n", test_print_error(rv));
 		return -1;
 	}
 
-	printf("Retval = %d, Bluetooth state [%d]\n", rv, bt_state);
+	printf("Retval = [%s], Bluetooth state [%d]\n", test_print_error(rv), bt_state);
 
 	return 1;
 }
@@ -1717,7 +1725,7 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		exit(1);
 	}
 
-	if (*a == '\n' || *a == '\r'){
+	if (*a == '\n' || *a == '\r') {
 		printf("\n\n Network Connection API Test App\n\n");
 		printf("Options..\n");
 		printf("1 	- Create Handle and set callbacks\n");
@@ -1736,7 +1744,7 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		printf("e 	- Get default cellular service by type\n");
 		printf("f 	- Set default cellular service by type\n");
 		printf("g 	- Close connection with profile\n");
-		printf("h 	- Add profile(Cellular only)\n");
+		printf("h 	- Add profile(Cellular and Wifi only)\n");
 		printf("i 	- Remove profile(Cellular:delete, WiFi:forgot)\n");
 		printf("j 	- Update profile\n");
 		printf("k 	- Get profile info\n");
@@ -1755,8 +1763,8 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		printf("x 	- Get ethernet cable state\n");
 		printf("B	- Add IPv6 new route\n");
 		printf("C	- Remove IPv6 route\n");
-		printf("0 	- Exit \n");
-		printf("ENTER  - Show options menu.......\n");
+		printf("0	- Exit \n");
+		printf("ENTER	- Show options menu.......\n");
 	}
 
 	switch (a[0]) {

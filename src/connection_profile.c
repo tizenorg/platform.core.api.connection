@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
 #include <glib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <arpa/inet.h>
 #include <vconf/vconf.h>
+
 #include "net_connection_private.h"
 
 #define HTTP_PROXY "http_proxy"
@@ -104,9 +105,9 @@ static const char* __profile_get_ethernet_proxy(void)
 {
 	char *proxy;
 
-	proxy = getenv(HTTP_PROXY);
+	proxy = vconf_get_str(VCONFKEY_NETWORK_PROXY);
 
-	if(proxy == NULL) {
+	if (proxy == NULL) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Fail to get system proxy");
 		return NULL;
 	}
@@ -214,10 +215,23 @@ EXPORT_API int connection_profile_create(connection_profile_type_e type, const c
 	else if(type == CONNECTION_PROFILE_TYPE_WIFI)
 		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
-	if ((type != CONNECTION_PROFILE_TYPE_CELLULAR &&
-	     type != CONNECTION_PROFILE_TYPE_WIFI) || profile == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+	if (type != CONNECTION_PROFILE_TYPE_CELLULAR &&
+	     type != CONNECTION_PROFILE_TYPE_WIFI) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	if (profile == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	int rv  = _connection_libnet_check_profile_privilege();
+	if (rv == CONNECTION_ERROR_PERMISSION_DENIED)
+		return rv;
+	else if (rv != CONNECTION_ERROR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to create profile");
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	net_profile_info_t *profile_info = g_try_malloc0(sizeof(net_profile_info_t));
@@ -227,7 +241,7 @@ EXPORT_API int connection_profile_create(connection_profile_type_e type, const c
 	switch (type) {
 	case CONNECTION_PROFILE_TYPE_CELLULAR:
 		if (keyword == NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+			CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 			g_free(profile_info);
 			return CONNECTION_ERROR_INVALID_PARAMETER;
 		}
@@ -251,7 +265,7 @@ EXPORT_API int connection_profile_destroy(connection_profile_h profile)
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -265,7 +279,7 @@ EXPORT_API int connection_profile_clone(connection_profile_h* cloned_profile, co
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(origin_profile)) || cloned_profile == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -284,7 +298,7 @@ EXPORT_API int connection_profile_get_id(connection_profile_h profile, char** pr
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || profile_id == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -308,7 +322,7 @@ EXPORT_API int connection_profile_get_name(connection_profile_h profile, char** 
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || profile_name == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -347,7 +361,7 @@ EXPORT_API int connection_profile_get_type(connection_profile_h profile, connect
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -367,7 +381,7 @@ EXPORT_API int connection_profile_get_type(connection_profile_h profile, connect
 		*type = CONNECTION_PROFILE_TYPE_BT;
 		break;
 	default:
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid profile type\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid profile type");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
@@ -379,7 +393,7 @@ EXPORT_API int connection_profile_get_network_interface_name(connection_profile_
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || interface_name == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -402,7 +416,7 @@ EXPORT_API int connection_profile_refresh(connection_profile_h profile)
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -428,14 +442,14 @@ EXPORT_API int connection_profile_get_state(connection_profile_h profile, connec
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || state == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 	*state = _profile_convert_to_cp_state(profile_info->ProfileState);
 	if (*state < 0)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+			return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -565,8 +579,11 @@ EXPORT_API int connection_profile_get_subnet_mask(connection_profile_h profile,
 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
 		prefixlen = g_try_malloc0(MAX_PREFIX_LENGTH);
-		snprintf(prefixlen, MAX_PREFIX_LENGTH, "%d", net_info->PrefixLen6);
-		*subnet_mask =  prefixlen;
+		if (prefixlen != NULL) {
+			snprintf(prefixlen, MAX_PREFIX_LENGTH, "%d", net_info->PrefixLen6);
+			*subnet_mask = prefixlen;
+		} else
+			*subnet_mask = NULL;
 	} else
 		*subnet_mask = __profile_convert_ip_to_string(&net_info->SubnetMask,
 				address_family);
@@ -648,7 +665,7 @@ EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, c
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -933,7 +950,7 @@ EXPORT_API int connection_profile_set_proxy_type(connection_profile_h profile, c
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -990,7 +1007,7 @@ EXPORT_API int connection_profile_set_state_changed_cb(connection_profile_h prof
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || callback == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1004,8 +1021,8 @@ EXPORT_API int connection_profile_unset_state_changed_cb(connection_profile_h pr
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
-	if (!(_connection_libnet_check_profile_cb_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+	if (!(_connection_libnet_check_profile_validity(profile))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1022,7 +1039,7 @@ EXPORT_API int connection_profile_get_wifi_essid(connection_profile_h profile, c
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || essid == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1043,7 +1060,7 @@ EXPORT_API int connection_profile_get_wifi_bssid(connection_profile_h profile, c
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || bssid == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1064,7 +1081,7 @@ EXPORT_API int connection_profile_get_wifi_rssi(connection_profile_h profile, in
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || rssi == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1083,7 +1100,7 @@ EXPORT_API int connection_profile_get_wifi_frequency(connection_profile_h profil
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || frequency == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1102,7 +1119,7 @@ EXPORT_API int connection_profile_get_wifi_max_speed(connection_profile_h profil
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || max_speed == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1121,7 +1138,7 @@ EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h pr
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1158,7 +1175,7 @@ EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h 
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1195,7 +1212,7 @@ EXPORT_API int connection_profile_is_wifi_passphrase_required(connection_profile
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || required == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1231,7 +1248,7 @@ EXPORT_API int connection_profile_set_wifi_passphrase(connection_profile_h profi
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || passphrase == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1251,7 +1268,7 @@ EXPORT_API int connection_profile_is_wifi_wps_supported(connection_profile_h pro
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || supported == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1270,69 +1287,27 @@ EXPORT_API int connection_profile_is_wifi_wps_supported(connection_profile_h pro
 
 
 /* Cellular profile **********************************************************/
-EXPORT_API int connection_profile_get_cellular_network_type(connection_profile_h profile, connection_cellular_network_type_e* type)
-{
-	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
-
-	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
-	}
-
-	int network_type;
-	net_profile_info_t *profile_info = profile;
-
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
-
-	if (vconf_get_int(VCONFKEY_TELEPHONY_SVC_ACT, &network_type)) {
-		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_int Failed\n");
-		return CONNECTION_ERROR_OPERATION_FAILED;
-	}
-
-	CONNECTION_LOG(CONNECTION_INFO, "Cellular network type = %d\n", network_type);
-
-	switch (network_type) {
-	case VCONFKEY_TELEPHONY_SVC_ACT_NONE:
-		*type = CONNECTION_CELLULAR_NETWORK_TYPE_UNKNOWN;
-		break;
-	case VCONFKEY_TELEPHONY_SVC_ACT_GPRS:
-		*type = CONNECTION_CELLULAR_NETWORK_TYPE_GPRS;
-		break;
-	case VCONFKEY_TELEPHONY_SVC_ACT_EGPRS:
-		*type = CONNECTION_CELLULAR_NETWORK_TYPE_EDGE;
-		break;
-	case VCONFKEY_TELEPHONY_SVC_ACT_UMTS:
-		*type = CONNECTION_CELLULAR_NETWORK_TYPE_UMTS;
-		break;
-	default:
-		return CONNECTION_ERROR_OPERATION_FAILED;
-	}
-
-	return CONNECTION_ERROR_NONE;
-}
-
 EXPORT_API int connection_profile_get_cellular_service_type(connection_profile_h profile,
 						connection_cellular_service_type_e* type)
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid profile type Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	*type = _profile_convert_to_connection_cellular_service_type(profile_info->ProfileInfo.Pdp.ServiceType);
 
 	if (*type == CONNECTION_CELLULAR_SERVICE_TYPE_UNKNOWN) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid service type Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid service type Passed");
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
@@ -1344,14 +1319,16 @@ EXPORT_API int connection_profile_get_cellular_apn(connection_profile_h profile,
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || apn == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	*apn = g_strdup(profile_info->ProfileInfo.Pdp.Apn);
 	if (*apn == NULL)
@@ -1367,14 +1344,16 @@ EXPORT_API int connection_profile_get_cellular_auth_info(connection_profile_h pr
 
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    type == NULL || user_name == NULL || password == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	switch (profile_info->ProfileInfo.Pdp.AuthInfo.AuthType) {
 	case NET_PDP_AUTH_NONE:
@@ -1408,14 +1387,16 @@ EXPORT_API int connection_profile_get_cellular_home_url(connection_profile_h pro
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || home_url == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	*home_url = g_strdup(profile_info->ProfileInfo.Pdp.HomeURL);
 	if (*home_url == NULL)
@@ -1429,14 +1410,16 @@ EXPORT_API int connection_profile_is_cellular_roaming(connection_profile_h profi
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || is_roaming == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	if (profile_info->ProfileInfo.Pdp.Roaming)
 		*is_roaming = true;
@@ -1524,14 +1507,16 @@ EXPORT_API int connection_profile_set_cellular_service_type(connection_profile_h
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	switch (service_type) {
 	case CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET:
@@ -1565,14 +1550,16 @@ EXPORT_API int connection_profile_set_cellular_apn(connection_profile_h profile,
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || apn == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	g_strlcpy(profile_info->ProfileInfo.Pdp.Apn, apn, NET_PDP_APN_LEN_MAX+1);
 
@@ -1586,14 +1573,16 @@ EXPORT_API int connection_profile_set_cellular_auth_info(connection_profile_h pr
 
 	if (!(_connection_libnet_check_profile_validity(profile)) ||
 	    user_name == NULL || password == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	switch (type) {
 	case CONNECTION_CELLULAR_AUTH_TYPE_NONE:
@@ -1620,14 +1609,16 @@ EXPORT_API int connection_profile_set_cellular_home_url(connection_profile_h pro
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
 	if (!(_connection_libnet_check_profile_validity(profile)) || home_url == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
 	net_profile_info_t *profile_info = profile;
 
-	if (profile_info->profile_type != NET_DEVICE_CELLULAR)
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	g_strlcpy(profile_info->ProfileInfo.Pdp.HomeURL, home_url, NET_HOME_URL_LEN_MAX);
 

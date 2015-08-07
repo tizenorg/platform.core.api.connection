@@ -49,12 +49,16 @@ typedef enum
 	CONNECTION_CELLULAR_SUBSCRIBER_2 = 0x01,
 } connection_cellular_subscriber_id_e;
 
+#if !defined TIZEN_TV
 #define CHECK_FEATURE_SUPPORTED(...) \
 	do { \
 		int rv = _connection_check_feature_supported(__VA_ARGS__, NULL); \
 		if( rv != CONNECTION_ERROR_NONE ) \
 			return rv; \
 	} while(0)
+#else
+#define CHECK_FEATURE_SUPPORTED(...)
+#endif
 
 #define CONNECTION_LOG(log_level, format, args...) \
 	do { \
@@ -69,9 +73,6 @@ typedef enum
 			LOGI(format, ## args); \
 		} \
 	} while(0)
-
-#define CONNECTION_MUTEX_LOCK _connection_inter_mutex_lock()
-#define CONNECTION_MUTEX_UNLOCK _connection_inter_mutex_unlock()
 
 #define SECURE_CONNECTION_LOG(log_level, format, args...) \
 	do { \
@@ -154,8 +155,6 @@ net_service_type_t _connection_profile_convert_to_libnet_cellular_service_type(c
 net_state_type_t _connection_profile_convert_to_net_state(connection_profile_state_e state);
 
 int _connection_libnet_set_cellular_subscriber_id(connection_profile_h profile, connection_cellular_subscriber_id_e sim_id);
-void _connection_inter_mutex_lock(void);
-void _connection_inter_mutex_unlock(void);
 
 #ifdef __cplusplus
 }
