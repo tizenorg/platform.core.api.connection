@@ -12,7 +12,6 @@ BuildRequires:	pkgconfig(network)
 BuildRequires:	pkgconfig(glib-2.0)
 BuildRequires:	pkgconfig(capi-base-common)
 BuildRequires:	pkgconfig(capi-system-info)
-BuildRequires:  model-build-features
 Requires(post):		/sbin/ldconfig
 Requires(postun):	/sbin/ldconfig
 
