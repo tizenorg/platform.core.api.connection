@@ -1,6 +1,6 @@
 Name:		capi-network-connection
 Summary:	Network Connection library in TIZEN C API
-Version:	1.0.70
+Version:	1.0.71
 Release:	1
 Group:		System/Network
 License:	Apache-2.0
@@ -38,13 +38,13 @@ cmake -DCMAKE_INSTALL_PREFIX=/usr -DFULLVER=%{version} -DMAJORVER=${MAJORVER} \
 %if 0%{?model_build_feature_network_dsds} == 1
 	-DTIZEN_DUALSIM_ENABLE=1 \
 %endif
-%if "%{?tizen_profile_name}" == "wearable"
+%if "%{profile}" == "wearable"
 	-DTIZEN_WEARABLE=1 \
 %else
-%if "%{?tizen_profile_name}" == "mobile"
+%if "%{profile}" == "mobile"
 	-DTIZEN_MOBILE=1 \
 %else
-%if "%{?tizen_profile_name}" == "tv"
+%if "%{profile}" == "tv"
 	-DTIZEN_TV=1 \
 %endif
 %endif
