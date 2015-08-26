@@ -496,7 +496,7 @@ static int test_update_network_info(connection_profile_h profile)
 {
 	int rv = 0;
 	int input_int = 0;
-	int address_family;
+	int address_family = 0;
 
 	test_get_user_int("Input Address Family (0:IPv4 1:IPv6) :", &address_family);
 
