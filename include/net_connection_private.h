@@ -49,12 +49,25 @@ typedef enum
 	CONNECTION_CELLULAR_SUBSCRIBER_2 = 0x01,
 } connection_cellular_subscriber_id_e;
 
+typedef enum
+{
+	CONNECTION_SUPPORTED_FEATURE_TELEPHONY,
+	CONNECTION_SUPPORTED_FEATURE_WIFI,
+	CONNECTION_SUPPORTED_FEATURE_TETHERING_BLUETOOTH,
+	CONNECTION_SUPPORTED_FEATURE_ETHERNET,
+	CONNECTION_SUPPORTED_FEATURE_MAX,
+} connection_supported_feature_e;
+
+#if !defined TIZEN_TV
 #define CHECK_FEATURE_SUPPORTED(...) \
 	do { \
 		int rv = _connection_check_feature_supported(__VA_ARGS__, NULL); \
 		if( rv != CONNECTION_ERROR_NONE ) \
 			return rv; \
 	} while(0)
+#else
+#define CHECK_FEATURE_SUPPORTED(...)
+#endif
 
 #define CONNECTION_LOG(log_level, format, args...) \
 	do { \

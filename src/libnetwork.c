@@ -67,6 +67,8 @@ struct managed_idle_data {
 static __thread struct _profile_list_s profile_iterator = {0, 0, NULL};
 static __thread struct _libnet_s libnet = {NULL, NULL, NULL, NULL, NULL, NULL, false};
 static __thread GSList *managed_idler_list = NULL;
+static __thread bool connection_is_feature_checked[CONNECTION_SUPPORTED_FEATURE_MAX] = {0, };
+static __thread bool connection_feature_supported[CONNECTION_SUPPORTED_FEATURE_MAX] = {0, };
 
 bool _connection_is_created(void)
 {
@@ -1517,20 +1519,42 @@ int _connection_libnet_check_profile_privilege()
 	return CONNECTION_ERROR_NONE;
 }
 
-int _connection_check_feature_supported(const char *feature_name, ...)
+bool __libnet_check_feature_supported(const char *key, connection_supported_feature_e feature)
 {
-	va_list list;
-	const char *key;
-	bool value, feature_supported = false;
-
-	va_start(list, feature_name);
-	key = feature_name;
-	while(1) {
-		if(system_info_get_platform_bool(key, &value) < 0) {
+	if(!connection_is_feature_checked[feature]) {
+		if(system_info_get_platform_bool(key, &connection_feature_supported[feature]) < 0) {
 			CONNECTION_LOG(CONNECTION_ERROR, "Error - Feature getting from System Info");
 			set_last_result(CONNECTION_ERROR_OPERATION_FAILED);
 			return CONNECTION_ERROR_OPERATION_FAILED;
 		}
+		connection_is_feature_checked[feature] = true;
+	}
+	return connection_feature_supported[feature];
+}
+
+int _connection_check_feature_supported(const char *feature_name, ...)
+{
+	va_list list;
+	const char *key;
+	bool value = false;
+	bool feature_supported = false;
+
+	va_start(list, feature_name);
+	key = feature_name;
+	while(1) {
+		if((strcmp(key, TELEPHONY_FEATURE) == 0)){
+			value = __libnet_check_feature_supported(key, CONNECTION_SUPPORTED_FEATURE_TELEPHONY);
+		}
+		if((strcmp(key, WIFI_FEATURE) == 0)){
+			value = __libnet_check_feature_supported(key, CONNECTION_SUPPORTED_FEATURE_WIFI);
+		}
+		if((strcmp(key, TETHERING_BLUETOOTH_FEATURE) == 0)){
+			value = __libnet_check_feature_supported(key, CONNECTION_SUPPORTED_FEATURE_TETHERING_BLUETOOTH);
+		}
+		if((strcmp(key, ETHERNET_FEATURE) == 0)){
+			value = __libnet_check_feature_supported(key, CONNECTION_SUPPORTED_FEATURE_ETHERNET);
+		}
+
 		SECURE_CONNECTION_LOG(CONNECTION_INFO, "%s feature is %s", key, (value?"true":"false"));
 		feature_supported |= value;
 		key = va_arg(list, const char *);
