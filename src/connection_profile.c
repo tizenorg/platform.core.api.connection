@@ -448,8 +448,6 @@ EXPORT_API int connection_profile_get_state(connection_profile_h profile, connec
 
 	net_profile_info_t *profile_info = profile;
 	*state = _profile_convert_to_cp_state(profile_info->ProfileState);
-	if (*state < 0)
-			return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
 }

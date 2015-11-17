@@ -1212,8 +1212,6 @@ int _connection_libnet_add_route(const char *interface_name, const char *host_ad
 				return CONNECTION_ERROR_INVALID_PARAMETER;
 			}
 			break;
-		default:
-			return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	rv = net_add_route(host_address, interface_name, address_family);
@@ -1248,8 +1246,6 @@ int _connection_libnet_remove_route(const char *interface_name, const char *host
 				return CONNECTION_ERROR_INVALID_PARAMETER;
 			}
 			break;
-		default:
-			return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	rv = net_remove_route(host_address, interface_name, address_family);
@@ -1282,8 +1278,6 @@ int _connection_libnet_add_route_ipv6(const char *interface_name, const char *ho
 				return CONNECTION_ERROR_INVALID_PARAMETER;
 			}
 			break;
-		default:
-			return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	rv = net_add_route_ipv6(host_address, interface_name, address_family, gateway);
@@ -1316,8 +1310,6 @@ int _connection_libnet_remove_route_ipv6(const char *interface_name, const char 
 				return CONNECTION_ERROR_INVALID_PARAMETER;
 			}
 			break;
-		default:
-			return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	rv = net_remove_route_ipv6(host_address, interface_name, address_family, gateway);
@@ -1563,10 +1555,11 @@ int _connection_check_feature_supported(const char *feature_name, ...)
 	if (!feature_supported) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Error - Feature is not supported");
 		set_last_result(CONNECTION_ERROR_NOT_SUPPORTED);
+		va_end(list);
 		return CONNECTION_ERROR_NOT_SUPPORTED;
 	}
-	va_end(list);
 
+	va_end(list);
 	set_last_result(CONNECTION_ERROR_NONE);
 	return CONNECTION_ERROR_NONE;
 }
