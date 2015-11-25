@@ -55,6 +55,7 @@ typedef enum
     CONNECTION_TYPE_CELLULAR = 2,  /**< Cellular type */
     CONNECTION_TYPE_ETHERNET = 3,  /**< Ethernet type */
     CONNECTION_TYPE_BT = 4,  /**< Bluetooth type */
+    CONNECTION_TYPE_RESERVED, /**< Reserved type */
 } connection_type_e;
 
 /**
