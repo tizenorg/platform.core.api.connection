@@ -1198,7 +1198,7 @@ static int __get_cellular_statistic(connection_statistics_type_e statistics_type
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
-	*llsize = (long long)(last_size * 1000 + size * 1000);
+	*llsize = (long long)(last_size * 1000) + (long long)(size * 1000);
 	CONNECTION_LOG(CONNECTION_INFO,"%lld bytes", *llsize);
 
 	return CONNECTION_ERROR_NONE;

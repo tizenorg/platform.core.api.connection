@@ -1563,10 +1563,11 @@ int _connection_check_feature_supported(const char *feature_name, ...)
 	if (!feature_supported) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Error - Feature is not supported");
 		set_last_result(CONNECTION_ERROR_NOT_SUPPORTED);
+		va_end(list);
 		return CONNECTION_ERROR_NOT_SUPPORTED;
 	}
-	va_end(list);
 
+	va_end(list);
 	set_last_result(CONNECTION_ERROR_NONE);
 	return CONNECTION_ERROR_NONE;
 }
