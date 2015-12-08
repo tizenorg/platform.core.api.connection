@@ -389,7 +389,7 @@ static void __libnet_evt_cb(net_event_info_t *event_cb, void *user_data)
 	case NET_EVENT_OPEN_IND:
 		result = __libnet_convert_to_cp_error_type(event_cb->Error);
 		CONNECTION_LOG(CONNECTION_INFO, "Connection opened %s[%s]",
-					(is_requested) ? "RSP":"IND",
+					(is_requested) ? "RSP" : "IND",
 					__libnet_convert_cp_error_type_to_string(result));
 
 		if (is_requested)
@@ -416,7 +416,7 @@ static void __libnet_evt_cb(net_event_info_t *event_cb, void *user_data)
 	case NET_EVENT_CLOSE_IND:
 		result = __libnet_convert_to_cp_error_type(event_cb->Error);
 		CONNECTION_LOG(CONNECTION_INFO, "Connection closed %s[%s]",
-					(is_requested) ? "RSP":"IND",
+					(is_requested) ? "RSP" : "IND",
 					__libnet_convert_cp_error_type_to_string(result));
 
 		if (is_requested)
@@ -469,7 +469,7 @@ static void __libnet_evt_cb(net_event_info_t *event_cb, void *user_data)
 		__libnet_ethernet_cable_state_changed_cb(CONNECTION_ETHERNET_CABLE_DETACHED);
 		break;
 
-	default :
+	default:
 		break;
 	}
 }
@@ -480,7 +480,7 @@ static int __libnet_check_address_type(int address_family, const char *address)
 	int err = 0;
 
 	err = inet_pton(address_family, address, &buf);
-	if(err > 0)
+	if (err > 0)
 		return 1;
 
 	return 0;
@@ -491,7 +491,7 @@ int __libnet_get_connected_count(struct _profile_list_s *profile_list)
 	int count = 0;
 	int i = 0;
 
-	for (;i < profile_list->count;i++) {
+	for (; i < profile_list->count; i++) {
 		if (profile_list->profiles[i].ProfileState == NET_STATE_TYPE_ONLINE ||
 		    profile_list->profiles[i].ProfileState == NET_STATE_TYPE_READY)
 			count++;
@@ -504,7 +504,7 @@ void __libnet_copy_connected_profile(net_profile_info_t **dest, struct _profile_
 {
 	int i = 0;
 
-	for (;i < source->count;i++) {
+	for (; i < source->count; i++) {
 		if (source->profiles[i].ProfileState == NET_STATE_TYPE_ONLINE ||
 		    source->profiles[i].ProfileState == NET_STATE_TYPE_READY) {
 			memcpy(*dest, &source->profiles[i], sizeof(net_profile_info_t));
@@ -518,7 +518,7 @@ int __libnet_get_default_count(struct _profile_list_s *profile_list)
 	int count = 0;
 	int i = 0;
 
-	for (;i < profile_list->count;i++) {
+	for (; i < profile_list->count; i++) {
 		if (profile_list->profiles[i].ProfileInfo.Pdp.DefaultConn == TRUE)
 			count++;
 	}
@@ -530,7 +530,7 @@ void __libnet_copy_default_profile(net_profile_info_t **dest, struct _profile_li
 {
 	int i = 0;
 
-	for (;i < source->count;i++) {
+	for (; i < source->count; i++) {
 		if (source->profiles[i].ProfileInfo.Pdp.DefaultConn == TRUE) {
 			memcpy(*dest, &source->profiles[i], sizeof(net_profile_info_t));
 			(*dest)++;
@@ -591,7 +591,7 @@ bool _connection_libnet_check_profile_validity(connection_profile_h profile)
 	for (list = prof_handle_list; list; list = list->next)
 		if (profile == list->data) return true;
 
-	for (;i < profile_iterator.count;i++)
+	for (; i < profile_iterator.count; i++)
 		if (profile == &profile_iterator.profiles[i]) return true;
 
 	return false;
@@ -641,7 +641,7 @@ int _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 	case WIFI_DISCONNECTING:
 		*state = CONNECTION_WIFI_STATE_CONNECTED;
 		break;
-	default :
+	default:
 		CONNECTION_LOG(CONNECTION_ERROR, "Unknown Wi-Fi state");
 		return CONNECTION_ERROR_INVALID_OPERATION;
 	}
@@ -700,7 +700,7 @@ int _connection_libnet_get_ethernet_cable_state(connection_ethernet_cable_state_
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
-	if(status == 1)
+	if (status == 1)
 		*state = CONNECTION_ETHERNET_CABLE_ATTACHED;
 	else
 		*state = CONNECTION_ETHERNET_CABLE_DETACHED;
@@ -1196,24 +1196,24 @@ int _connection_libnet_add_route(const char *interface_name, const char *host_ad
 	char *endstr = NULL;
 	int address_family = 0;
 
-	if(__libnet_check_address_type(AF_INET, host_address))
+	if (__libnet_check_address_type(AF_INET, host_address))
 		address_family = AF_INET;
 	else
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	switch(address_family) {
-		case AF_INET:
-			endstr = strrchr(host_address, '.');
-			if (endstr == NULL ||
-					strcmp(endstr, ".0") == 0 ||
-					strncmp(host_address, "0.", 2) == 0 ||
-					strstr(host_address, "255") != NULL) {
-				CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
-				return CONNECTION_ERROR_INVALID_PARAMETER;
-			}
-			break;
-		default:
-			return CONNECTION_ERROR_OPERATION_FAILED;
+	switch (address_family) {
+	case AF_INET:
+		endstr = strrchr(host_address, '.');
+		if (endstr == NULL ||
+				strcmp(endstr, ".0") == 0 ||
+				strncmp(host_address, "0.", 2) == 0 ||
+				strstr(host_address, "255") != NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	rv = net_add_route(host_address, interface_name, address_family);
@@ -1237,19 +1237,19 @@ int _connection_libnet_remove_route(const char *interface_name, const char *host
 	else
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	switch(address_family) {
-		case AF_INET:
-			endstr = strrchr(host_address, '.');
-			if (endstr == NULL ||
-				strcmp(endstr, ".0") == 0 ||
-				strncmp(host_address, "0.", 2) == 0 ||
-				strstr(host_address, ".0.") != NULL ||strstr(host_address, "255") != NULL) {
-				CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed");
-				return CONNECTION_ERROR_INVALID_PARAMETER;
-			}
-			break;
-		default:
-			return CONNECTION_ERROR_OPERATION_FAILED;
+	switch (address_family) {
+	case AF_INET:
+		endstr = strrchr(host_address, '.');
+		if (endstr == NULL ||
+			strcmp(endstr, ".0") == 0 ||
+			strncmp(host_address, "0.", 2) == 0 ||
+			strstr(host_address, ".0.") != NULL || strstr(host_address, "255") != NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed");
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	rv = net_remove_route(host_address, interface_name, address_family);
@@ -1273,17 +1273,17 @@ int _connection_libnet_add_route_ipv6(const char *interface_name, const char *ho
 	else
 		return CONNECTION_ERROR_INVALID_PARAMETER;*/
 
-	switch(address_family) {
-		case AF_INET6:
-			if (strncmp(host_address, "fe80:", 5) == 0 ||
-				strncmp(host_address, "ff00:", 5) == 0 ||
-				strncmp(host_address, "::", 2) == 0) {
-				CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
-				return CONNECTION_ERROR_INVALID_PARAMETER;
-			}
-			break;
-		default:
-			return CONNECTION_ERROR_OPERATION_FAILED;
+	switch (address_family) {
+	case AF_INET6:
+		if (strncmp(host_address, "fe80:", 5) == 0 ||
+			strncmp(host_address, "ff00:", 5) == 0 ||
+			strncmp(host_address, "::", 2) == 0) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	rv = net_add_route_ipv6(host_address, interface_name, address_family, gateway);
@@ -1307,17 +1307,17 @@ int _connection_libnet_remove_route_ipv6(const char *interface_name, const char 
 	else
 		return CONNECTION_ERROR_INVALID_PARAMETER;*/
 
-	switch(address_family) {
-		case AF_INET6:
-			if (strncmp(host_address, "fe80:", 5) == 0 ||
-				strncmp(host_address, "ff00:", 5) == 0 ||
-				strncmp(host_address, "::", 2) == 0) {
-				CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
-				return CONNECTION_ERROR_INVALID_PARAMETER;
-			}
-			break;
-		default:
-			return CONNECTION_ERROR_OPERATION_FAILED;
+	switch (address_family) {
+	case AF_INET6:
+		if (strncmp(host_address, "fe80:", 5) == 0 ||
+			strncmp(host_address, "ff00:", 5) == 0 ||
+			strncmp(host_address, "::", 2) == 0) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
+			return CONNECTION_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
 	rv = net_remove_route_ipv6(host_address, interface_name, address_family, gateway);
@@ -1392,7 +1392,7 @@ int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, uns
 	if (rv == NET_ERR_ACCESS_DENIED) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
 		return CONNECTION_ERROR_PERMISSION_DENIED;
-	}else if (rv != NET_ERR_NONE)
+	} else if (rv != NET_ERR_NONE)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	return CONNECTION_ERROR_NONE;
@@ -1521,8 +1521,8 @@ int _connection_libnet_check_profile_privilege()
 
 bool __libnet_check_feature_supported(const char *key, connection_supported_feature_e feature)
 {
-	if(!connection_is_feature_checked[feature]) {
-		if(system_info_get_platform_bool(key, &connection_feature_supported[feature]) < 0) {
+	if (!connection_is_feature_checked[feature]) {
+		if (system_info_get_platform_bool(key, &connection_feature_supported[feature]) < 0) {
 			CONNECTION_LOG(CONNECTION_ERROR, "Error - Feature getting from System Info");
 			set_last_result(CONNECTION_ERROR_OPERATION_FAILED);
 			return CONNECTION_ERROR_OPERATION_FAILED;
@@ -1541,21 +1541,17 @@ int _connection_check_feature_supported(const char *feature_name, ...)
 
 	va_start(list, feature_name);
 	key = feature_name;
-	while(1) {
-		if((strcmp(key, TELEPHONY_FEATURE) == 0)){
+	while (1) {
+		if (strcmp(key, TELEPHONY_FEATURE) == 0)
 			value = __libnet_check_feature_supported(key, CONNECTION_SUPPORTED_FEATURE_TELEPHONY);
-		}
-		if((strcmp(key, WIFI_FEATURE) == 0)){
+		if (strcmp(key, WIFI_FEATURE) == 0)
 			value = __libnet_check_feature_supported(key, CONNECTION_SUPPORTED_FEATURE_WIFI);
-		}
-		if((strcmp(key, TETHERING_BLUETOOTH_FEATURE) == 0)){
+		if (strcmp(key, TETHERING_BLUETOOTH_FEATURE) == 0)
 			value = __libnet_check_feature_supported(key, CONNECTION_SUPPORTED_FEATURE_TETHERING_BLUETOOTH);
-		}
-		if((strcmp(key, ETHERNET_FEATURE) == 0)){
+		if (strcmp(key, ETHERNET_FEATURE) == 0)
 			value = __libnet_check_feature_supported(key, CONNECTION_SUPPORTED_FEATURE_ETHERNET);
-		}
 
-		SECURE_CONNECTION_LOG(CONNECTION_INFO, "%s feature is %s", key, (value?"true":"false"));
+		SECURE_CONNECTION_LOG(CONNECTION_INFO, "%s feature is %s", key, (value ? "true" : "false"));
 		feature_supported |= value;
 		key = va_arg(list, const char *);
 		if (!key) break;
