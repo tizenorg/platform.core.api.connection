@@ -399,8 +399,7 @@ EXPORT_API int connection_create(connection_h *connection)
 	if (rv == NET_ERR_ACCESS_DENIED) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
 		return CONNECTION_ERROR_PERMISSION_DENIED;
-	}
-	else if (rv != NET_ERR_NONE) {
+	} else if (rv != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Failed to create connection[%d]", rv);
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
@@ -533,9 +532,9 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE, ETHERNET_FEATURE);
 
-	if(type == CONNECTION_TYPE_WIFI)
+	if (type == CONNECTION_TYPE_WIFI)
 		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
-	else if(type == CONNECTION_TYPE_ETHERNET)
+	else if (type == CONNECTION_TYPE_ETHERNET)
 		CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
 
 	if (mac_addr == NULL || !(__connection_check_handle_validity(connection))) {
@@ -590,7 +589,7 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 			return CONNECTION_ERROR_OUT_OF_MEMORY;
 		}
 
-		g_strlcpy(*mac_addr, buf,CONNECTION_MAC_INFO_LENGTH + 1);
+		g_strlcpy(*mac_addr, buf, CONNECTION_MAC_INFO_LENGTH + 1);
 		fclose(fp);
 
 		break;
@@ -600,7 +599,7 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 	}
 
 	/* Checking Invalid MAC Address */
-	if((strcmp(*mac_addr, "00:00:00:00:00:00") == 0) ||
+	if ((strcmp(*mac_addr, "00:00:00:00:00:00") == 0) ||
 			(strcmp(*mac_addr, "ff:ff:ff:ff:ff:ff") == 0)) {
 		CONNECTION_LOG(CONNECTION_ERROR, "MAC Address(%s) is invalid", *mac_addr);
 		return CONNECTION_ERROR_INVALID_OPERATION;
@@ -739,7 +738,7 @@ EXPORT_API int connection_unset_ethernet_cable_state_chaged_cb(connection_h conn
 {
 	CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
 
-	if ( !(__connection_check_handle_validity(connection)) ) {
+	if (!(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
@@ -1058,7 +1057,7 @@ EXPORT_API int connection_reset_profile(connection_h connection,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	if(id < 0 || id > 1) {
+	if (id < 0 || id > 1) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
@@ -1201,7 +1200,7 @@ static int __get_cellular_statistic(connection_statistics_type_e statistics_type
 	}
 
 	*llsize = (long long)(last_size * 1000) + (long long)(size * 1000);
-	CONNECTION_LOG(CONNECTION_INFO,"%lld bytes", *llsize);
+	CONNECTION_LOG(CONNECTION_INFO, "%lld bytes", *llsize);
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1254,7 +1253,7 @@ static int __get_statistic(connection_type_e connection_type,
 			return CONNECTION_ERROR_OPERATION_FAILED;
 		}
 
-		CONNECTION_LOG(CONNECTION_INFO,"%lld bytes", ull_size);
+		CONNECTION_LOG(CONNECTION_INFO, "%lld bytes", ull_size);
 		*llsize = (long long)ull_size;
 	} else
 		return CONNECTION_ERROR_INVALID_PARAMETER;
@@ -1297,7 +1296,7 @@ static int __reset_statistic(connection_type_e connection_type,
 	if (rv != CONNECTION_ERROR_NONE)
 		return rv;
 
-	CONNECTION_LOG(CONNECTION_INFO,"connection_reset_statistics success");
+	CONNECTION_LOG(CONNECTION_INFO, "connection_reset_statistics success");
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1308,9 +1307,9 @@ EXPORT_API int connection_get_statistics(connection_h connection,
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE);
 
-	if(connection_type == CONNECTION_TYPE_CELLULAR )
+	if (connection_type == CONNECTION_TYPE_CELLULAR)
 		CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
-	else if(connection_type == CONNECTION_TYPE_WIFI)
+	else if (connection_type == CONNECTION_TYPE_WIFI)
 		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!(__connection_check_handle_validity(connection)) || size == NULL) {
@@ -1327,9 +1326,9 @@ EXPORT_API int connection_reset_statistics(connection_h connection,
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE);
 
-	if(connection_type == CONNECTION_TYPE_CELLULAR )
+	if (connection_type == CONNECTION_TYPE_CELLULAR)
 		CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
-	else if(connection_type == CONNECTION_TYPE_WIFI)
+	else if (connection_type == CONNECTION_TYPE_WIFI)
 		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (!__connection_check_handle_validity(connection)) {
