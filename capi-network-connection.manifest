@@ -1,7 +1,4 @@
 <manifest>
-	<assign>
-		<filesystem path="/usr/bin/connection_test" exec_label="connman"/>
-	</assign>
 	<request>
 		<domain name="_"/>
 	</request>
