@@ -25,7 +25,7 @@
 
 #include <tizen_error.h>
 
-#define RETURN_FAIL_DESTROY(x) {connection_profile_destroy(x); return -1;}
+#define RETURN_FAIL_DESTROY(x) {connection_profile_destroy(x); return -1; }
 
 gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data);
 
@@ -48,7 +48,7 @@ static bool test_get_user_string(const char *msg, char *buf, int buf_size)
 		return false;
 	}
 
-	buf[rv-1]='\0';
+	buf[rv-1] = '\0';
 	return true;
 }
 
@@ -192,9 +192,9 @@ static void test_connection_set_default_callback(connection_error_e result, void
 void test_get_ethernet_cable_state_callback(connection_ethernet_cable_state_e state,
 								void* user_data)
 {
-	if(state == CONNECTION_ETHERNET_CABLE_ATTACHED)
+	if (state == CONNECTION_ETHERNET_CABLE_ATTACHED)
 		printf("Ethernet Cable Connected\n");
-	else if(state == CONNECTION_ETHERNET_CABLE_DETACHED)
+	else if (state == CONNECTION_ETHERNET_CABLE_DETACHED)
 		printf("Ethernet Cable Disconnected\n");
 }
 
@@ -245,16 +245,15 @@ static bool test_get_user_selected_profile(connection_profile_h *profile, bool s
 			connection_profile_get_wifi_essid(profile_h, &essid);
 			printf("%d. state:[%s], profile name:%s, essid:%s\n",
 				profile_count, test_print_state(profile_state),
-				profile_name, (essid)? essid : "");
+				profile_name, (essid) ? essid : "");
 			g_free(essid);
 
 			profile_list[profile_count] = profile_h;
 			profile_count++;
 		} else {
 			connection_cellular_service_type_e service_type;
-			if (connection_profile_get_cellular_service_type(profile_h, &service_type) != CONNECTION_ERROR_NONE) {
+			if (connection_profile_get_cellular_service_type(profile_h, &service_type) != CONNECTION_ERROR_NONE)
 				printf("Fail to get cellular service type!\n");
-			}
 
 			printf("%d. state:[%s], profile name:%s[%d]\n",
 				profile_count, test_print_state(profile_state), profile_name, service_type);
@@ -849,16 +848,16 @@ int test_get_current_proxy(void)
 int test_get_current_ip(void)
 {
 	char *ip_addr = NULL;
-       int input;
-       bool rv;
+	int input;
+	bool rv;
 
-       rv = test_get_user_int("Input Address type to get"
-                       "(1:IPV4, 2:IPV6):", &input);
+	rv = test_get_user_int("Input Address type to get"
+		"(1:IPV4, 2:IPV6):", &input);
 
-       if (rv == false) {
-               printf("Invalid input!!\n");
-               return -1;
-       }
+	if (rv == false) {
+		printf("Invalid input!!\n");
+		return -1;
+	}
 
 	switch (input) {
 	case 1:
@@ -894,9 +893,9 @@ int test_get_call_statistics_info(void)
 	connection_get_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA, &rv);
 	printf("last recv data size [%lld]\n", rv);
 	connection_get_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA, &rv);
-	printf("last sent data size [%lld]\n",rv );
+	printf("last sent data size [%lld]\n", rv);
 	connection_get_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA, &rv);
-	printf("total received data size [%lld]\n",rv );
+	printf("total received data size [%lld]\n", rv);
 	connection_get_statistics(connection, CONNECTION_TYPE_CELLULAR, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA, &rv);
 	printf("total sent data size [%lld]\n", rv);
 
@@ -910,9 +909,9 @@ int test_get_wifi_call_statistics_info(void)
 	connection_get_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_RECEIVED_DATA, &rv);
 	printf("WiFi last recv data size [%lld]\n", rv);
 	connection_get_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_LAST_SENT_DATA, &rv);
-	printf("WiFi last sent data size [%lld]\n",rv );
+	printf("WiFi last sent data size [%lld]\n", rv);
 	connection_get_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_RECEIVED_DATA, &rv);
-	printf("WiFi total received data size [%lld]\n",rv );
+	printf("WiFi total received data size [%lld]\n", rv);
 	connection_get_statistics(connection, CONNECTION_TYPE_WIFI, CONNECTION_STATISTICS_TYPE_TOTAL_SENT_DATA, &rv);
 	printf("WiFi total sent data size [%lld]\n", rv);
 
@@ -1686,9 +1685,8 @@ int test_reset_profile(void)
 		return -1;
 	}
 
-	if (connection_reset_profile(connection, type, sim_id, test_connection_reset_profile_callback, NULL) != CONNECTION_ERROR_NONE) {
+	if (connection_reset_profile(connection, type, sim_id, test_connection_reset_profile_callback, NULL) != CONNECTION_ERROR_NONE)
 		return -1;
-	}
 
 	return 1;
 }
@@ -1696,14 +1694,14 @@ int test_reset_profile(void)
 int main(int argc, char **argv)
 {
 	GMainLoop *mainloop;
-	mainloop = g_main_loop_new (NULL, FALSE);
+	mainloop = g_main_loop_new(NULL, FALSE);
 
 	GIOChannel *channel = g_io_channel_unix_new(0);
-	g_io_add_watch(channel, (G_IO_IN|G_IO_ERR|G_IO_HUP|G_IO_NVAL), test_thread,NULL );
+	g_io_add_watch(channel, (G_IO_IN|G_IO_ERR|G_IO_HUP|G_IO_NVAL), test_thread, NULL);
 
 	printf("Test Thread created...\n");
 
-	g_main_loop_run (mainloop);
+	g_main_loop_run(mainloop);
 
 	return 0;
 }
@@ -1728,42 +1726,42 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 	if (*a == '\n' || *a == '\r') {
 		printf("\n\n Network Connection API Test App\n\n");
 		printf("Options..\n");
-		printf("1 	- Create Handle and set callbacks\n");
-		printf("2 	- Destroy Handle(unset callbacks automatically)\n");
-		printf("3 	- Get network state\n");
-		printf("4 	- Get cellular state (please insert SIM Card)\n");
-		printf("5 	- Get wifi state (please turn on WiFi)\n");
-		printf("6 	- Get current proxy address \n");
-		printf("7 	- Get current Ip address\n");
-		printf("8 	- Get cellular data call statistics\n");
-		printf("9 	- Get WiFi data call statistics\n");
-		printf("a 	- Get Profile list\n");
-		printf("b 	- Get Connected Profile list\n");
-		printf("c 	- Get Current profile\n");
-		printf("d 	- Open connection with profile\n");
-		printf("e 	- Get default cellular service by type\n");
-		printf("f 	- Set default cellular service by type\n");
-		printf("g 	- Close connection with profile\n");
-		printf("h 	- Add profile(Cellular and Wifi only)\n");
-		printf("i 	- Remove profile(Cellular:delete, WiFi:forgot)\n");
-		printf("j 	- Update profile\n");
-		printf("k 	- Get profile info\n");
-		printf("l 	- Refresh profile info\n");
-		printf("m 	- Set state changed callback\n");
-		printf("n 	- Unset state changed callback\n");
-		printf("o 	- Reset cellular data call statistics\n");
-		printf("p 	- Reset WiFi data call statistics\n");
-		printf("q 	- Add new route\n");
-		printf("r 	- Remove a route\n");
-		printf("s 	- Get Bluetooth state\n");
-		printf("t 	- Get profile id\n");
-		printf("u 	- Reset profile\n");
-		printf("v 	- Get all cellular default profiles\n");
-		printf("w 	- Get mac address\n");
-		printf("x 	- Get ethernet cable state\n");
-		printf("B	- Add IPv6 new route\n");
-		printf("C	- Remove IPv6 route\n");
-		printf("0	- Exit \n");
+		printf("1   - Create Handle and set callbacks\n");
+		printf("2   - Destroy Handle(unset callbacks automatically)\n");
+		printf("3   - Get network state\n");
+		printf("4   - Get cellular state (please insert SIM Card)\n");
+		printf("5   - Get wifi state (please turn on WiFi)\n");
+		printf("6   - Get current proxy address \n");
+		printf("7   - Get current Ip address\n");
+		printf("8   - Get cellular data call statistics\n");
+		printf("9   - Get WiFi data call statistics\n");
+		printf("a   - Get Profile list\n");
+		printf("b   - Get Connected Profile list\n");
+		printf("c   - Get Current profile\n");
+		printf("d   - Open connection with profile\n");
+		printf("e   - Get default cellular service by type\n");
+		printf("f   - Set default cellular service by type\n");
+		printf("g   - Close connection with profile\n");
+		printf("h   - Add profile(Cellular and Wifi only)\n");
+		printf("i   - Remove profile(Cellular:delete, WiFi:forgot)\n");
+		printf("j   - Update profile\n");
+		printf("k   - Get profile info\n");
+		printf("l   - Refresh profile info\n");
+		printf("m   - Set state changed callback\n");
+		printf("n   - Unset state changed callback\n");
+		printf("o   - Reset cellular data call statistics\n");
+		printf("p   - Reset WiFi data call statistics\n");
+		printf("q   - Add new route\n");
+		printf("r   - Remove a route\n");
+		printf("s   - Get Bluetooth state\n");
+		printf("t   - Get profile id\n");
+		printf("u   - Reset profile\n");
+		printf("v   - Get all cellular default profiles\n");
+		printf("w   - Get mac address\n");
+		printf("x   - Get ethernet cable state\n");
+		printf("B   - Add IPv6 new route\n");
+		printf("C   - Remove IPv6 route\n");
+		printf("0   - Exit \n");
 		printf("ENTER	- Show options menu.......\n");
 	}
 

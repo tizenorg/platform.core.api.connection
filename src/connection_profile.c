@@ -210,9 +210,9 @@ EXPORT_API int connection_profile_create(connection_profile_type_e type, const c
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE);
 
-	if(type == CONNECTION_PROFILE_TYPE_CELLULAR)
+	if (type == CONNECTION_PROFILE_TYPE_CELLULAR)
 		CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
-	else if(type == CONNECTION_PROFILE_TYPE_WIFI)
+	else if (type == CONNECTION_PROFILE_TYPE_WIFI)
 		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
 	if (type != CONNECTION_PROFILE_TYPE_CELLULAR &&
@@ -612,7 +612,7 @@ EXPORT_API int connection_profile_get_gateway_address(connection_profile_h profi
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		*gateway_address = __profile_convert_ip_to_string(
 					&net_info->GatewayAddr6, address_family);
 	else
@@ -645,10 +645,10 @@ EXPORT_API int connection_profile_get_dns_address(connection_profile_h profile, 
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV4)
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4)
 		*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr[order-1],
 				address_family);
-	else if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
+	else if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
 		*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr6[order-1],
 				address_family);
 	else
@@ -748,12 +748,12 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV4)
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4)
 		profile_type = &net_info->IpConfigType ;
 	else
 		profile_type = &net_info->IpConfigType6 ;
 
-	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV4) {
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4) {
 		switch (type) {
 		case CONNECTION_IP_CONFIG_TYPE_STATIC:
 			*profile_type = NET_IP_CONFIG_TYPE_STATIC;
@@ -824,7 +824,7 @@ EXPORT_API int connection_profile_set_ip_address(connection_profile_h profile,
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
 		if (ip_address == NULL)
 			inet_pton(AF_INET6, "::", &net_info->IpAddr6.Data.Ipv6);
 		else if (inet_pton(AF_INET6, ip_address,
@@ -858,7 +858,7 @@ EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
 		if (subnet_mask == NULL)
 			net_info->PrefixLen6 = 0 ;
 		else
@@ -866,7 +866,7 @@ EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 	} else {
 		if (subnet_mask == NULL)
 			net_info->SubnetMask.Data.Ipv4.s_addr = 0;
-		else if (inet_pton(AF_INET, subnet_mask , &net_info->SubnetMask.Data.Ipv4)  < 1 )
+		else if (inet_pton(AF_INET, subnet_mask , &net_info->SubnetMask.Data.Ipv4)  < 1)
 			return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -890,7 +890,7 @@ EXPORT_API int connection_profile_set_gateway_address(connection_profile_h profi
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
 		if (gateway_address == NULL)
 			inet_pton(AF_INET6, "::", &net_info->GatewayAddr6.Data.Ipv6);
 		else if (inet_pton(AF_INET6, gateway_address, &net_info->GatewayAddr6.Data.Ipv6) < 1)
@@ -924,7 +924,7 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
-	if(address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
 		net_info->DnsAddr6[order-1].Type = NET_ADDR_IPV6;
 		if (dns_address == NULL)
 			inet_pton(AF_INET6, "::", &net_info->DnsAddr6[order-1].Data.Ipv6);
