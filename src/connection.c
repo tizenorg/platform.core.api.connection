@@ -34,6 +34,8 @@ static int __connection_convert_net_state(int status)
 		return CONNECTION_TYPE_ETHERNET;
 	case VCONFKEY_NETWORK_BLUETOOTH:
 		return CONNECTION_TYPE_BT;
+	case VCONFKEY_NETWORK_DEFAULT_PROXY:
+		return CONNECTION_TYPE_PROXY;
 	default:
 		return CONNECTION_TYPE_DISCONNECTED;
 	}
