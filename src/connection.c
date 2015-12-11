@@ -544,6 +544,7 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 
 	switch (type) {
 	case CONNECTION_TYPE_WIFI:
+#if defined TIZEN_TV
 		fp = fopen(WIFI_MAC_INFO_FILE, "r");
 		if (fp == NULL) {
 			CONNECTION_LOG(CONNECTION_ERROR, "Failed to open file %s", WIFI_MAC_INFO_FILE);
@@ -566,6 +567,14 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 		}
 		g_strlcpy(*mac_addr, buf, CONNECTION_MAC_INFO_LENGTH + 1);
 		fclose(fp);
+#else
+		*mac_addr = vconf_get_str(VCONFKEY_WIFI_BSSID_ADDRESS);
+
+		if (*mac_addr == NULL) {
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get vconf from %s", VCONFKEY_WIFI_BSSID_ADDRESS);
+			return CONNECTION_ERROR_OPERATION_FAILED;
+		}
+#endif
 		break;
 	case CONNECTION_TYPE_ETHERNET:
 		fp = fopen(ETHERNET_MAC_INFO_FILE, "r");
@@ -609,6 +618,7 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 
 	return CONNECTION_ERROR_NONE;
 }
+
 
 EXPORT_API int connection_get_cellular_state(connection_h connection, connection_cellular_state_e* state)
 {
