@@ -80,6 +80,7 @@
  * - http://tizen.org/feature/network.wifi\n
  * - http://tizen.org/feature/network.telephony\n
  * - http://tizen.org/feature/network.tethering.bluetooth\n
+ * - http://tizen.org/feature/network.net_proxy\n
  *
  * It is recommended to design feature related codes in your application for reliability.\n
  *
