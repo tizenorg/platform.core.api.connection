@@ -55,7 +55,7 @@ typedef enum
     CONNECTION_TYPE_CELLULAR = 2,  /**< Cellular type */
     CONNECTION_TYPE_ETHERNET = 3,  /**< Ethernet type */
     CONNECTION_TYPE_BT = 4,  /**< Bluetooth type */
-    CONNECTION_TYPE_PROXY, /**< Proxy type (Since 3.0) */
+    CONNECTION_TYPE_NET_PROXY, /**< Proxy type for internet connection (Since 3.0) */
 } connection_type_e;
 
 /**
