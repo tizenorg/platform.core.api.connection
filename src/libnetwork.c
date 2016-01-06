@@ -1444,6 +1444,8 @@ guint _connection_callback_add(GSourceFunc func, gpointer user_data)
 {
 	guint id;
 	struct managed_idle_data *data;
+	GMainContext *context;
+	GSource *src;
 
 	if (!func)
 		return 0;
@@ -1455,8 +1457,12 @@ guint _connection_callback_add(GSourceFunc func, gpointer user_data)
 	data->func = func;
 	data->user_data = user_data;
 
-	id = g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, __connection_idle_cb, data,
-			__connection_idle_destroy_cb);
+	context = g_main_context_get_thread_default();
+	src = g_idle_source_new();
+	g_source_set_callback(src, __connection_idle_cb, data,
+		__connection_idle_destroy_cb);
+	id = g_source_attach(src, context);
+	g_source_unref(src);
 	if (!id) {
 		g_free(data);
 		return id;
