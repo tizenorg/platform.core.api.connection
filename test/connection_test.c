@@ -25,6 +25,12 @@
 
 #include <tizen_error.h>
 
+#define LOG_RED "\033[0;31m"
+#define LOG_GREEN "\033[0;32m"
+#define LOG_BROWN "\033[0;33m"
+#define LOG_BLUE "\033[0;34m"
+#define LOG_END "\033[0;m"
+
 #define RETURN_FAIL_DESTROY(x) {connection_profile_destroy(x); return -1; }
 
 gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data);
@@ -80,6 +86,82 @@ static const char *test_print_state(connection_profile_state_e state)
 		return "Configuration";
 	case CONNECTION_PROFILE_STATE_CONNECTED:
 		return "Connected";
+	default:
+		return "Unknown";
+	}
+}
+
+static const char *test_print_connection_type(connection_type_e type)
+{
+	switch (type) {
+	case CONNECTION_TYPE_DISCONNECTED:
+		return "Disconnected";
+	case CONNECTION_TYPE_WIFI:
+		return "Wifi";
+	case CONNECTION_TYPE_CELLULAR:
+		return "Cellular";
+	case CONNECTION_TYPE_ETHERNET:
+		return "Ethernet";
+	case CONNECTION_TYPE_BT:
+		return "BT";
+	case CONNECTION_TYPE_NET_PROXY:
+		return "Net_Proxy";
+	default:
+		return "Unknown";
+	}
+}
+
+static const char *test_print_cellular_state(connection_cellular_state_e state)
+{
+	switch (state) {
+	case CONNECTION_CELLULAR_STATE_OUT_OF_SERVICE:
+		return "Out of service";
+	case CONNECTION_CELLULAR_STATE_FLIGHT_MODE:
+		return "Flight mode";
+	case CONNECTION_CELLULAR_STATE_ROAMING_OFF:
+		return "Roaming off";
+	case CONNECTION_CELLULAR_STATE_CALL_ONLY_AVAILABLE:
+		return "Call only available";
+	case CONNECTION_CELLULAR_STATE_AVAILABLE:
+		return "Available";
+	case CONNECTION_CELLULAR_STATE_CONNECTED:
+		return "Connected";
+	default:
+		return "Unknown";
+	}
+}
+
+static const char *test_print_wifi_state(connection_wifi_state_e state)
+{
+	switch(state) {
+	case CONNECTION_WIFI_STATE_DEACTIVATED:
+		return "Deactivated";
+	case CONNECTION_WIFI_STATE_DISCONNECTED:
+		return "Disconnected";
+	case CONNECTION_WIFI_STATE_CONNECTED:
+		return "Connected";
+	default:
+		return "Unknown";
+	}
+}
+
+static const char *test_print_cellular_service_type(connection_cellular_service_type_e type)
+{
+	switch(type) {
+	case CONNECTION_CELLULAR_SERVICE_TYPE_UNKNOWN:
+		return "Unknown";
+	case CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET:
+		return "Internet";
+	case CONNECTION_CELLULAR_SERVICE_TYPE_MMS:
+		return "MMS";
+	case CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_INTERNET:
+		return "Prepaid internet";
+	case CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_MMS:
+		return "Prepaid MMS";
+	case CONNECTION_CELLULAR_SERVICE_TYPE_TETHERING:
+		return "Tethering";
+	case CONNECTION_CELLULAR_SERVICE_TYPE_APPLICATION:
+		return "Application";
 	default:
 		return "Unknown";
 	}
@@ -255,8 +337,9 @@ static bool test_get_user_selected_profile(connection_profile_h *profile, bool s
 			if (connection_profile_get_cellular_service_type(profile_h, &service_type) != CONNECTION_ERROR_NONE)
 				printf("Fail to get cellular service type!\n");
 
-			printf("%d. state:[%s], profile name:%s[%d]\n",
-				profile_count, test_print_state(profile_state), profile_name, service_type);
+			printf("%d. state:[%s], profile name:%s[%s]\n",
+				profile_count, test_print_state(profile_state),
+				profile_name, test_print_cellular_service_type(service_type));
 
 			profile_list[profile_count] = profile_h;
 			profile_count++;
@@ -789,7 +872,8 @@ int test_get_network_state(void)
 		return -1;
 	}
 
-	printf("Retval = [%s] network connection state [%d]\n", test_print_error(rv), net_state);
+	printf("Retval = [%s] network connection state [%s]\n",
+		test_print_error(rv), test_print_connection_type(net_state));
 
 	return 1;
 }
@@ -806,7 +890,8 @@ int test_get_cellular_state(void)
 		return -1;
 	}
 
-	printf("Retval = [%s] Cellular state [%d]\n", test_print_error(rv), cellular_state);
+	printf("Retval = [%s] Cellular state [%s]\n",
+		test_print_error(rv), test_print_cellular_state(cellular_state));
 
 	return 1;
 }
@@ -823,7 +908,8 @@ int test_get_wifi_state(void)
 		return -1;
 	}
 
-	printf("Retval = [%s] WiFi state [%d]\n", test_print_error(rv), wifi_state);
+	printf("Retval = [%s] WiFi state [%s]\n",
+		test_print_error(rv), test_print_wifi_state(wifi_state));
 
 	return 1;
 }
@@ -1726,18 +1812,18 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 	if (*a == '\n' || *a == '\r') {
 		printf("\n\n Network Connection API Test App\n\n");
 		printf("Options..\n");
-		printf("1   - Create Handle and set callbacks\n");
+		printf(LOG_GREEN "1   - Create Handle and set callbacks\n" LOG_END);
 		printf("2   - Destroy Handle(unset callbacks automatically)\n");
-		printf("3   - Get network state\n");
-		printf("4   - Get cellular state (please insert SIM Card)\n");
-		printf("5   - Get wifi state (please turn on WiFi)\n");
+		printf(LOG_GREEN "3   - Get network state\n" LOG_END);
+		printf(LOG_GREEN "4   - Get cellular state (please insert SIM Card)\n" LOG_END);
+		printf(LOG_GREEN "5   - Get wifi state (please turn on WiFi)\n" LOG_END);
 		printf("6   - Get current proxy address \n");
 		printf("7   - Get current Ip address\n");
 		printf("8   - Get cellular data call statistics\n");
 		printf("9   - Get WiFi data call statistics\n");
-		printf("a   - Get Profile list\n");
-		printf("b   - Get Connected Profile list\n");
-		printf("c   - Get Current profile\n");
+		printf(LOG_GREEN "a   - Get Profile list\n" LOG_END);
+		printf(LOG_GREEN "b   - Get Connected Profile list\n" LOG_END);
+		printf(LOG_GREEN "c   - Get Current profile\n" LOG_END);
 		printf("d   - Open connection with profile\n");
 		printf("e   - Get default cellular service by type\n");
 		printf("f   - Set default cellular service by type\n");
@@ -1761,7 +1847,7 @@ gboolean test_thread(GIOChannel *source, GIOCondition condition, gpointer data)
 		printf("x   - Get ethernet cable state\n");
 		printf("B   - Add IPv6 new route\n");
 		printf("C   - Remove IPv6 route\n");
-		printf("0   - Exit \n");
+		printf(LOG_RED "0   - Exit \n" LOG_END);
 		printf("ENTER	- Show options menu.......\n");
 	}
 

@@ -617,9 +617,8 @@ int _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 {
 	int rv;
 	net_wifi_state_t wlan_state;
-	net_profile_name_t profile_name;
 
-	rv = net_get_wifi_state(&wlan_state, &profile_name);
+	rv = net_get_wifi_state(&wlan_state);
 	if (rv == NET_ERR_ACCESS_DENIED) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
 		return CONNECTION_ERROR_PERMISSION_DENIED;
@@ -1557,7 +1556,6 @@ int _connection_check_feature_supported(const char *feature_name, ...)
 		if (strcmp(key, ETHERNET_FEATURE) == 0)
 			value = __libnet_check_feature_supported(key, CONNECTION_SUPPORTED_FEATURE_ETHERNET);
 
-		SECURE_CONNECTION_LOG(CONNECTION_INFO, "%s feature is %s", key, (value ? "true" : "false"));
 		feature_supported |= value;
 		key = va_arg(list, const char *);
 		if (!key) break;
