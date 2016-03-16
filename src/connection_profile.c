@@ -34,7 +34,7 @@ static net_dev_info_t* __profile_get_net_info(net_profile_info_t *profile_info)
 	case NET_DEVICE_WIFI:
 		return &profile_info->ProfileInfo.Wlan.net_info;
 	case NET_DEVICE_ETHERNET:
-		return &profile_info->ProfileInfo.Ethernet.net_info;
+		return &profile_info->ProfileInfo.Ethernet.net_info; //LCOV_EXCL_LINE
 	case NET_DEVICE_BLUETOOTH:
 		return &profile_info->ProfileInfo.Bluetooth.net_info;
 	case NET_DEVICE_DEFAULT:
@@ -59,12 +59,14 @@ static char *__profile_convert_ip_to_string(net_addr_t *ip_addr, connection_addr
 
 		inet_ntop(AF_INET, ipaddr, ipstr, INET_ADDRSTRLEN);
 	} else {
+		//LCOV_EXCL_START
 		ipaddr = (unsigned char *)&ip_addr->Data.Ipv6.s6_addr;
 		ipstr = g_try_malloc0(INET6_ADDRSTRLEN);
 		if (ipstr == NULL)
 				return NULL;
 
 		inet_ntop(AF_INET6, ipaddr, ipstr, INET6_ADDRSTRLEN);
+		//LCOV_EXCL_STOP
 	}
 
 	return ipstr;
@@ -83,7 +85,7 @@ static void __profile_init_cellular_profile(net_profile_info_t *profile_info, co
 
 	if (vconf_get_int(VCONF_TELEPHONY_DEFAULT_DATA_SERVICE,
 					&default_subscriber_id) != 0)
-		CONNECTION_LOG(CONNECTION_ERROR,
+		CONNECTION_LOG(CONNECTION_ERROR, //LCOV_EXCL_LINE
 						"Failed to get VCONF_TELEPHONY_DEFAULT_DATA_SERVICE");
 
 	profile = (connection_profile_h)profile_info;
@@ -101,6 +103,7 @@ static void __profile_init_wifi_profile(net_profile_info_t *profile_info)
 	profile_info->ProfileInfo.Wlan.security_info.enc_mode = WLAN_ENC_MODE_NONE;
 }
 
+//LCOV_EXCL_START
 static const char* __profile_get_ethernet_proxy(void)
 {
 	char *proxy;
@@ -114,7 +117,9 @@ static const char* __profile_get_ethernet_proxy(void)
 
 	return proxy;
 }
+//LCOV_EXCL_STOP
 
+//LCOV_EXCL_START
 connection_cellular_service_type_e _profile_convert_to_connection_cellular_service_type(net_service_type_t svc_type)
 {
 	switch (svc_type) {
@@ -203,7 +208,7 @@ net_state_type_t _connection_profile_convert_to_net_state(connection_profile_sta
 
 	return libnet_state;
 }
-
+//LCOV_EXCL_STOP
 
 /* Connection profile ********************************************************/
 EXPORT_API int connection_profile_create(connection_profile_type_e type, const char* keyword, connection_profile_h* profile)
@@ -230,8 +235,8 @@ EXPORT_API int connection_profile_create(connection_profile_type_e type, const c
 	if (rv == CONNECTION_ERROR_PERMISSION_DENIED)
 		return rv;
 	else if (rv != CONNECTION_ERROR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to create profile");
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to create profile"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	net_profile_info_t *profile_info = g_try_malloc0(sizeof(net_profile_info_t));
@@ -336,8 +341,8 @@ EXPORT_API int connection_profile_get_name(connection_profile_h profile, char** 
 		*profile_name = g_strdup(profile_info->ProfileInfo.Wlan.essid);
 		break;
 	case NET_DEVICE_ETHERNET:
-		*profile_name = g_strdup(profile_info->ProfileInfo.Ethernet.net_info.DevName);
-		break;
+		*profile_name = g_strdup(profile_info->ProfileInfo.Ethernet.net_info.DevName); //LCOV_EXCL_LINE
+		break; //LCOV_EXCL_LINE
 	case NET_DEVICE_BLUETOOTH: {
 		char *bt_name = strrchr(profile_info->ProfileName, '/');
 		if (bt_name == NULL)
@@ -375,8 +380,8 @@ EXPORT_API int connection_profile_get_type(connection_profile_h profile, connect
 		*type = CONNECTION_PROFILE_TYPE_WIFI;
 		break;
 	case NET_DEVICE_ETHERNET:
-		*type = CONNECTION_PROFILE_TYPE_ETHERNET;
-		break;
+		*type = CONNECTION_PROFILE_TYPE_ETHERNET; //LCOV_EXCL_LINE
+		break; //LCOV_EXCL_LINE
 	case NET_DEVICE_BLUETOOTH:
 		*type = CONNECTION_PROFILE_TYPE_BT;
 		break;
@@ -425,11 +430,11 @@ EXPORT_API int connection_profile_refresh(connection_profile_h profile)
 
 	rv = net_get_profile_info(profile_info->ProfileName, &profile_info_local);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get profile information");
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get profile information"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	memcpy(profile, &profile_info_local, sizeof(net_profile_info_t));
@@ -479,6 +484,7 @@ EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profil
 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4) {
 		switch (profile_type) {
+		//LCOV_EXCL_START
 		case NET_IP_CONFIG_TYPE_STATIC:
 			*type = CONNECTION_IP_CONFIG_TYPE_STATIC;
 			break;
@@ -500,8 +506,10 @@ EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profil
 			break;
 		default:
 			return CONNECTION_ERROR_OPERATION_FAILED;
+		//LCOV_EXCL_STOP
 		}
 	} else {
+		//LCOV_EXCL_START
 		switch (profile_type) {
 		case NET_IP_CONFIG_TYPE_STATIC:
 			*type = CONNECTION_IP_CONFIG_TYPE_STATIC;
@@ -519,6 +527,7 @@ EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profil
 			return	CONNECTION_ERROR_OPERATION_FAILED;
 
 		}
+		//LCOV_EXCL_STOP
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -576,12 +585,14 @@ EXPORT_API int connection_profile_get_subnet_mask(connection_profile_h profile,
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		//LCOV_EXCL_START
 		prefixlen = g_try_malloc0(MAX_PREFIX_LENGTH);
 		if (prefixlen != NULL) {
 			snprintf(prefixlen, MAX_PREFIX_LENGTH, "%d", net_info->PrefixLen6);
 			*subnet_mask = prefixlen;
 		} else
 			*subnet_mask = NULL;
+		//LCOV_EXCL_STOP
 	} else
 		*subnet_mask = __profile_convert_ip_to_string(&net_info->SubnetMask,
 				address_family);
@@ -646,11 +657,11 @@ EXPORT_API int connection_profile_get_dns_address(connection_profile_h profile, 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4)
 		*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr[order-1],
 				address_family);
-	else if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6)
-		*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr6[order-1],
+	else if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) //LCOV_EXCL_LINE
+		*dns_address = __profile_convert_ip_to_string(&net_info->DnsAddr6[order-1], //LCOV_EXCL_LINE
 				address_family);
 	else
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid address family\n");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid address family\n"); //LCOV_EXCL_LINE
 
 	if (*dns_address == NULL)
 		return CONNECTION_ERROR_OUT_OF_MEMORY;
@@ -673,6 +684,7 @@ EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, c
 	if (net_info == NULL)
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
+	//LCOV_EXCL_START
 	if (profile_info->profile_type == NET_DEVICE_ETHERNET) {
 		proxy = __profile_get_ethernet_proxy();
 		if (proxy == NULL)
@@ -682,8 +694,10 @@ EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, c
 
 		return CONNECTION_ERROR_NONE;
 	}
+	//LCOV_EXCL_STOP
 
 	switch (net_info->ProxyMethod) {
+	//LCOV_EXCL_START
 	case NET_PROXY_TYPE_DIRECT:
 		*type = CONNECTION_PROXY_TYPE_DIRECT;
 		break;
@@ -696,6 +710,7 @@ EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, c
 	case NET_PROXY_TYPE_UNKNOWN:
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
+	//LCOV_EXCL_STOP
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -753,6 +768,7 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4) {
 		switch (type) {
+		//LCOV_EXCL_START
 		case CONNECTION_IP_CONFIG_TYPE_STATIC:
 			*profile_type = NET_IP_CONFIG_TYPE_STATIC;
 			net_info->IpAddr.Data.Ipv4.s_addr = 0;
@@ -778,8 +794,10 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 
 		default:
 			return CONNECTION_ERROR_INVALID_PARAMETER;
+		//LCOV_EXCL_STOP
 		}
 	} else {
+		//LCOV_EXCL_START
 		switch (type) {
 		case CONNECTION_IP_CONFIG_TYPE_STATIC:
 			*profile_type = NET_IP_CONFIG_TYPE_STATIC;
@@ -800,6 +818,7 @@ EXPORT_API int connection_profile_set_ip_config_type(connection_profile_h profil
 		default:
 			return CONNECTION_ERROR_INVALID_PARAMETER;
 		}
+		//LCOV_EXCL_STOP
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -823,11 +842,13 @@ EXPORT_API int connection_profile_set_ip_address(connection_profile_h profile,
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		//LCOV_EXCL_START
 		if (ip_address == NULL)
 			inet_pton(AF_INET6, "::", &net_info->IpAddr6.Data.Ipv6);
 		else if (inet_pton(AF_INET6, ip_address,
 					&net_info->IpAddr6.Data.Ipv6) < 1)
 			return CONNECTION_ERROR_INVALID_PARAMETER;
+		//LCOV_EXCL_STOP
 	} else {
 		if (ip_address == NULL)
 			net_info->IpAddr.Data.Ipv4.s_addr = 0;
@@ -857,10 +878,12 @@ EXPORT_API int connection_profile_set_subnet_mask(connection_profile_h profile,
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		//LCOV_EXCL_START
 		if (subnet_mask == NULL)
 			net_info->PrefixLen6 = 0 ;
 		else
 			net_info->PrefixLen6 = atoi(subnet_mask) ;
+		//LCOV_EXCL_STOP
 	} else {
 		if (subnet_mask == NULL)
 			net_info->SubnetMask.Data.Ipv4.s_addr = 0;
@@ -889,10 +912,12 @@ EXPORT_API int connection_profile_set_gateway_address(connection_profile_h profi
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		//LCOV_EXCL_START
 		if (gateway_address == NULL)
 			inet_pton(AF_INET6, "::", &net_info->GatewayAddr6.Data.Ipv6);
 		else if (inet_pton(AF_INET6, gateway_address, &net_info->GatewayAddr6.Data.Ipv6) < 1)
 			return CONNECTION_ERROR_INVALID_PARAMETER;
+		//LCOV_EXCL_STOP
 	} else {
 		if (gateway_address == NULL)
 			net_info->GatewayAddr.Data.Ipv4.s_addr = 0;
@@ -923,6 +948,7 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		//LCOV_EXCL_START
 		net_info->DnsAddr6[order-1].Type = NET_ADDR_IPV6;
 		if (dns_address == NULL)
 			inet_pton(AF_INET6, "::", &net_info->DnsAddr6[order-1].Data.Ipv6);
@@ -930,6 +956,7 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 			return CONNECTION_ERROR_INVALID_PARAMETER;
 		if (net_info->DnsCount6 < order)
 			net_info->DnsCount6 = order;
+		//LCOV_EXCL_STOP
 	} else {
 		net_info->DnsAddr[order-1].Type = NET_ADDR_IPV4;
 		if (dns_address == NULL)
@@ -958,6 +985,7 @@ EXPORT_API int connection_profile_set_proxy_type(connection_profile_h profile, c
 		return CONNECTION_ERROR_OPERATION_FAILED;
 
 	switch (type) {
+	//LCOV_EXCL_START
 	case CONNECTION_PROXY_TYPE_DIRECT:
 		net_info->ProxyMethod = NET_PROXY_TYPE_DIRECT;
 		break;
@@ -969,6 +997,7 @@ EXPORT_API int connection_profile_set_proxy_type(connection_profile_h profile, c
 		break;
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	//LCOV_EXCL_STOP
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -1012,7 +1041,7 @@ EXPORT_API int connection_profile_set_state_changed_cb(connection_profile_h prof
 	if (_connection_libnet_add_to_profile_cb_list(profile, callback, user_data))
 		return CONNECTION_ERROR_NONE;
 
-	return CONNECTION_ERROR_OPERATION_FAILED;
+	return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 }
 
 EXPORT_API int connection_profile_unset_state_changed_cb(connection_profile_h profile)
@@ -1146,6 +1175,7 @@ EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h pr
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
 	switch (profile_info->ProfileInfo.Wlan.security_info.sec_mode) {
+	//LCOV_EXCL_START
 	case WLAN_SEC_MODE_NONE:
 		*type = CONNECTION_WIFI_SECURITY_TYPE_NONE;
 		break;
@@ -1163,6 +1193,7 @@ EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h pr
 		break;
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
+	//LCOV_EXCL_STOP
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -1183,6 +1214,7 @@ EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h 
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
 	switch (profile_info->ProfileInfo.Wlan.security_info.enc_mode) {
+	//LCOV_EXCL_START
 	case WLAN_ENC_MODE_NONE:
 		*type = CONNECTION_WIFI_ENCRYPTION_TYPE_NONE;
 		break;
@@ -1200,6 +1232,7 @@ EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h 
 		break;
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
+	//LCOV_EXCL_STOP
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -1225,6 +1258,7 @@ EXPORT_API int connection_profile_is_wifi_passphrase_required(connection_profile
 	}
 
 	switch (profile_info->ProfileInfo.Wlan.security_info.sec_mode) {
+	//LCOV_EXCL_START
 	case WLAN_SEC_MODE_NONE:
 		*required = false;
 		break;
@@ -1236,6 +1270,7 @@ EXPORT_API int connection_profile_is_wifi_passphrase_required(connection_profile
 		break;
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
+	//LCOV_EXCL_STOP
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -1305,8 +1340,8 @@ EXPORT_API int connection_profile_get_cellular_service_type(connection_profile_h
 	*type = _profile_convert_to_connection_cellular_service_type(profile_info->ProfileInfo.Pdp.ServiceType);
 
 	if (*type == CONNECTION_CELLULAR_SERVICE_TYPE_UNKNOWN) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid service type Passed");
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid service type Passed"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -1324,8 +1359,8 @@ EXPORT_API int connection_profile_get_cellular_apn(connection_profile_h profile,
 	net_profile_info_t *profile_info = profile;
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	*apn = g_strdup(profile_info->ProfileInfo.Pdp.Apn);
@@ -1354,6 +1389,7 @@ EXPORT_API int connection_profile_get_cellular_auth_info(connection_profile_h pr
 	}
 
 	switch (profile_info->ProfileInfo.Pdp.AuthInfo.AuthType) {
+	//LCOV_EXCL_START
 	case NET_PDP_AUTH_NONE:
 		*type = CONNECTION_CELLULAR_AUTH_TYPE_NONE;
 		break;
@@ -1365,6 +1401,7 @@ EXPORT_API int connection_profile_get_cellular_auth_info(connection_profile_h pr
 		break;
 	default:
 		return CONNECTION_ERROR_OPERATION_FAILED;
+	//LCOV_EXCL_STOP
 	}
 
 	*user_name = g_strdup(profile_info->ProfileInfo.Pdp.AuthInfo.UserName);
@@ -1373,8 +1410,8 @@ EXPORT_API int connection_profile_get_cellular_auth_info(connection_profile_h pr
 
 	*password = g_strdup(profile_info->ProfileInfo.Pdp.AuthInfo.Password);
 	if (*password == NULL) {
-		g_free(*user_name);
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
+		g_free(*user_name); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OUT_OF_MEMORY; //LCOV_EXCL_LINE
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -1517,6 +1554,7 @@ EXPORT_API int connection_profile_set_cellular_service_type(connection_profile_h
 	}
 
 	switch (service_type) {
+	//LCOV_EXCL_START
 	case CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET:
 		profile_info->ProfileInfo.Pdp.ServiceType = NET_SERVICE_INTERNET;
 		break;
@@ -1538,6 +1576,7 @@ EXPORT_API int connection_profile_set_cellular_service_type(connection_profile_h
 	case CONNECTION_CELLULAR_SERVICE_TYPE_UNKNOWN:
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	//LCOV_EXCL_STOP
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -1583,6 +1622,7 @@ EXPORT_API int connection_profile_set_cellular_auth_info(connection_profile_h pr
 	}
 
 	switch (type) {
+	//LCOV_EXCL_START
 	case CONNECTION_CELLULAR_AUTH_TYPE_NONE:
 		profile_info->ProfileInfo.Pdp.AuthInfo.AuthType = NET_PDP_AUTH_NONE;
 		break;
@@ -1594,6 +1634,7 @@ EXPORT_API int connection_profile_set_cellular_auth_info(connection_profile_h pr
 		break;
 	default:
 		return CONNECTION_ERROR_INVALID_PARAMETER;
+	//LCOV_EXCL_STOP
 	}
 
 	g_strlcpy(profile_info->ProfileInfo.Pdp.AuthInfo.UserName, user_name, NET_PDP_AUTH_USERNAME_LEN_MAX+1);

@@ -23,6 +23,7 @@
 
 static __thread GSList *conn_handle_list = NULL;
 
+//LCOV_EXCL_START
 static int __connection_convert_net_state(int status)
 {
 	switch (status) {
@@ -170,7 +171,7 @@ static int __connection_set_type_changed_callback(connection_h connection,
 			if (--refcount == 0) {
 				if (vconf_ignore_key_changed(VCONFKEY_NETWORK_STATUS,
 						__connection_cb_type_change_cb) < 0) {
-					CONNECTION_LOG(CONNECTION_ERROR,
+					CONNECTION_LOG(CONNECTION_ERROR, //LCOV_EXCL_LINE
 							"Error to de-register vconf callback(%d)", refcount);
 				} else {
 					CONNECTION_LOG(CONNECTION_INFO,
@@ -257,7 +258,7 @@ static int __connection_set_ip_changed_callback(connection_h connection,
 			if (--refcount == 0) {
 				if (vconf_ignore_key_changed(VCONFKEY_NETWORK_IP,
 						__connection_cb_ip_change_cb) < 0) {
-					CONNECTION_LOG(CONNECTION_ERROR,
+					CONNECTION_LOG(CONNECTION_ERROR, //LCOV_EXCL_LINE
 							"Error to de-register vconf callback(%d)", refcount);
 				} else {
 					CONNECTION_LOG(CONNECTION_INFO,
@@ -344,7 +345,7 @@ static int __connection_set_proxy_changed_callback(connection_h connection,
 			if (--refcount == 0) {
 				if (vconf_ignore_key_changed(VCONFKEY_NETWORK_PROXY,
 						__connection_cb_proxy_change_cb) < 0) {
-					CONNECTION_LOG(CONNECTION_ERROR,
+					CONNECTION_LOG(CONNECTION_ERROR, //LCOV_EXCL_LINE
 							"Error to de-register vconf callback(%d)", refcount);
 				} else {
 					CONNECTION_LOG(CONNECTION_INFO,
@@ -379,6 +380,7 @@ static int __connection_set_ethernet_cable_state_changed_cb(connection_h connect
 	local_handle->ethernet_cable_state_changed_user_data = user_data;
 	return CONNECTION_ERROR_NONE;
 }
+//LCOV_EXCL_STOP
 
 static int __connection_get_handle_count(void)
 {
@@ -397,18 +399,19 @@ EXPORT_API int connection_create(connection_h *connection)
 
 	int rv = _connection_libnet_init();
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
-	} else if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to create connection[%d]", rv);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
+	}
+	else if (rv != NET_ERR_NONE) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to create connection[%d]", rv); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	*connection = g_try_malloc0(sizeof(connection_handle_s));
 	if (*connection != NULL)
 		CONNECTION_LOG(CONNECTION_INFO, "New handle created[%p]", *connection);
 	else
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
+		return CONNECTION_ERROR_OUT_OF_MEMORY; //LCOV_EXCL_LINE
 
 	conn_handle_list = g_slist_prepend(conn_handle_list, *connection);
 
@@ -458,8 +461,8 @@ EXPORT_API int connection_get_type(connection_h connection, connection_type_e* t
 
 	rv = vconf_get_int(VCONFKEY_NETWORK_STATUS, &status);
 	if (rv != VCONF_OK) {
-		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_int Failed = %d", status);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_int Failed = %d", status); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	CONNECTION_LOG(CONNECTION_INFO, "Connected Network = %d", status);
@@ -490,8 +493,8 @@ EXPORT_API int connection_get_ip_address(connection_h connection,
 	}
 
 	if (*ip_address == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed");
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED;//LCOV_EXCL_LINE
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -518,8 +521,8 @@ EXPORT_API int connection_get_proxy(connection_h connection,
 	}
 
 	if (*proxy == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed");
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "vconf_get_str Failed"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -534,8 +537,8 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 
 	if (type == CONNECTION_TYPE_WIFI)
 		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
-	else if (type == CONNECTION_TYPE_ETHERNET)
-		CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
+	else if(type == CONNECTION_TYPE_ETHERNET) //LCOV_EXCL_LINE
+		CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE); //LCOV_EXCL_LINE
 
 	if (mac_addr == NULL || !(__connection_check_handle_validity(connection))) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
@@ -547,13 +550,13 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 #if defined TIZEN_TV
 		fp = fopen(WIFI_MAC_INFO_FILE, "r");
 		if (fp == NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Failed to open file %s", WIFI_MAC_INFO_FILE);
-			return CONNECTION_ERROR_OUT_OF_MEMORY;
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to open file %s", WIFI_MAC_INFO_FILE); //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_OUT_OF_MEMORY; //LCOV_EXCL_LINE
 		}
 
 		if (fgets(buf, sizeof(buf), fp) == NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get MAC info from %s", WIFI_MAC_INFO_FILE);
-			fclose(fp);
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get MAC info from %s", WIFI_MAC_INFO_FILE); //LCOV_EXCL_LINE
+			fclose(fp); //LCOV_EXCL_LINE
 			return CONNECTION_ERROR_OPERATION_FAILED;
 		}
 
@@ -561,9 +564,9 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 
 		*mac_addr = (char *)malloc(CONNECTION_MAC_INFO_LENGTH + 1);
 		if (*mac_addr == NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "malloc() failed");
-			fclose(fp);
-			return CONNECTION_ERROR_OUT_OF_MEMORY;
+			CONNECTION_LOG(CONNECTION_ERROR, "malloc() failed"); //LCOV_EXCL_LINE
+			fclose(fp); //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_OUT_OF_MEMORY; //LCOV_EXCL_LINE
 		}
 		g_strlcpy(*mac_addr, buf, CONNECTION_MAC_INFO_LENGTH + 1);
 		fclose(fp);
@@ -571,11 +574,12 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 		*mac_addr = vconf_get_str(VCONFKEY_WIFI_BSSID_ADDRESS);
 
 		if (*mac_addr == NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get vconf from %s", VCONFKEY_WIFI_BSSID_ADDRESS);
-			return CONNECTION_ERROR_OPERATION_FAILED;
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get vconf from %s", VCONFKEY_WIFI_BSSID_ADDRESS); //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 		}
 #endif
 		break;
+	//LCOV_EXCL_START
 	case CONNECTION_TYPE_ETHERNET:
 		fp = fopen(ETHERNET_MAC_INFO_FILE, "r");
 		if (fp == NULL) {
@@ -602,16 +606,17 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 		fclose(fp);
 
 		break;
+	//LCOV_EXCL_STOP
 	default:
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	/* Checking Invalid MAC Address */
 	if ((strcmp(*mac_addr, "00:00:00:00:00:00") == 0) ||
 			(strcmp(*mac_addr, "ff:ff:ff:ff:ff:ff") == 0)) {
-		CONNECTION_LOG(CONNECTION_ERROR, "MAC Address(%s) is invalid", *mac_addr);
-		return CONNECTION_ERROR_INVALID_OPERATION;
+		CONNECTION_LOG(CONNECTION_ERROR, "MAC Address(%s) is invalid", *mac_addr); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_OPERATION; //LCOV_EXCL_LINE
 	}
 
 	CONNECTION_LOG(CONNECTION_INFO, "MAC Address %s", *mac_addr);
@@ -638,8 +643,8 @@ EXPORT_API int connection_get_cellular_state(connection_h connection, connection
 
 	rv = vconf_get_int(VCONFKEY_NETWORK_CELLULAR_STATE, &status);
 	if (rv != VCONF_OK) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get cellular state");
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get cellular state"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	CONNECTION_LOG(CONNECTION_INFO, "Cellular: %d", status);
@@ -671,8 +676,8 @@ EXPORT_API int connection_get_cellular_state(connection_h connection, connection
 		}
 #endif
 		if (rv != VCONF_OK) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get cellular state");
-			return CONNECTION_ERROR_OPERATION_FAILED;
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get cellular state"); //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 		}
 	}
 
@@ -697,8 +702,8 @@ EXPORT_API int connection_get_wifi_state(connection_h connection, connection_wif
 
 	int rv = _connection_libnet_get_wifi_state(state);
 	if (rv != CONNECTION_ERROR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Fail to get Wi-Fi state[%d]", rv);
-		return rv;
+		CONNECTION_LOG(CONNECTION_ERROR, "Fail to get Wi-Fi state[%d]", rv); //LCOV_EXCL_LINE
+		return rv; //LCOV_EXCL_LINE
 	}
 
 	CONNECTION_LOG(CONNECTION_INFO, "Wi-Fi state: %d", *state);
@@ -706,6 +711,7 @@ EXPORT_API int connection_get_wifi_state(connection_h connection, connection_wif
 	return CONNECTION_ERROR_NONE;
 }
 
+//LCOV_EXCL_START
 EXPORT_API int connection_get_ethernet_state(connection_h connection, connection_ethernet_state_e* state)
 {
 	CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
@@ -756,6 +762,7 @@ EXPORT_API int connection_unset_ethernet_cable_state_chaged_cb(connection_h conn
 	return __connection_set_ethernet_cable_state_changed_cb(connection,
 							NULL, NULL);
 }
+//LCOV_EXCL_STOP
 
 EXPORT_API int connection_get_bt_state(connection_h connection, connection_bt_state_e* state)
 {
@@ -858,24 +865,24 @@ EXPORT_API int connection_add_profile(connection_h connection, connection_profil
 	}
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	if (profile_info->ProfileInfo.Pdp.PSModemPath[0] != '/' ||
 			strlen(profile_info->ProfileInfo.Pdp.PSModemPath) < 2) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Modem object path is NULL");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		CONNECTION_LOG(CONNECTION_ERROR, "Modem object path is NULL"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	rv = net_add_profile(profile_info->ProfileInfo.Pdp.ServiceType,
 							(net_profile_info_t*)profile);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to add profile[%d]", rv);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to add profile[%d]", rv); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -896,17 +903,17 @@ EXPORT_API int connection_remove_profile(connection_h connection, connection_pro
 
 	if (profile_info->profile_type != NET_DEVICE_CELLULAR &&
 	    profile_info->profile_type != NET_DEVICE_WIFI) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	rv = net_delete_profile(profile_info->ProfileName);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to delete profile[%d]", rv);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to delete profile[%d]", rv); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -927,11 +934,11 @@ EXPORT_API int connection_update_profile(connection_h connection, connection_pro
 
 	rv = net_modify_profile(profile_info->ProfileName, (net_profile_info_t*)profile);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to modify profile[%d]", rv);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to modify profile[%d]", rv); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	return CONNECTION_ERROR_NONE;
@@ -1067,9 +1074,9 @@ EXPORT_API int connection_reset_profile(connection_h connection,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	if (id < 0 || id > 1) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+	if(id < 0 || id > 1) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	return _connection_libnet_reset_profile(type, id, callback, user_data);
@@ -1136,7 +1143,7 @@ static int __get_cellular_statistic(connection_statistics_type_e statistics_type
 #endif
 
 	if (llsize == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1205,8 +1212,8 @@ static int __get_cellular_statistic(connection_statistics_type_e statistics_type
 #endif
 
 	if (rv != VCONF_OK || rv1 != VCONF_OK) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get cellular statistics");
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get cellular statistics"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	*llsize = (long long)(last_size * 1000) + (long long)(size * 1000);
@@ -1222,7 +1229,7 @@ static int __get_statistic(connection_type_e connection_type,
 	unsigned long long ull_size;
 
 	if (llsize == NULL) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1230,7 +1237,7 @@ static int __get_statistic(connection_type_e connection_type,
 	if (rv == CONNECTION_ERROR_PERMISSION_DENIED)
 		return rv;
 	else if (rv != CONNECTION_ERROR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get statistics");
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get statistics"); //LCOV_EXCL_LINE
 		return CONNECTION_ERROR_OPERATION_FAILED;
 	}
 
@@ -1258,9 +1265,9 @@ static int __get_statistic(connection_type_e connection_type,
 		if (rv == CONNECTION_ERROR_PERMISSION_DENIED)
 			return rv;
 		else if (rv != CONNECTION_ERROR_NONE) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get Wi-Fi statistics");
-			*llsize = 0;
-			return CONNECTION_ERROR_OPERATION_FAILED;
+			CONNECTION_LOG(CONNECTION_ERROR, "Failed to get Wi-Fi statistics"); //LCOV_EXCL_LINE
+			*llsize = 0; //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 		}
 
 		CONNECTION_LOG(CONNECTION_INFO, "%lld bytes", ull_size);
