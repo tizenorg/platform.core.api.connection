@@ -80,6 +80,7 @@ static void __connection_set_created(bool tag)
 	libnet.is_created = tag;
 }
 
+//LCOV_EXCL_START
 static connection_error_e __libnet_convert_to_cp_error_type(net_err_t err_type)
 {
 	switch (err_type) {
@@ -473,6 +474,7 @@ static void __libnet_evt_cb(net_event_info_t *event_cb, void *user_data)
 		break;
 	}
 }
+//LCOV_EXCL_STOP
 
 static int __libnet_check_address_type(int address_family, const char *address)
 {
@@ -513,6 +515,7 @@ void __libnet_copy_connected_profile(net_profile_info_t **dest, struct _profile_
 	}
 }
 
+//LCOV_EXCL_START
 int __libnet_get_default_count(struct _profile_list_s *profile_list)
 {
 	int count = 0;
@@ -537,6 +540,7 @@ void __libnet_copy_default_profile(net_profile_info_t **dest, struct _profile_li
 		}
 	}
 }
+//LCOV_EXCL_STOP
 
 int _connection_libnet_init(void)
 {
@@ -597,6 +601,7 @@ bool _connection_libnet_check_profile_validity(connection_profile_h profile)
 	return false;
 }
 
+//LCOV_EXCL_START
 bool _connection_libnet_check_profile_cb_validity(connection_profile_h profile)
 {
 	struct _profile_cb_s *cb_info;
@@ -611,7 +616,7 @@ bool _connection_libnet_check_profile_cb_validity(connection_profile_h profile)
 
 	return false;
 }
-
+//LCOV_EXCL_STOP
 
 int _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 {
@@ -620,11 +625,11 @@ int _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 
 	rv = net_get_wifi_state(&wlan_state);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get Wi-Fi state[%d]", rv);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get Wi-Fi state[%d]", rv); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	switch (wlan_state) {
@@ -641,13 +646,14 @@ int _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 		*state = CONNECTION_WIFI_STATE_CONNECTED;
 		break;
 	default:
-		CONNECTION_LOG(CONNECTION_ERROR, "Unknown Wi-Fi state");
-		return CONNECTION_ERROR_INVALID_OPERATION;
+		CONNECTION_LOG(CONNECTION_ERROR, "Unknown Wi-Fi state"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_OPERATION; //LCOV_EXCL_LINE
 	}
 
 	return CONNECTION_ERROR_NONE;
 }
 
+//LCOV_EXCL_START
 int _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
 {
 	int rv;
@@ -713,6 +719,7 @@ int _connection_libnet_set_ethernet_cable_state_changed_cb(
 
 	return CONNECTION_ERROR_NONE;
 }
+//LCOV_EXCL_STOP
 
 int _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 {
@@ -721,8 +728,8 @@ int _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 	struct _profile_list_s bluetooth_profiles = {0, 0, NULL};
 	rv = net_get_profile_list(NET_DEVICE_BLUETOOTH, &bluetooth_profiles.profiles, &bluetooth_profiles.count);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	}
 
 	if (bluetooth_profiles.count == 0) {
@@ -730,6 +737,7 @@ int _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 		return CONNECTION_ERROR_NONE;
 	}
 
+	//LCOV_EXCL_START
 	for (; i < bluetooth_profiles.count; i++) {
 		switch (bluetooth_profiles.profiles[i].ProfileState) {
 		case NET_STATE_TYPE_ONLINE:
@@ -748,6 +756,7 @@ int _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 			return CONNECTION_ERROR_OPERATION_FAILED;
 		}
 	}
+	//LCOV_EXCL_STOP
 
 done:
 	__libnet_clear_profile_list(&bluetooth_profiles);
@@ -770,49 +779,49 @@ int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, con
 
 	rv1 = net_get_profile_list(NET_DEVICE_WIFI, &wifi_profiles.profiles, &wifi_profiles.count);
 	if (rv1 == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv1 != NET_ERR_NO_SERVICE && rv1 != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	CONNECTION_LOG(CONNECTION_INFO, "Wi-Fi profile count: %d", wifi_profiles.count);
 
 	rv2 = net_get_profile_list(NET_DEVICE_CELLULAR, &cellular_profiles.profiles, &cellular_profiles.count);
 	if (rv2 == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
 		__libnet_clear_profile_list(&wifi_profiles);
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv2 != NET_ERR_NO_SERVICE && rv2 != NET_ERR_NONE) {
 		__libnet_clear_profile_list(&wifi_profiles);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 	CONNECTION_LOG(CONNECTION_INFO, "Cellular profile count: %d", cellular_profiles.count);
 
 	rv3 = net_get_profile_list(NET_DEVICE_ETHERNET, &ethernet_profiles.profiles, &ethernet_profiles.count);
 	if (rv3 == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
 		__libnet_clear_profile_list(&wifi_profiles);
 		__libnet_clear_profile_list(&cellular_profiles);
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv3 != NET_ERR_NO_SERVICE && rv3 != NET_ERR_NONE) {
 		__libnet_clear_profile_list(&wifi_profiles);
 		__libnet_clear_profile_list(&cellular_profiles);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 	CONNECTION_LOG(CONNECTION_INFO, "Ethernet profile count : %d", ethernet_profiles.count);
 
 	rv4 = net_get_profile_list(NET_DEVICE_BLUETOOTH, &bluetooth_profiles.profiles, &bluetooth_profiles.count);
 	if (rv4 == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
 		__libnet_clear_profile_list(&wifi_profiles);
 		__libnet_clear_profile_list(&cellular_profiles);
 		__libnet_clear_profile_list(&ethernet_profiles);
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv4 != NET_ERR_NO_SERVICE && rv4 != NET_ERR_NONE) {
 		__libnet_clear_profile_list(&wifi_profiles);
 		__libnet_clear_profile_list(&cellular_profiles);
 		__libnet_clear_profile_list(&ethernet_profiles);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 	CONNECTION_LOG(CONNECTION_INFO, "Bluetooth profile count : %d", bluetooth_profiles.count);
 
@@ -831,7 +840,7 @@ int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, con
 			__libnet_clear_profile_list(&cellular_profiles);
 			__libnet_clear_profile_list(&ethernet_profiles);
 			__libnet_clear_profile_list(&bluetooth_profiles);
-			return CONNECTION_ERROR_OUT_OF_MEMORY;
+			return CONNECTION_ERROR_OUT_OF_MEMORY; //LCOV_EXCL_LINE
 		}
 
 		profile_iterator.profiles = profiles;
@@ -874,7 +883,7 @@ int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, con
 			__libnet_clear_profile_list(&cellular_profiles);
 			__libnet_clear_profile_list(&ethernet_profiles);
 			__libnet_clear_profile_list(&bluetooth_profiles);
-			return CONNECTION_ERROR_OUT_OF_MEMORY;
+			return CONNECTION_ERROR_OUT_OF_MEMORY; //LCOV_EXCL_LINE
 		}
 
 		profile_iterator.profiles = profiles;
@@ -894,7 +903,7 @@ int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, con
 		break;
 	case CONNECTION_ITERATOR_TYPE_DEFAULT:
 		count = __libnet_get_default_count(&cellular_profiles);
-		CONNECTION_LOG(CONNECTION_INFO, "Total default profile count : %d", count);
+		CONNECTION_LOG(CONNECTION_INFO, "Total default profile count : %d", count); //LCOV_EXCL_LINE
 		if (count == 0)
 			return CONNECTION_ERROR_NONE;
 
@@ -904,7 +913,7 @@ int _connection_libnet_get_profile_iterator(connection_iterator_type_e type, con
 			__libnet_clear_profile_list(&cellular_profiles);
 			__libnet_clear_profile_list(&ethernet_profiles);
 			__libnet_clear_profile_list(&bluetooth_profiles);
-			return CONNECTION_ERROR_OUT_OF_MEMORY;
+			return CONNECTION_ERROR_OUT_OF_MEMORY; //LCOV_EXCL_LINE
 		}
 
 		profile_iterator.profiles = profiles;
@@ -952,7 +961,7 @@ bool _connection_libnet_iterator_has_next(connection_profile_iterator_h profile_
 int _connection_libnet_destroy_iterator(connection_profile_iterator_h profile_iter_h)
 {
 	if (profile_iter_h != &profile_iterator)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 
 	__libnet_clear_profile_list(&profile_iterator);
 
@@ -966,16 +975,16 @@ int _connection_libnet_get_current_profile(connection_profile_h *profile)
 
 	rv = net_get_active_net_info(&active_profile);
 	if (rv == NET_ERR_NO_SERVICE)
-		return CONNECTION_ERROR_NO_CONNECTION;
+		return CONNECTION_ERROR_NO_CONNECTION; //LCOV_EXCL_LINE
 	else if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	*profile = g_try_malloc0(sizeof(net_profile_info_t));
 	if (*profile == NULL)
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
+		return CONNECTION_ERROR_OUT_OF_MEMORY; //LCOV_EXCL_LINE
 
 	memcpy(*profile, &active_profile, sizeof(net_profile_info_t));
 	prof_handle_list = g_slist_append(prof_handle_list, *profile);
@@ -990,11 +999,11 @@ int _connection_libnet_reset_profile(connection_reset_option_e type,
 
 	rv = net_reset_profile(type, id);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to add profile[%d]", rv);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to add profile[%d]", rv); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	__libnet_set_reset_profile_cb(callback, user_data);
@@ -1008,18 +1017,18 @@ int _connection_libnet_open_profile(connection_profile_h profile,
 	int rv;
 
 	if (!(_connection_libnet_check_profile_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	net_profile_info_t *profile_info = profile;
 
 	rv = net_open_connection_with_profile(profile_info->ProfileName);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	__libnet_set_opened_cb(callback, user_data);
 
@@ -1041,11 +1050,11 @@ int _connection_libnet_get_cellular_service_profile(
 
 	rv = net_get_profile_list(NET_DEVICE_CELLULAR, &cellular_profiles.profiles, &cellular_profiles.count);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get profile list (%d)", rv);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get profile list (%d)", rv); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 #if defined TIZEN_DUALSIM_ENABLE
@@ -1053,8 +1062,8 @@ int _connection_libnet_get_cellular_service_profile(
 						&default_subscriber_id) != 0) {
 		CONNECTION_LOG(CONNECTION_ERROR,
 						"Failed to get VCONF_TELEPHONY_DEFAULT_DATA_SERVICE");
-		__libnet_clear_profile_list(&cellular_profiles);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		__libnet_clear_profile_list(&cellular_profiles); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	g_snprintf(subscriber_id, sizeof(subscriber_id), "%d", default_subscriber_id);
@@ -1070,14 +1079,14 @@ int _connection_libnet_get_cellular_service_profile(
 				break;
 
 	if (i >= cellular_profiles.count) {
-		__libnet_clear_profile_list(&cellular_profiles);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		__libnet_clear_profile_list(&cellular_profiles); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	*profile = g_try_malloc0(sizeof(net_profile_info_t));
 	if (*profile == NULL) {
-		__libnet_clear_profile_list(&cellular_profiles);
-		return CONNECTION_ERROR_OUT_OF_MEMORY;
+		__libnet_clear_profile_list(&cellular_profiles); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OUT_OF_MEMORY; //LCOV_EXCL_LINE
 	}
 
 	memcpy(*profile, &cellular_profiles.profiles[i], sizeof(net_profile_info_t));
@@ -1085,6 +1094,7 @@ int _connection_libnet_get_cellular_service_profile(
 	if (cellular_profiles.profiles[i].ProfileInfo.Pdp.DefaultConn)
 		goto done;
 
+	//LCOV_EXCL_START
 	if (type != CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET &&
 	    type != CONNECTION_CELLULAR_SERVICE_TYPE_PREPAID_INTERNET)
 		goto done;
@@ -1101,6 +1111,7 @@ int _connection_libnet_get_cellular_service_profile(
 			goto done;
 		}
 	}
+	//LCOV_EXCL_STOP
 
 done:
 	__libnet_clear_profile_list(&cellular_profiles);
@@ -1114,8 +1125,8 @@ int _connection_libnet_set_cellular_service_profile_sync(connection_cellular_ser
 	int rv;
 
 	if (!(_connection_libnet_check_profile_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	net_profile_info_t *profile_info = profile;
@@ -1124,14 +1135,14 @@ int _connection_libnet_set_cellular_service_profile_sync(connection_cellular_ser
 	service_type = _profile_convert_to_connection_cellular_service_type(profile_info->ProfileInfo.Pdp.ServiceType);
 
 	if (service_type != type)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 
 	rv = net_set_default_cellular_service_profile(profile_info->ProfileName);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1142,8 +1153,8 @@ int _connection_libnet_set_cellular_service_profile_async(connection_cellular_se
 	int rv;
 
 	if (!(_connection_libnet_check_profile_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	net_profile_info_t *profile_info = profile;
@@ -1152,14 +1163,14 @@ int _connection_libnet_set_cellular_service_profile_async(connection_cellular_se
 	service_type = _profile_convert_to_connection_cellular_service_type(profile_info->ProfileInfo.Pdp.ServiceType);
 
 	if (service_type != type)
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 
 	rv = net_set_default_cellular_service_profile_async(profile_info->ProfileName);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	__libnet_set_default_cb(callback, user_data);
 
@@ -1171,18 +1182,18 @@ int _connection_libnet_close_profile(connection_profile_h profile, connection_cl
 	int rv;
 
 	if (!(_connection_libnet_check_profile_validity(profile))) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	net_profile_info_t *profile_info = profile;
 
 	rv = net_close_connection(profile_info->ProfileName);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	__libnet_set_closed_cb(callback, user_data);
 
@@ -1198,7 +1209,7 @@ int _connection_libnet_add_route(const char *interface_name, const char *host_ad
 	if (__libnet_check_address_type(AF_INET, host_address))
 		address_family = AF_INET;
 	else
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 
 	switch (address_family) {
 	case AF_INET:
@@ -1207,20 +1218,20 @@ int _connection_libnet_add_route(const char *interface_name, const char *host_ad
 				strcmp(endstr, ".0") == 0 ||
 				strncmp(host_address, "0.", 2) == 0 ||
 				strstr(host_address, "255") != NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
-			return CONNECTION_ERROR_INVALID_PARAMETER;
+			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n"); //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 		}
 		break;
 	default:
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	rv = net_add_route(host_address, interface_name, address_family);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1234,7 +1245,7 @@ int _connection_libnet_remove_route(const char *interface_name, const char *host
 	if (__libnet_check_address_type(AF_INET, host_address))
 		address_family = AF_INET;
 	else
-		return CONNECTION_ERROR_INVALID_PARAMETER;
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 
 	switch (address_family) {
 	case AF_INET:
@@ -1243,20 +1254,20 @@ int _connection_libnet_remove_route(const char *interface_name, const char *host
 			strcmp(endstr, ".0") == 0 ||
 			strncmp(host_address, "0.", 2) == 0 ||
 			strstr(host_address, ".0.") != NULL || strstr(host_address, "255") != NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed");
-			return CONNECTION_ERROR_INVALID_PARAMETER;
+			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed"); //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 		}
 		break;
 	default:
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	rv = net_remove_route(host_address, interface_name, address_family);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1277,20 +1288,20 @@ int _connection_libnet_add_route_ipv6(const char *interface_name, const char *ho
 		if (strncmp(host_address, "fe80:", 5) == 0 ||
 			strncmp(host_address, "ff00:", 5) == 0 ||
 			strncmp(host_address, "::", 2) == 0) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
-			return CONNECTION_ERROR_INVALID_PARAMETER;
+			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n"); //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 		}
 		break;
 	default:
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	rv = net_add_route_ipv6(host_address, interface_name, address_family, gateway);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1311,20 +1322,20 @@ int _connection_libnet_remove_route_ipv6(const char *interface_name, const char 
 		if (strncmp(host_address, "fe80:", 5) == 0 ||
 			strncmp(host_address, "ff00:", 5) == 0 ||
 			strncmp(host_address, "::", 2) == 0) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n");
-			return CONNECTION_ERROR_INVALID_PARAMETER;
+			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n"); //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 		}
 		break;
 	default:
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	rv = net_remove_route_ipv6(host_address, interface_name, address_family, gateway);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1348,8 +1359,8 @@ bool _connection_libnet_add_to_profile_cb_list(connection_profile_h profile,
 
 	struct _profile_cb_s *profile_cb_info = g_try_malloc0(sizeof(struct _profile_cb_s));
 	if (profile_cb_info == NULL) {
-		g_free(profile_name);
-		return false;
+		g_free(profile_name); //LCOV_EXCL_LINE
+		return false; //LCOV_EXCL_LINE
 	}
 
 	profile_cb_info->callback = callback;
@@ -1368,7 +1379,7 @@ bool _connection_libnet_remove_from_profile_cb_list(connection_profile_h profile
 	if (g_hash_table_remove(profile_cb_table, profile_info->ProfileName) == TRUE)
 		return true;
 
-	return false;
+	return false; //LCOV_EXCL_LINE
 }
 
 int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_type_e statistics_type)
@@ -1376,10 +1387,10 @@ int _connection_libnet_set_statistics(net_device_t device_type, net_statistics_t
 	int rv;
 	rv = net_set_statistics(device_type, statistics_type);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1389,10 +1400,10 @@ int _connection_libnet_get_statistics(net_statistics_type_e statistics_type, uns
 	int rv;
 	rv = net_get_statistics(NET_DEVICE_WIFI, statistics_type, size);
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1404,13 +1415,13 @@ int _connection_libnet_set_cellular_subscriber_id(connection_profile_h profile,
 	net_profile_info_t *profile_info = (net_profile_info_t *)profile;
 
 	if (net_get_cellular_modem_object_path(&modem_path, sim_id) != NET_ERR_NONE) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get subscriber[%d]", sim_id);
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Failed to get subscriber[%d]", sim_id); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	if (!modem_path) {
-		CONNECTION_LOG(CONNECTION_ERROR, "NULL modem object path");
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		CONNECTION_LOG(CONNECTION_ERROR, "NULL modem object path"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
 
 	g_strlcpy(profile_info->ProfileInfo.Pdp.PSModemPath, modem_path,
@@ -1481,6 +1492,7 @@ void _connection_callback_cleanup(void)
 	struct managed_idle_data *data;
 
 	while (cur) {
+		//LCOV_EXCL_START
 		GSList *next = cur->next;
 		data = (struct managed_idle_data *)cur->data;
 
@@ -1490,6 +1502,7 @@ void _connection_callback_cleanup(void)
 			cur = managed_idler_list;
 		} else
 			cur = next;
+		//LCOV_EXCL_STOP
 	}
 
 	g_slist_free(managed_idler_list);
@@ -1502,10 +1515,10 @@ int _connection_libnet_check_get_privilege()
 
 	rv = net_check_get_privilege();
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1516,10 +1529,10 @@ int _connection_libnet_check_profile_privilege()
 
 	rv = net_check_profile_privilege();
 	if (rv == NET_ERR_ACCESS_DENIED) {
-		CONNECTION_LOG(CONNECTION_ERROR, "Access denied");
-		return CONNECTION_ERROR_PERMISSION_DENIED;
+		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 	} else if (rv != NET_ERR_NONE)
-		return CONNECTION_ERROR_OPERATION_FAILED;
+		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 
 	return CONNECTION_ERROR_NONE;
 }
@@ -1528,9 +1541,9 @@ bool __libnet_check_feature_supported(const char *key, connection_supported_feat
 {
 	if (!connection_is_feature_checked[feature]) {
 		if (system_info_get_platform_bool(key, &connection_feature_supported[feature]) < 0) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Error - Feature getting from System Info");
-			set_last_result(CONNECTION_ERROR_OPERATION_FAILED);
-			return CONNECTION_ERROR_OPERATION_FAILED;
+			CONNECTION_LOG(CONNECTION_ERROR, "Error - Feature getting from System Info"); //LCOV_EXCL_LINE
+			set_last_result(CONNECTION_ERROR_OPERATION_FAILED); //LCOV_EXCL_LINE
+			return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 		}
 		connection_is_feature_checked[feature] = true;
 	}
