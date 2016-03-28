@@ -48,7 +48,6 @@
  * or any other network library.
  * @section CAPI_NETWORK_CONNECTION_MANAGER_MODULE_FEATURE Related Features
  * This API is related with the following features:\n
- * - http://tizen.org/feature/network.bluetooth\n
  * - http://tizen.org/feature/network.wifi\n
  * - http://tizen.org/feature/network.telephony\n
  * - http://tizen.org/feature/network.tethering.bluetooth\n
@@ -77,7 +76,6 @@
  * It allows you to use a handle for dealing with a connection profile. You can get details about connection using ‘connection_profile_h’ handle.
  * @section CAPI_NETWORK_CONNECTION_PROFILE_MODULE_FEATURE Related Features
  * This API is related with the following features:\n
- * - http://tizen.org/feature/network.bluetooth\n
  * - http://tizen.org/feature/network.wifi\n
  * - http://tizen.org/feature/network.telephony\n
  * - http://tizen.org/feature/network.tethering.bluetooth\n
