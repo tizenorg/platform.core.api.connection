@@ -654,7 +654,7 @@ int _connection_libnet_get_wifi_state(connection_wifi_state_e *state)
 }
 
 //LCOV_EXCL_START
-int _connection_libnet_get_ethernet_state(connection_ethernet_state_e* state)
+int _connection_libnet_get_ethernet_state(connection_ethernet_state_e *state)
 {
 	int rv;
 	struct _profile_list_s ethernet_profiles = {0, 0, NULL};
@@ -721,7 +721,7 @@ int _connection_libnet_set_ethernet_cable_state_changed_cb(
 }
 //LCOV_EXCL_STOP
 
-int _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
+int _connection_libnet_get_bluetooth_state(connection_bt_state_e *state)
 {
 	int i = 0;
 	int rv = 0;
@@ -758,7 +758,7 @@ int _connection_libnet_get_bluetooth_state(connection_bt_state_e* state)
 	}
 	//LCOV_EXCL_STOP
 
-done:
+done :
 	__libnet_clear_profile_list(&bluetooth_profiles);
 
 	return CONNECTION_ERROR_NONE;
@@ -1113,7 +1113,7 @@ int _connection_libnet_get_cellular_service_profile(
 	}
 	//LCOV_EXCL_STOP
 
-done:
+done :
 	__libnet_clear_profile_list(&cellular_profiles);
 	prof_handle_list = g_slist_append(prof_handle_list, *profile);
 

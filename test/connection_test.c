@@ -133,7 +133,7 @@ static const char *test_print_cellular_state(connection_cellular_state_e state)
 
 static const char *test_print_wifi_state(connection_wifi_state_e state)
 {
-	switch(state) {
+	switch (state) {
 	case CONNECTION_WIFI_STATE_DEACTIVATED:
 		return "Deactivated";
 	case CONNECTION_WIFI_STATE_DISCONNECTED:
@@ -147,7 +147,7 @@ static const char *test_print_wifi_state(connection_wifi_state_e state)
 
 static const char *test_print_cellular_service_type(connection_cellular_service_type_e type)
 {
-	switch(type) {
+	switch (type) {
 	case CONNECTION_CELLULAR_SERVICE_TYPE_UNKNOWN:
 		return "Unknown";
 	case CONNECTION_CELLULAR_SERVICE_TYPE_INTERNET:

@@ -401,8 +401,7 @@ EXPORT_API int connection_create(connection_h *connection)
 	if (rv == NET_ERR_ACCESS_DENIED) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Access denied"); //LCOV_EXCL_LINE
 		return CONNECTION_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
-	}
-	else if (rv != NET_ERR_NONE) {
+	} else if (rv != NET_ERR_NONE) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Failed to create connection[%d]", rv); //LCOV_EXCL_LINE
 		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
 	}
@@ -537,7 +536,7 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 
 	if (type == CONNECTION_TYPE_WIFI)
 		CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
-	else if(type == CONNECTION_TYPE_ETHERNET) //LCOV_EXCL_LINE
+	else if (type == CONNECTION_TYPE_ETHERNET) //LCOV_EXCL_LINE
 		CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE); //LCOV_EXCL_LINE
 
 	if (mac_addr == NULL || !(__connection_check_handle_validity(connection))) {
@@ -607,7 +606,7 @@ EXPORT_API int connection_get_mac_address(connection_h connection, connection_ty
 
 		break;
 	//LCOV_EXCL_STOP
-	default:
+	default :
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter"); //LCOV_EXCL_LINE
 		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
@@ -712,7 +711,7 @@ EXPORT_API int connection_get_wifi_state(connection_h connection, connection_wif
 }
 
 //LCOV_EXCL_START
-EXPORT_API int connection_get_ethernet_state(connection_h connection, connection_ethernet_state_e* state)
+EXPORT_API int connection_get_ethernet_state(connection_h connection, connection_ethernet_state_e *state)
 {
 	CHECK_FEATURE_SUPPORTED(ETHERNET_FEATURE);
 
@@ -764,7 +763,7 @@ EXPORT_API int connection_unset_ethernet_cable_state_chaged_cb(connection_h conn
 }
 //LCOV_EXCL_STOP
 
-EXPORT_API int connection_get_bt_state(connection_h connection, connection_bt_state_e* state)
+EXPORT_API int connection_get_bt_state(connection_h connection, connection_bt_state_e *state)
 {
 	CHECK_FEATURE_SUPPORTED(TETHERING_BLUETOOTH_FEATURE);
 
@@ -1074,7 +1073,7 @@ EXPORT_API int connection_reset_profile(connection_h connection,
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
 
-	if(id < 0 || id > 1) {
+	if (id < 0 || id > 1) {
 		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed"); //LCOV_EXCL_LINE
 		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}

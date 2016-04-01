@@ -361,7 +361,7 @@ EXPORT_API int connection_profile_get_name(connection_profile_h profile, char** 
 	return CONNECTION_ERROR_NONE;
 }
 
-EXPORT_API int connection_profile_get_type(connection_profile_h profile, connection_profile_type_e* type)
+EXPORT_API int connection_profile_get_type(connection_profile_h profile, connection_profile_type_e *type)
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
@@ -458,7 +458,7 @@ EXPORT_API int connection_profile_get_state(connection_profile_h profile, connec
 }
 
 EXPORT_API int connection_profile_get_ip_config_type(connection_profile_h profile,
-		connection_address_family_e address_family, connection_ip_config_type_e* type)
+		connection_address_family_e address_family, connection_ip_config_type_e *type)
 {
 	net_ip_config_type_t profile_type;
 
@@ -669,7 +669,7 @@ EXPORT_API int connection_profile_get_dns_address(connection_profile_h profile, 
 	return CONNECTION_ERROR_NONE;
 }
 
-EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, connection_proxy_type_e* type)
+EXPORT_API int connection_profile_get_proxy_type(connection_profile_h profile, connection_proxy_type_e *type)
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE, TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
 
@@ -1160,7 +1160,7 @@ EXPORT_API int connection_profile_get_wifi_max_speed(connection_profile_h profil
 	return CONNECTION_ERROR_NONE;
 }
 
-EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h profile, connection_wifi_security_type_e* type)
+EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h profile, connection_wifi_security_type_e *type)
 {
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
@@ -1199,7 +1199,7 @@ EXPORT_API int connection_profile_get_wifi_security_type(connection_profile_h pr
 	return CONNECTION_ERROR_NONE;
 }
 
-EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h profile, connection_wifi_encryption_type_e* type)
+EXPORT_API int connection_profile_get_wifi_encryption_type(connection_profile_h profile, connection_wifi_encryption_type_e *type)
 {
 	CHECK_FEATURE_SUPPORTED(WIFI_FEATURE);
 
@@ -1371,7 +1371,7 @@ EXPORT_API int connection_profile_get_cellular_apn(connection_profile_h profile,
 }
 
 EXPORT_API int connection_profile_get_cellular_auth_info(connection_profile_h profile,
-		connection_cellular_auth_type_e* type, char** user_name, char** password)
+		connection_cellular_auth_type_e *type, char** user_name, char** password)
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
