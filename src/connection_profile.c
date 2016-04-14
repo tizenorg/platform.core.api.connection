@@ -1440,6 +1440,34 @@ EXPORT_API int connection_profile_get_cellular_home_url(connection_profile_h pro
 	return CONNECTION_ERROR_NONE;
 }
 
+EXPORT_API int connection_profile_get_cellular_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e* type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	*type = CONNECTION_CELLULAR_PDN_TYPE_IPV4;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_get_cellular_roam_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e* type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	*type = CONNECTION_CELLULAR_PDN_TYPE_IPV4;
+
+	return CONNECTION_ERROR_NONE;
+}
+
 EXPORT_API int connection_profile_is_cellular_roaming(connection_profile_h profile, bool* is_roaming)
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
@@ -1660,6 +1688,30 @@ EXPORT_API int connection_profile_set_cellular_home_url(connection_profile_h pro
 	}
 
 	g_strlcpy(profile_info->ProfileInfo.Pdp.HomeURL, home_url, NET_HOME_URL_LEN_MAX);
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_set_cellular_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_set_cellular_roam_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
 
 	return CONNECTION_ERROR_NONE;
 }
