@@ -73,6 +73,18 @@ typedef enum
 } connection_cellular_state_e;
 
 /**
+ * @brief Enumeration for cellular pdn type.
+ * @since_tizen 3.0
+ */
+typedef enum
+{
+    CONNECTION_CELLULAR_PDN_TYPE_UNKNOWN = 0,
+    CONNECTION_CELLULAR_PDN_TYPE_IPV4 = 1,
+    CONNECTION_CELLULAR_PDN_TYPE_IPV6 = 2,
+    CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6 = 3,
+} connection_cellular_pdn_type_e;
+
+/**
  * @brief Enumeration for Wi-Fi state.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
