@@ -1440,6 +1440,82 @@ EXPORT_API int connection_profile_get_cellular_home_url(connection_profile_h pro
 	return CONNECTION_ERROR_NONE;
 }
 
+EXPORT_API int connection_profile_get_cellular_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e* type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	switch (profile_info->ProfileInfo.Pdp.PdnType) {
+	//LCOV_EXCL_START
+	case NET_PDN_TYPE_UNKNOWN:
+		*type = CONNECTION_CELLULAR_PDN_TYPE_UNKNOWN;
+		break;
+	case NET_PDN_TYPE_IPV4:
+		*type = CONNECTION_CELLULAR_PDN_TYPE_IPV4;
+		break;
+	case NET_PDN_TYPE_IPV6:
+		*type = CONNECTION_CELLULAR_PDN_TYPE_IPV6;
+		break;
+	case NET_PDN_TYPE_IPV4_IPV6:
+		*type = CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6;
+		break;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	//LCOV_EXCL_STOP
+	}
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_get_cellular_roam_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e* type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile)) || type == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	switch (profile_info->ProfileInfo.Pdp.RoamPdnType) {
+	//LCOV_EXCL_START
+	case NET_PDN_TYPE_UNKNOWN:
+		*type = CONNECTION_CELLULAR_PDN_TYPE_UNKNOWN;
+		break;
+	case NET_PDN_TYPE_IPV4:
+		*type = CONNECTION_CELLULAR_PDN_TYPE_IPV4;
+		break;
+	case NET_PDN_TYPE_IPV6:
+		*type = CONNECTION_CELLULAR_PDN_TYPE_IPV6;
+		break;
+	case NET_PDN_TYPE_IPV4_IPV6:
+		*type = CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6;
+		break;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	//LCOV_EXCL_STOP
+	}
+
+	return CONNECTION_ERROR_NONE;
+}
+
 EXPORT_API int connection_profile_is_cellular_roaming(connection_profile_h profile, bool* is_roaming)
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
@@ -1660,6 +1736,76 @@ EXPORT_API int connection_profile_set_cellular_home_url(connection_profile_h pro
 	}
 
 	g_strlcpy(profile_info->ProfileInfo.Pdp.HomeURL, home_url, NET_HOME_URL_LEN_MAX);
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_set_cellular_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	switch (type) {
+	//LCOV_EXCL_START
+	case CONNECTION_CELLULAR_PDN_TYPE_IPV4:
+		profile_info->ProfileInfo.Pdp.PdnType = NET_PDN_TYPE_IPV4;
+		break;
+	case CONNECTION_CELLULAR_PDN_TYPE_IPV6:
+		profile_info->ProfileInfo.Pdp.PdnType = NET_PDN_TYPE_IPV6;
+		break;
+	case CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6:
+		profile_info->ProfileInfo.Pdp.PdnType = NET_PDN_TYPE_IPV4_IPV6;
+		break;
+	default:
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	//LCOV_EXCL_STOP
+	}
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_set_cellular_roam_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+
+	if (profile_info->profile_type != NET_DEVICE_CELLULAR) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	switch (type) {
+	//LCOV_EXCL_START
+	case CONNECTION_CELLULAR_PDN_TYPE_IPV4:
+		profile_info->ProfileInfo.Pdp.RoamPdnType = NET_PDN_TYPE_IPV4;
+		break;
+	case CONNECTION_CELLULAR_PDN_TYPE_IPV6:
+		profile_info->ProfileInfo.Pdp.RoamPdnType = NET_PDN_TYPE_IPV6;
+		break;
+	case CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6:
+		profile_info->ProfileInfo.Pdp.RoamPdnType = NET_PDN_TYPE_IPV4_IPV6;
+		break;
+	default:
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	//LCOV_EXCL_STOP
+	}
 
 	return CONNECTION_ERROR_NONE;
 }
