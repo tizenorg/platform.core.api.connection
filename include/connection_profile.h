@@ -84,6 +84,18 @@ typedef enum
 } connection_cellular_service_type_e;
 
 /**
+ * @brief Enumeration for cellular pdn type.
+ * @since_tizen 3.0
+ */
+typedef enum
+{
+    CONNECTION_CELLULAR_PDN_TYPE_UNKNOWN = 0,
+    CONNECTION_CELLULAR_PDN_TYPE_IPV4 = 1,
+    CONNECTION_CELLULAR_PDN_TYPE_IPV6 = 2,
+    CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6 = 3,
+} connection_cellular_pdn_type_e;
+
+/**
  * @brief Enumeration for cellular authentication type.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
@@ -763,6 +775,32 @@ int connection_profile_get_cellular_auth_info(connection_profile_h profile, conn
 int connection_profile_get_cellular_home_url(connection_profile_h profile, char** home_url);
 
 /**
+ * @brief Gets the cellular pdn type.
+ * @since_tizen 3.0
+ * @param[in] profile The profile handle
+ * @param[in] type The cellular pdn type
+ * @return @c 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED     Not Supported
+*/
+int connection_profile_get_cellular_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e* type);
+
+/**
+ * @brief Gets the cellular roam pdn type.
+ * @since_tizen 3.0
+ * @param[in] profile The profile handle
+ * @param[in] type The cellular pdn type
+ * @return @c 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED     Not Supported
+*/
+int connection_profile_get_cellular_roam_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e* type);
+
+/**
  * @brief Checks wheter the connection is in roaming state.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  * @param[in] profile  The profile handle
@@ -863,6 +901,33 @@ int connection_profile_set_cellular_auth_info(connection_profile_h profile, conn
  * @see connection_update_profile()
 */
 int connection_profile_set_cellular_home_url(connection_profile_h profile, const char* home_url);
+
+/**
+ * @brief Sets the cellular pdn type.
+ * @since_tizen 3.0
+ * @param[in] profile The profile handle
+ * @param[in] type The cellular pdn type
+ * @return @c 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED     Not Supported
+*/
+int connection_profile_set_cellular_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e type);
+
+/**
+ * @brief Sets the cellular roam pdn type.
+ * @since_tizen 3.0
+ * @param[in] profile The profile handle
+ * @param[in] type The cellular pdn type
+ * @return @c 0 on success, otherwise negative error value
+ * @retval #CONNECTION_ERROR_NONE Successful
+ * @retval #CONNECTION_ERROR_INVALID_PARAMETER   Invalid parameter
+ * @retval #CONNECTION_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #CONNECTION_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval #CONNECTION_ERROR_NOT_SUPPORTED     Not Supported
+*/
+int connection_profile_set_cellular_roam_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e type);
 
 /**
 * @}

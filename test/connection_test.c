@@ -460,6 +460,34 @@ static int test_update_cellular_info(connection_profile_h profile)
 		}
 	}
 
+	if (test_get_user_int("Input PdnType(1:IPv4 2:IPv6 3:IPv4v6) - (Enter for skip) :", &input_int)) {
+		switch (input_int) {
+		case 1:
+			rv = connection_profile_set_cellular_pdn_type(profile, CONNECTION_CELLULAR_PDN_TYPE_IPV4);
+		case 2:
+			rv = connection_profile_set_cellular_pdn_type(profile, CONNECTION_CELLULAR_PDN_TYPE_IPV6);
+		case 3:
+			rv = connection_profile_set_cellular_pdn_type(profile, CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6);
+		}
+
+		if (rv != CONNECTION_ERROR_NONE)
+			return -1;
+	}
+
+	if (test_get_user_int("Input RoamPdnType(1:IPv4 2:IPv6 3:IPv4v6) - (Enter for skip) :", &input_int)) {
+		switch (input_int) {
+		case 1:
+			rv = connection_profile_set_cellular_roam_pdn_type(profile, CONNECTION_CELLULAR_PDN_TYPE_IPV4);
+		case 2:
+			rv = connection_profile_set_cellular_roam_pdn_type(profile, CONNECTION_CELLULAR_PDN_TYPE_IPV6);
+		case 3:
+			rv = connection_profile_set_cellular_roam_pdn_type(profile, CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6);
+		}
+
+		if (rv != CONNECTION_ERROR_NONE)
+			return -1;
+	}
+
 	return 1;
 }
 
@@ -618,6 +646,8 @@ static int test_update_network_info(connection_profile_h profile)
 static void test_print_cellular_info(connection_profile_h profile)
 {
 	connection_cellular_service_type_e service_type;
+	connection_cellular_pdn_type_e pdn_type;
+	connection_cellular_pdn_type_e roam_pdn_type;
 	char *apn = NULL;
 	connection_cellular_auth_type_e auth_type;
 	char *user_name = NULL;
@@ -631,6 +661,16 @@ static void test_print_cellular_info(connection_profile_h profile)
 		printf("Fail to get cellular service type!\n");
 	else
 		printf("Cellular service type : %d\n", service_type);
+
+	if (connection_profile_get_cellular_pdn_type(profile, &pdn_type) != CONNECTION_ERROR_NONE)
+		printf("Fail to get cellular pdn type!\n");
+	else
+		printf("Cellular pdn type : %d\n", pdn_type);
+
+	if (connection_profile_get_cellular_roam_pdn_type(profile, &roam_pdn_type) != CONNECTION_ERROR_NONE)
+		printf("Fail to get cellular roam pdn type!\n");
+	else
+		printf("Cellular roam pdn type : %d\n", roam_pdn_type);
 
 	if (connection_profile_get_cellular_apn(profile, &apn) != CONNECTION_ERROR_NONE)
 		printf("Fail to get cellular APN!\n");
