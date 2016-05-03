@@ -85,7 +85,7 @@ typedef enum
 
 /**
  * @brief Enumeration for ethernet state.
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0
  */
 typedef enum
 {
@@ -128,7 +128,7 @@ typedef enum
 
 /**
  * @brief This enumeration defines the attached or detached state of ethernet cable.
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0
  */
 typedef enum
 {
@@ -376,7 +376,7 @@ int connection_get_ethernet_cable_state(connection_h connection, connection_ethe
 
 /**
  * @brief Called when ethernet cable is plugged [in/out].
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0
  * @param[in] state The ethernet cable state (connection_ethernet_cable_state_e)
  * @param[in] user_data The user data passed to callback registration function
  */
