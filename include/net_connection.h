@@ -85,7 +85,7 @@ typedef enum
 
 /**
  * @brief Enumeration for ethernet state.
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  */
 typedef enum
 {
@@ -128,7 +128,7 @@ typedef enum
 
 /**
  * @brief This enumeration defines the attached or detached state of ethernet cable.
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  */
 typedef enum
 {
@@ -294,7 +294,7 @@ int connection_get_proxy(connection_h connection, connection_address_family_e ad
 
 /**
  * @brief Gets the MAC address of the Wi-Fi or ethernet.
- * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  * @remarks @a mac_addr must be released with free() by you.
  * @param[in] connection  The handle of the connection
  * @param[in] type  The type of current network connection
@@ -343,7 +343,7 @@ int connection_get_wifi_state(connection_h connection, connection_wifi_state_e* 
 /**
  * @brief Gets the state of the Ethernet.
  * @details The returned state is for the Ethernet connection state.
- * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  * @privlevel public
  * @privilege %http://tizen.org/privilege/network.get
  * @param[in] connection  The connection handle
@@ -360,7 +360,7 @@ int connection_get_ethernet_state(connection_h connection, connection_ethernet_s
 /**
 * @brief Checks for ethernet cable is attached or not.
 * @details The returned state is for the ethernet cable state.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/network.get
 * @param[in] connection  The handle of the connection
@@ -376,7 +376,7 @@ int connection_get_ethernet_cable_state(connection_h connection, connection_ethe
 
 /**
  * @brief Called when ethernet cable is plugged [in/out].
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  * @param[in] state The ethernet cable state (connection_ethernet_cable_state_e)
  * @param[in] user_data The user data passed to callback registration function
  */
@@ -385,7 +385,7 @@ typedef void(*connection_ethernet_cable_state_chaged_cb)(
 
 /**
  * @brief Registers callback for ethernet cable is plugged [in/out] event.
- * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  * @param[in] callback  The callback function to be called
  * @param[in] user_data The user data passed to the callback function
  * @return 0 on success, otherwise negative error value
@@ -399,7 +399,7 @@ int connection_set_ethernet_cable_state_chaged_cb( connection_h connection,
 
 /**
  * @brief Unregisters callback for ethernet cable is plugged [in/out] event.
- * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  * @param[in] connection  The handle of connection
  * @return 0 on success, otherwise negative error value
  * @retval #CONNECTION_ERROR_NONE  Successful
