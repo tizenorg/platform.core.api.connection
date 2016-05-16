@@ -167,6 +167,36 @@ static const char *test_print_cellular_service_type(connection_cellular_service_
 	}
 }
 
+static const char*test_print_cellular_auth_type(connection_cellular_auth_type_e type)
+{
+	switch(type) {
+	case CONNECTION_CELLULAR_AUTH_TYPE_NONE:
+		return "None";
+	case CONNECTION_CELLULAR_AUTH_TYPE_PAP:
+		return "PAP";
+	case CONNECTION_CELLULAR_AUTH_TYPE_CHAP:
+		return "CHAP";
+	default:
+		return "Unknown";
+	}
+}
+
+static const char*test_print_cellular_pdn_type(connection_cellular_pdn_type_e type)
+{
+	switch(type) {
+	case CONNECTION_CELLULAR_PDN_TYPE_UNKNOWN:
+		return "Unknown";
+	case CONNECTION_CELLULAR_PDN_TYPE_IPV4:
+		return "IPv4";
+	case CONNECTION_CELLULAR_PDN_TYPE_IPV6:
+		return "IPv6";
+	case CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6:
+		return "IPv4v6";
+	default:
+		return "Unknown";
+	}
+}
+
 static const char *test_print_error(connection_error_e error)
 {
 	switch (error) {
@@ -666,17 +696,17 @@ static void test_print_cellular_info(connection_profile_h profile)
 	if (connection_profile_get_cellular_service_type(profile, &service_type) != CONNECTION_ERROR_NONE)
 		printf("Fail to get cellular service type!\n");
 	else
-		printf("Cellular service type : %d\n", service_type);
+		printf("Cellular service type : %s\n", test_print_cellular_service_type(service_type));
 
 	if (connection_profile_get_cellular_pdn_type(profile, &pdn_type) != CONNECTION_ERROR_NONE)
 		printf("Fail to get cellular pdn type!\n");
 	else
-		printf("Cellular pdn type : %d\n", pdn_type);
+		printf("Cellular pdn type : %s\n", test_print_cellular_pdn_type(pdn_type));
 
 	if (connection_profile_get_cellular_roam_pdn_type(profile, &roam_pdn_type) != CONNECTION_ERROR_NONE)
 		printf("Fail to get cellular roam pdn type!\n");
 	else
-		printf("Cellular roam pdn type : %d\n", roam_pdn_type);
+		printf("Cellular roam pdn type : %s\n", test_print_cellular_pdn_type(roam_pdn_type));
 
 	if (connection_profile_get_cellular_apn(profile, &apn) != CONNECTION_ERROR_NONE)
 		printf("Fail to get cellular APN!\n");
@@ -688,7 +718,7 @@ static void test_print_cellular_info(connection_profile_h profile)
 	if (connection_profile_get_cellular_auth_info(profile, &auth_type, &user_name, &password) != CONNECTION_ERROR_NONE)
 		printf("Fail to get auth info!\n");
 	else {
-		printf("Cellular auth type : %d\n", auth_type);
+		printf("Cellular auth type : %s\n", test_print_cellular_auth_type(auth_type));
 		printf("Cellular user_name : %s\n", user_name);
 		printf("Cellular password : %s\n", password);
 		g_free(user_name);
