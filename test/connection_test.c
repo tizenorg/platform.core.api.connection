@@ -170,26 +170,28 @@ static const char *test_print_cellular_service_type(connection_cellular_service_
 static const char* test_print_cellular_auth_type(connection_cellular_auth_type_e type)
 {
 	switch (type) {
-	case CONNECTION_CELLULAR_AUTH_TYPE_NONE:
-		return "None";
 	case CONNECTION_CELLULAR_AUTH_TYPE_PAP:
 		return "PAP";
 	case CONNECTION_CELLULAR_AUTH_TYPE_CHAP:
 		return "CHAP";
+	case CONNECTION_CELLULAR_AUTH_TYPE_NONE:
+	default:
+		return "None";
 	}
 }
 
 static const char* test_print_cellular_pdn_type(connection_cellular_pdn_type_e type)
 {
 	switch (type) {
-	case CONNECTION_CELLULAR_PDN_TYPE_UNKNOWN:
-		return "Unknown";
 	case CONNECTION_CELLULAR_PDN_TYPE_IPV4:
 		return "IPv4";
 	case CONNECTION_CELLULAR_PDN_TYPE_IPV6:
 		return "IPv6";
 	case CONNECTION_CELLULAR_PDN_TYPE_IPV4_IPv6:
 		return "Dual";
+	case CONNECTION_CELLULAR_PDN_TYPE_UNKNOWN:
+	default:
+		return "Unknown";
 	}
 }
 
