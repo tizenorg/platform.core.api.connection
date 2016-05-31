@@ -210,12 +210,17 @@ static gboolean __connection_cb_ip_changed_cb_idle(gpointer user_data)
 		return FALSE;
 
 	ip_addr = vconf_get_str(VCONFKEY_NETWORK_IP);
+	if (ip_addr == NULL)
+		CONNECTION_LOG(CONNECTION_ERROR, //LCOV_EXCL_LINE
+			"vconf_get_str(VCONFKEY_NETWORK_IP) is Failed");
 
 	callback = __connection_get_ip_changed_callback(local_handle);
 	data = __connection_get_ip_changed_userdata(local_handle);
 	/* TODO: IPv6 should be supported */
 	if (callback)
 		callback(ip_addr, NULL, data);
+
+	g_free(ip_addr);
 
 	return FALSE;
 }
@@ -297,12 +302,17 @@ static gboolean __connection_cb_proxy_changed_cb_idle(gpointer user_data)
 		return FALSE;
 
 	proxy = vconf_get_str(VCONFKEY_NETWORK_PROXY);
+	if (proxy == NULL)
+		CONNECTION_LOG(CONNECTION_ERROR, //LCOV_EXCL_LINE
+			"vconf_get_str(VCONFKEY_NETWORK_PROXY) is Failed");
 
 	callback = __connection_get_proxy_changed_callback(local_handle);
 	data = __connection_get_proxy_changed_userdata(local_handle);
 	/* TODO: IPv6 should be supported */
 	if (callback)
 		callback(proxy, NULL, data);
+
+	g_free(proxy);
 
 	return FALSE;
 }
