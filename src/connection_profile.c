@@ -1157,7 +1157,7 @@ EXPORT_API int connection_profile_get_wifi_max_speed(connection_profile_h profil
 	if (profile_info->profile_type != NET_DEVICE_WIFI)
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 
-	*max_speed = (int)profile_info->ProfileInfo.Wlan.max_rate;
+	*max_speed = (int)profile_info->ProfileInfo.Wlan.max_rate / 1000000;
 
 	return CONNECTION_ERROR_NONE;
 }
