@@ -1206,24 +1206,15 @@ int _connection_libnet_add_route(const char *interface_name, const char *host_ad
 	char *endstr = NULL;
 	int address_family = 0;
 
-	if (__libnet_check_address_type(AF_INET, host_address))
-		address_family = AF_INET;
-	else
-		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
+	address_family = AF_INET;
 
-	switch (address_family) {
-	case AF_INET:
-		endstr = strrchr(host_address, '.');
-		if (endstr == NULL ||
-				strcmp(endstr, ".0") == 0 ||
-				strncmp(host_address, "0.", 2) == 0 ||
-				strstr(host_address, "255") != NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n"); //LCOV_EXCL_LINE
-			return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
-		}
-		break;
-	default:
-		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
+	endstr = strrchr(host_address, '.');
+	if (endstr == NULL ||
+			strcmp(endstr, ".0") == 0 ||
+			strncmp(host_address, "0.", 2) == 0 ||
+			strstr(host_address, "255") != NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	rv = net_add_route(host_address, interface_name, address_family);
@@ -1242,24 +1233,15 @@ int _connection_libnet_remove_route(const char *interface_name, const char *host
 	char *endstr = strrchr(host_address, '.');
 	int address_family = 0;
 
-	if (__libnet_check_address_type(AF_INET, host_address))
-		address_family = AF_INET;
-	else
-		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
+	address_family = AF_INET;
 
-	switch (address_family) {
-	case AF_INET:
-		endstr = strrchr(host_address, '.');
-		if (endstr == NULL ||
-			strcmp(endstr, ".0") == 0 ||
-			strncmp(host_address, "0.", 2) == 0 ||
-			strstr(host_address, ".0.") != NULL || strstr(host_address, "255") != NULL) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed"); //LCOV_EXCL_LINE
-			return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
-		}
-		break;
-	default:
-		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
+	endstr = strrchr(host_address, '.');
+	if (endstr == NULL ||
+		strcmp(endstr, ".0") == 0 ||
+		strncmp(host_address, "0.", 2) == 0 ||
+		strstr(host_address, ".0.") != NULL || strstr(host_address, "255") != NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	rv = net_remove_route(host_address, interface_name, address_family);
@@ -1278,22 +1260,12 @@ int _connection_libnet_add_route_ipv6(const char *interface_name, const char *ho
 	int address_family = 0;
 
 	address_family = AF_INET6;
-/*	if(__libnet_check_address_type(AF_INET6, host_address))
-		address_family = AF_INET6;
-	else
-		return CONNECTION_ERROR_INVALID_PARAMETER;*/
 
-	switch (address_family) {
-	case AF_INET6:
-		if (strncmp(host_address, "fe80:", 5) == 0 ||
-			strncmp(host_address, "ff00:", 5) == 0 ||
-			strncmp(host_address, "::", 2) == 0) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n"); //LCOV_EXCL_LINE
-			return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
-		}
-		break;
-	default:
-		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
+	if (strncmp(host_address, "fe80:", 5) == 0 ||
+		strncmp(host_address, "ff00:", 5) == 0 ||
+		strncmp(host_address, "::", 2) == 0) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	rv = net_add_route_ipv6(host_address, interface_name, address_family, gateway);
@@ -1312,22 +1284,12 @@ int _connection_libnet_remove_route_ipv6(const char *interface_name, const char 
 	int address_family = 0;
 
 	address_family = AF_INET6;
-/*	if (__libnet_check_address_type(AF_INET6, host_address))
-		address_family = AF_INET6;
-	else
-		return CONNECTION_ERROR_INVALID_PARAMETER;*/
 
-	switch (address_family) {
-	case AF_INET6:
-		if (strncmp(host_address, "fe80:", 5) == 0 ||
-			strncmp(host_address, "ff00:", 5) == 0 ||
-			strncmp(host_address, "::", 2) == 0) {
-			CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n"); //LCOV_EXCL_LINE
-			return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
-		}
-		break;
-	default:
-		return CONNECTION_ERROR_OPERATION_FAILED; //LCOV_EXCL_LINE
+	if (strncmp(host_address, "fe80:", 5) == 0 ||
+		strncmp(host_address, "ff00:", 5) == 0 ||
+		strncmp(host_address, "::", 2) == 0) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid IP address Passed\n"); //LCOV_EXCL_LINE
+		return CONNECTION_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	rv = net_remove_route_ipv6(host_address, interface_name, address_family, gateway);
