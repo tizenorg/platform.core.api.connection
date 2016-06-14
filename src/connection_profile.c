@@ -1442,7 +1442,7 @@ EXPORT_API int connection_profile_get_cellular_home_url(connection_profile_h pro
 	return CONNECTION_ERROR_NONE;
 }
 
-EXPORT_API int connection_profile_get_cellular_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e* type)
+EXPORT_API int connection_profile_get_cellular_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e *type)
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
@@ -1480,7 +1480,7 @@ EXPORT_API int connection_profile_get_cellular_pdn_type(connection_profile_h pro
 	return CONNECTION_ERROR_NONE;
 }
 
-EXPORT_API int connection_profile_get_cellular_roam_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e* type)
+EXPORT_API int connection_profile_get_cellular_roam_pdn_type(connection_profile_h profile, connection_cellular_pdn_type_e *type)
 {
 	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE);
 
