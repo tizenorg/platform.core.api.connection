@@ -476,18 +476,6 @@ static void __libnet_evt_cb(net_event_info_t *event_cb, void *user_data)
 }
 //LCOV_EXCL_STOP
 
-static int __libnet_check_address_type(int address_family, const char *address)
-{
-	struct in6_addr buf;
-	int err = 0;
-
-	err = inet_pton(address_family, address, &buf);
-	if (err > 0)
-		return 1;
-
-	return 0;
-}
-
 int __libnet_get_connected_count(struct _profile_list_s *profile_list)
 {
 	int count = 0;
