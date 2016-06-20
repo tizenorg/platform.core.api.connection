@@ -644,7 +644,7 @@ static int test_update_network_info(connection_profile_h profile)
 
 	test_get_user_int("Input Address Family (0:IPv4 1:IPv6) :", &address_family);
 
-	if (test_get_user_int("Input IPv4 Address Type (DHCP:1, Static:2)"
+	if (test_get_user_int("Input IPv4/IPv6 Address Type (DHCP:1, Static:2, Auto:3)"
 				" - (Enter for skip) :", &input_int)) {
 		switch (input_int) {
 		case 1:
@@ -664,6 +664,11 @@ static int test_update_network_info(connection_profile_h profile)
 
 			if (test_update_proxy_info(profile, address_family) == -1)
 				return -1;
+			break;
+		case 3:
+			rv = connection_profile_set_ip_config_type(profile,
+								address_family,
+								CONNECTION_IP_CONFIG_TYPE_AUTO);
 			break;
 		default:
 			return -1;
