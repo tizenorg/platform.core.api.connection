@@ -9,7 +9,12 @@ SET(LIB ${LIB_PATH})
 SET(LIBDIR ${PREFIX}/${LIB_PATH})
 
 SET(INC_DIR include)
+IF(TIZEN_TV)
 INCLUDE_DIRECTORIES(${INC_DIR})
+INCLUDE_DIRECTORIES(${INC_DIR}/tv)
+ELSE ()
+INCLUDE_DIRECTORIES(${INC_DIR})
+ENDIF(TIZEN_TV)
 
 SET(dependents "dlog vconf capi-base-common glib-2.0 network capi-system-info")
 SET(pc_dependents "capi-base-common")
