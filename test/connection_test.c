@@ -543,8 +543,10 @@ static int test_update_ip_info(connection_profile_h profile, connection_address_
 {
 	int rv = 0;
 	char input_str[100] = {0,};
+	int prefix = 0;
 
-	if (test_get_user_string("Input IP Address - (Enter for skip) :", input_str, 100)) {
+	if (test_get_user_string("Input IP Address - (Enter for skip) :",
+				input_str, 100)) {
 		rv = connection_profile_set_ip_address(profile,
 							address_family,
 							input_str);
@@ -552,13 +554,25 @@ static int test_update_ip_info(connection_profile_h profile, connection_address_
 			return -1;
 	}
 
-	if (test_get_user_string("Input Netmask - (Enter for skip) :", input_str, 100)) {
-		rv = connection_profile_set_subnet_mask(profile,
-							address_family,
-							input_str);
-		if (rv != CONNECTION_ERROR_NONE)
-			return -1;
-	}
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4) {
+		if (test_get_user_string("Input Netmask - (Enter for skip) :",
+					 input_str, 100)) {
+			rv = connection_profile_set_subnet_mask(profile,
+								address_family,
+								input_str);
+			if (rv != CONNECTION_ERROR_NONE)
+				return -1;
+		}
+	} else if (address_family == CONNECTION_ADDRESS_FAMILY_IPV6) {
+		if (test_get_user_int("Input Prefix Length - (Enter for skip) ",
+				      &prefix)) {
+			rv = connection_profile_set_prefix_length(profile,
+							(unsigned char)prefix);
+			if (rv != CONNECTION_ERROR_NONE)
+				return -1;
+		}
+	} else
+		printf("wrong address family %d\n", address_family);
 
 	if (test_get_user_string("Input Gateway - (Enter for skip) :", input_str, 100)) {
 		rv = connection_profile_set_gateway_address(profile,
@@ -566,24 +580,6 @@ static int test_update_ip_info(connection_profile_h profile, connection_address_
 							input_str);
 		if (rv != CONNECTION_ERROR_NONE)
 			return -1;
-	}
-
-	if (test_get_user_string("Input DNS 1 Address - (Enter for skip) :", input_str, 100)) {
-		rv = connection_profile_set_dns_address(profile,
-							1,
-							address_family,
-							input_str);
-		if (rv != CONNECTION_ERROR_NONE)
-			return -1;
-
-		if (test_get_user_string("Input DNS 2 Address - (Enter for skip) :", input_str, 100)) {
-			rv = connection_profile_set_dns_address(profile,
-								2,
-								address_family,
-								input_str);
-			if (rv != CONNECTION_ERROR_NONE)
-				return -1;
-		}
 	}
 
 	return 1;
@@ -636,34 +632,125 @@ static int test_update_proxy_info(connection_profile_h profile, connection_addre
 	return 1;
 }
 
+static int test_update_dns_info(connection_profile_h profile,
+				connection_address_family_e address_family)
+{
+	int rv = 0;
+	char input_str[100] = {0,};
+	if (test_get_user_string("Input DNS 1 Address - (Enter for skip) :",
+				 input_str, 100)) {
+		rv = connection_profile_set_dns_address(profile, 1,
+							address_family,
+							input_str);
+		if (rv != CONNECTION_ERROR_NONE)
+			return -1;
+
+		if (test_get_user_string("Input DNS 2 Address - (Enter for skip) :",
+					 input_str, 100)) {
+			rv = connection_profile_set_dns_address(profile, 2,
+								address_family,
+								input_str);
+			if (rv != CONNECTION_ERROR_NONE)
+				return -1;
+		}
+	}
+	return 1;
+}
+
 static int test_update_network_info(connection_profile_h profile)
 {
 	int rv = 0;
 	int input_int = 0;
-	int address_family = 0;
+	int dns_input = 0;
+	int address_family;
+	test_get_user_int("Input Address Family (0:IPv4 1:IPv6) :",
+			  &address_family);
 
-	test_get_user_int("Input Address Family (0:IPv4 1:IPv6) :", &address_family);
-
-	if (test_get_user_int("Input IPv4 Address Type (DHCP:1, Static:2)"
-				" - (Enter for skip) :", &input_int)) {
+	if (test_get_user_int("Input IPv4/IPv6 Address Type (DHCP:1, Static:2,"
+			      "Auto:3) - (Enter for skip) :", &input_int)) {
 		switch (input_int) {
 		case 1:
 			rv = connection_profile_set_ip_config_type(profile,
-								   address_family,
-								   CONNECTION_IP_CONFIG_TYPE_DYNAMIC);
+							address_family,
+							CONNECTION_IP_CONFIG_TYPE_DYNAMIC);
+			if (test_get_user_int("Input DNS Address Type "
+					      "(Static:1, DHCP:2)"
+					      " - (Enter for skip) :",
+					      &dns_input)) {
+				switch (dns_input) {
+				case CONNECTION_DNS_CONFIG_TYPE_STATIC:
+					rv = connection_profile_set_dns_config_type(
+								profile,
+								address_family,
+								CONNECTION_DNS_CONFIG_TYPE_STATIC);
+					if (rv != CONNECTION_ERROR_NONE)
+						return -1;
+					if (test_update_dns_info(profile, address_family)
+					    == -1)
+						return -1;
+					break;
+				case CONNECTION_DNS_CONFIG_TYPE_DYNAMIC:
+					rv = connection_profile_set_dns_config_type(
+								profile,
+								address_family,
+								CONNECTION_DNS_CONFIG_TYPE_DYNAMIC);
+					if (rv != CONNECTION_ERROR_NONE)
+						return -1;
+					break;
+				}
+			}
 			break;
 		case 2:
 			rv = connection_profile_set_ip_config_type(profile,
-								   address_family,
-								   CONNECTION_IP_CONFIG_TYPE_STATIC);
+							address_family,
+							CONNECTION_IP_CONFIG_TYPE_STATIC);
 			if (rv != CONNECTION_ERROR_NONE)
 				return -1;
 
 			if (test_update_ip_info(profile, address_family) == -1)
 				return -1;
 
+			connection_profile_set_dns_config_type(profile,
+							address_family,
+							CONNECTION_DNS_CONFIG_TYPE_STATIC);
+			if (rv != CONNECTION_ERROR_NONE)
+				return -1;
+
+			if (test_update_dns_info(profile, address_family) == -1)
+				return -1;
+
 			if (test_update_proxy_info(profile, address_family) == -1)
 				return -1;
+			break;
+		case 3:
+			rv = connection_profile_set_ip_config_type(profile,
+							address_family,
+							CONNECTION_IP_CONFIG_TYPE_AUTO);
+			if (test_get_user_int("Input DNS Address Type "
+					      "(Static:1, DHCP:2)"
+					      " - (Enter for skip) :",
+					      &dns_input)) {
+				switch (dns_input) {
+				case CONNECTION_DNS_CONFIG_TYPE_STATIC:
+					rv = connection_profile_set_dns_config_type(
+							profile,
+							address_family,
+							CONNECTION_DNS_CONFIG_TYPE_STATIC);
+					if (rv != CONNECTION_ERROR_NONE)
+						return -1;
+					if (test_update_dns_info(profile, address_family)
+					    == -1)
+						return -1;
+					break;
+				case CONNECTION_DNS_CONFIG_TYPE_DYNAMIC:
+					rv = connection_profile_set_dns_config_type(
+							profile,
+							address_family,
+							CONNECTION_DNS_CONFIG_TYPE_DYNAMIC);
+					if (rv != CONNECTION_ERROR_NONE)
+						return -1;
+				}
+			}
 			break;
 		default:
 			return -1;
@@ -815,6 +902,10 @@ static void test_print_network_info(connection_profile_h profile, connection_add
 	char *ip = NULL;
 	char *subnet = NULL;
 	char *gateway = NULL;
+#if defined TIZEN_TV
+	connection_dns_config_type_e dns_type;
+	unsigned char prefix_len = 0;
+#endif
 	char *dns1 = NULL;
 	char *dns2 = NULL;
 	connection_proxy_type_e proxy_type;
@@ -839,11 +930,22 @@ static void test_print_network_info(connection_profile_h profile, connection_add
 		g_free(ip);
 	}
 
-	if (connection_profile_get_subnet_mask(profile, address_family, &subnet) != CONNECTION_ERROR_NONE)
-		printf("Fail to get subnet mask!\n");
-	else {
-		printf("Subnet mask : %s\n", subnet);
-		g_free(subnet);
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4) {
+		if (connection_profile_get_subnet_mask(profile, address_family,
+			&subnet) != CONNECTION_ERROR_NONE)
+			printf("Fail to get subnet mask!\n");
+		else {
+			printf("Subnet mask : %s\n", subnet);
+			g_free(subnet);
+		}
+	} else {
+#if defined TIZEN_TV
+		if (connection_profile_get_prefix_length(profile, &prefix_len) !=
+		    CONNECTION_ERROR_NONE)
+			printf("Fail to get prefix length!\n");
+		else
+			printf("Prefix Length : %u\n", prefix_len);
+#endif
 	}
 
 	if (connection_profile_get_gateway_address(profile, address_family, &gateway) != CONNECTION_ERROR_NONE)
@@ -853,6 +955,19 @@ static void test_print_network_info(connection_profile_h profile, connection_add
 		g_free(gateway);
 	}
 
+#if defined TIZEN_TV
+	if (connection_profile_get_dns_config_type(profile, address_family,
+					&dns_type) != CONNECTION_ERROR_NONE)
+		printf("Fail to get DNS config type!\n");
+	else {
+		if(dns_type == CONNECTION_DNS_CONFIG_TYPE_STATIC)
+			printf("DNS config type : %s\n", "CONNECTION_DNS_CONFIG_TYPE_STATIC");
+		else if(dns_type == CONNECTION_DNS_CONFIG_TYPE_DYNAMIC)
+			printf("DNS config type : %s\n", "CONNECTION_DNS_CONFIG_TYPE_DYNAMIC");
+		else
+			printf("DNS config type : %d\n", dns_type);
+	}
+#endif
 	if (connection_profile_get_dns_address(profile, 1, address_family, &dns1) != CONNECTION_ERROR_NONE)
 		printf("Fail to get DNS1!\n");
 	else {
