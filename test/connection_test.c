@@ -350,28 +350,22 @@ static bool test_get_user_selected_profile(connection_profile_h *profile, bool s
 			return false;
 		}
 
-		if (profile_type == CONNECTION_PROFILE_TYPE_WIFI) {
-			char *essid;
-			connection_profile_get_wifi_essid(profile_h, &essid);
-			printf("%d. state:[%s], profile name:%s, essid:%s\n",
-				profile_count, test_print_state(profile_state),
-				profile_name, (essid) ? essid : "");
-			g_free(essid);
-
-			profile_list[profile_count] = profile_h;
-			profile_count++;
-		} else {
+		printf("%d. state:[%s], profile name:%s", profile_count,
+				test_print_state(profile_state), profile_name);
+		if (profile_type == CONNECTION_PROFILE_TYPE_CELLULAR) {
 			connection_cellular_service_type_e service_type;
-			if (connection_profile_get_cellular_service_type(profile_h, &service_type) != CONNECTION_ERROR_NONE)
+			if (connection_profile_get_cellular_service_type(
+				profile_h, &service_type) !=
+				CONNECTION_ERROR_NONE)
 				printf("Fail to get cellular service type!\n");
 
-			printf("%d. state:[%s], profile name:%s[%s]\n",
-				profile_count, test_print_state(profile_state),
-				profile_name, test_print_cellular_service_type(service_type));
-
-			profile_list[profile_count] = profile_h;
-			profile_count++;
+			printf("[%s]",
+				test_print_cellular_service_type(service_type));
 		}
+		printf("\n");
+
+		profile_list[profile_count] = profile_h;
+		profile_count++;
 
 		g_free(profile_name);
 		if (profile_count >= 100)
