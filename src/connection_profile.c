@@ -22,6 +22,9 @@
 #include <vconf/vconf.h>
 
 #include "net_connection_private.h"
+#if defined TIZEN_TV
+#include "connection_extension.h"
+#endif
 
 #define HTTP_PROXY "http_proxy"
 #define MAX_PREFIX_LENGTH 6
@@ -943,6 +946,8 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
 		return CONNECTION_ERROR_INVALID_PARAMETER;
 	}
+	CONNECTION_LOG(CONNECTION_ERROR, "[App-->TizenMW] Address family: %d,"
+		       "order: %d dns:%s\n", address_family, order, dns_address);
 
 	net_profile_info_t *profile_info = profile;
 	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
@@ -965,10 +970,22 @@ EXPORT_API int connection_profile_set_dns_address(connection_profile_h profile, 
 			net_info->DnsAddr[order-1].Data.Ipv4.s_addr = 0;
 		else if (inet_pton(AF_INET, dns_address, &(net_info->DnsAddr[order-1].Data.Ipv4)) < 1)
 			return CONNECTION_ERROR_INVALID_PARAMETER;
-		if (net_info->DnsCount < order)
-			net_info->DnsCount = order;
+		net_info->DnsCount = order;
 	}
-
+#if defined TIZEN_TV
+	/*
+ 	* If user sets the DNS address when DNS config type is 'dynamic',
+ 	* it should be changed to 'static' automatically for backward compatibility
+ 	* */
+	if ((net_info->DnsConfigType == NET_DNS_CONFIG_TYPE_DYNAMIC) &&
+		(address_family == CONNECTION_ADDRESS_FAMILY_IPV4)){
+		net_info->DnsConfigType = NET_DNS_CONFIG_TYPE_STATIC;
+	}
+	if ((net_info->DnsConfigType6== NET_DNS_CONFIG_TYPE_DYNAMIC) &&
+		(address_family == CONNECTION_ADDRESS_FAMILY_IPV6)){
+		net_info->DnsConfigType6 = NET_DNS_CONFIG_TYPE_STATIC;
+	}
+#endif
 	return CONNECTION_ERROR_NONE;
 }
 
@@ -1811,3 +1828,152 @@ EXPORT_API int connection_profile_set_cellular_roam_pdn_type(connection_profile_
 
 	return CONNECTION_ERROR_NONE;
 }
+
+#if defined TIZEN_TV
+EXPORT_API int connection_profile_get_dns_config_type(connection_profile_h
+			profile, connection_address_family_e address_family,
+			connection_dns_config_type_e* type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE,
+				TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
+	net_dns_config_type_t profileType;
+
+	if (!(_connection_libnet_check_profile_validity(profile)) ||
+	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
+	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6) ||
+	    type == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
+	if (net_info == NULL) {
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	if (address_family == CONNECTION_ADDRESS_FAMILY_IPV4)
+		profileType = net_info->DnsConfigType ;
+	else
+		profileType = net_info->DnsConfigType6 ;
+
+	switch (profileType) {
+	case NET_DNS_CONFIG_TYPE_STATIC:
+		*type = CONNECTION_DNS_CONFIG_TYPE_STATIC;
+		break;
+	case NET_DNS_CONFIG_TYPE_DYNAMIC:
+		*type = CONNECTION_DNS_CONFIG_TYPE_DYNAMIC;
+		break;
+	default:
+		return CONNECTION_ERROR_OPERATION_FAILED;
+	}
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_set_dns_config_type(connection_profile_h profile,
+					connection_address_family_e address_family,
+					connection_dns_config_type_e type)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE,
+				TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
+
+	net_dns_config_type_t *profileType = NULL;
+	net_dns_config_type_t *profileType6 = NULL;
+
+	if (!(_connection_libnet_check_profile_validity(profile)) ||
+	    (address_family != CONNECTION_ADDRESS_FAMILY_IPV4 &&
+	     address_family != CONNECTION_ADDRESS_FAMILY_IPV6)) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Invalid parameter");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	CONNECTION_LOG(CONNECTION_ERROR, "[App-->TizenMW] Address family: %d, type: %d\n",
+		       address_family, type);
+
+	net_profile_info_t *profile_info = profile;
+	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
+	if (net_info == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	/*
+	 * Currently Connman doesn't support mix DNS Config Type. So both
+	 * IPv4 and IPv6 Network should have same DNS Config Type
+	 */
+	profileType = &net_info->DnsConfigType ;
+	profileType6 = &net_info->DnsConfigType6;
+	switch (type) {
+	case CONNECTION_DNS_CONFIG_TYPE_STATIC:
+		*profileType = NET_DNS_CONFIG_TYPE_STATIC;
+		*profileType6 = NET_DNS_CONFIG_TYPE_STATIC;
+		break;
+	case CONNECTION_DNS_CONFIG_TYPE_DYNAMIC:
+		*profileType = NET_DNS_CONFIG_TYPE_DYNAMIC;
+		*profileType6 = NET_DNS_CONFIG_TYPE_DYNAMIC;
+		if(address_family == CONNECTION_ADDRESS_FAMILY_IPV4){
+			net_info->DnsAddr[0].Data.Ipv4.s_addr = 0;
+			net_info->DnsAddr[1].Data.Ipv4.s_addr = 0;
+		}
+		else {
+			inet_pton(AF_INET6, "::", &net_info->DnsAddr6[0].
+				  Data.Ipv6);
+			inet_pton(AF_INET6, "::", &net_info->DnsAddr6[1].
+				  Data.Ipv6);
+		}
+		break;
+	default:
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_get_prefix_length(connection_profile_h profile,
+						unsigned char *prefix_length)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE,
+				TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile)) ||
+	    prefix_length == NULL) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	net_profile_info_t *profile_info = profile;
+	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
+	if (net_info == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	*prefix_length =  net_info->PrefixLen6;
+
+	return CONNECTION_ERROR_NONE;
+}
+
+EXPORT_API int connection_profile_set_prefix_length(connection_profile_h profile,
+						    unsigned char prefix_length)
+{
+	CHECK_FEATURE_SUPPORTED(TELEPHONY_FEATURE, WIFI_FEATURE,
+				TETHERING_BLUETOOTH_FEATURE, ETHERNET_FEATURE);
+
+	if (!(_connection_libnet_check_profile_validity(profile))) {
+		CONNECTION_LOG(CONNECTION_ERROR, "Wrong Parameter Passed\n");
+		return CONNECTION_ERROR_INVALID_PARAMETER;
+	}
+
+	CONNECTION_LOG(CONNECTION_INFO, "Prefix_length: %d", prefix_length);
+
+	net_profile_info_t *profile_info = profile;
+	net_dev_info_t *net_info = __profile_get_net_info(profile_info);
+	if (net_info == NULL)
+		return CONNECTION_ERROR_OPERATION_FAILED;
+
+	net_info->PrefixLen6 = prefix_length;
+
+	return CONNECTION_ERROR_NONE;
+}
+#endif /* TIZEN_TV */
+
+
