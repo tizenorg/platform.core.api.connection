@@ -9,7 +9,13 @@ SET(LIB ${LIB_PATH})
 SET(LIBDIR ${PREFIX}/${LIB_PATH})
 
 SET(INC_DIR include)
+IF(TIZEN_TV)
 INCLUDE_DIRECTORIES(${INC_DIR})
+INCLUDE_DIRECTORIES(${INC_DIR}/tv)
+ELSE ()
+INCLUDE_DIRECTORIES(${INC_DIR})
+INCLUDE_DIRECTORIES(${INC_DIR}/common)
+ENDIF(TIZEN_TV)
 
 SET(dependents "dlog vconf capi-base-common glib-2.0 network capi-system-info")
 SET(pc_dependents "capi-base-common")
@@ -65,6 +71,20 @@ INSTALL(
         PATTERN "*_private.h" EXCLUDE
         PATTERN "${INC_DIR}/*.h"
         )
+
+IF (TIZEN_TV)
+INSTALL(
+        DIRECTORY ${INC_DIR}/tv/ DESTINATION include/network
+        FILES_MATCHING
+        PATTERN "${INC_DIR}/tv/*.h"
+        )
+ELSE ()
+INSTALL(
+        DIRECTORY ${INC_DIR}/common/ DESTINATION include/network
+        FILES_MATCHING
+        PATTERN "${INC_DIR}/common/*.h"
+        )
+ENDIF(TIZEN_TV)
 
 SET(PC_NAME ${fw_name})
 SET(PC_REQUIRED ${pc_dependents})
